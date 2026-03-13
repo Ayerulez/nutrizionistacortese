@@ -1303,3 +1303,244 @@ p:last-child { margin-bottom: 0; }
     grid-template-columns: 1.8fr 1fr 1fr 1.3fr 1fr;
   }
 }
+
+/* =========================================================================
+   HERO — Logo grande centrato (versione redesign)
+   ========================================================================= */
+.hero__logo-display {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+.hero__logo-img {
+  height: 160px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(37,30,22,0.10));
+  animation: logoFloat 6s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* Hero layout alternativo: testo centrato, foto destra */
+.hero__inner--split {
+  grid-template-columns: 1.1fr 1fr;
+  gap: 4rem;
+}
+
+/* =========================================================================
+   BADGE ECCELLENZA
+   ========================================================================= */
+.excellence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #fffbf0 0%, #fff8e6 100%);
+  border: 1.5px solid var(--gold-300);
+  border-radius: var(--r-full);
+  padding: 0.55rem 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--gold-400);
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 12px rgba(212,168,83,0.18);
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+.excellence-badge__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.excellence-badge__text strong {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--stone-800);
+}
+.excellence-badge__text span {
+  font-size: 0.7rem;
+  color: var(--gold-400);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Badge nella hero visuale (sovrapposto al frame) */
+.hero__excellence {
+  position: absolute;
+  top: 1.5rem;
+  left: -2rem;
+  background: white;
+  border: 1.5px solid var(--gold-300);
+  border-radius: var(--r-lg);
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  box-shadow: var(--shadow-lg);
+  animation: floatY 5s ease-in-out infinite;
+  animation-delay: -1.5s;
+  min-width: 175px;
+}
+.hero__excellence-star { font-size: 1.4rem; flex-shrink: 0; }
+.hero__excellence-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold-400);
+  display: block;
+  line-height: 1.2;
+}
+.hero__excellence-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+/* Trust bar stat item */
+.hero__trust-item { display: flex; flex-direction: column; }
+
+/* =========================================================================
+   SEZIONE ABOUT — solo testo quando immagine nascosta
+   ========================================================================= */
+@media (max-width: 920px) {
+  .about__grid { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   HERO responsive fix logo
+   ========================================================================= */
+@media (max-width: 640px) {
+  .hero__logo-img { height: 110px; }
+  .hero__excellence { display: none; }
+}
+
+/* =========================================================================
+   HERO — Logo display (sostituisce frame foto nella hero)
+   ========================================================================= */
+
+/* Il visual lato destro ora mostra il logo grande, non la foto */
+.hero__visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__logo-display {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Cerchio decorativo dietro il logo */
+.hero__logo-display::before {
+  content: '';
+  position: absolute;
+  width: 85%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sage-100) 0%, var(--beige-100) 60%, transparent 100%);
+  z-index: 0;
+}
+
+.hero__logo-img {
+  position: relative;
+  z-index: 1;
+  width: 78%;
+  max-width: 320px;
+  height: auto;
+  filter: drop-shadow(0 12px 32px rgba(37,30,22,0.12));
+  animation: logoFloat 7s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-10px) scale(1.015); }
+}
+
+/* Badge eccellenza sovrapposto in basso a sinistra del logo */
+.hero__excellence {
+  position: absolute;
+  bottom: -1rem;
+  left: -1.5rem;
+  background: var(--white);
+  border: 1.5px solid var(--gold-300);
+  border-radius: var(--r-lg);
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  box-shadow: 0 8px 30px rgba(212,168,83,0.18), var(--shadow-md);
+  animation: floatY 5s ease-in-out infinite;
+  animation-delay: -1.5s;
+  min-width: 180px;
+  z-index: 2;
+}
+.hero__excellence-star { font-size: 1.3rem; flex-shrink: 0; }
+.hero__excellence-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gold-400);
+  display: block;
+  line-height: 1.2;
+}
+.hero__excellence-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Excellence badge inline (nella trust bar) */
+.excellence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #fffbf0 0%, #fff6e0 100%);
+  border: 1.5px solid var(--gold-300);
+  border-radius: var(--r-full);
+  padding: 0.6rem 1.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--stone-800);
+  box-shadow: 0 2px 14px rgba(212,168,83,0.16);
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+.excellence-badge__icon { font-size: 1.1rem; flex-shrink: 0; }
+.excellence-badge__text strong {
+  display: block;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--stone-800);
+  line-height: 1.2;
+}
+.excellence-badge__text span {
+  font-size: 0.7rem;
+  color: var(--gold-400);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Hero trust item */
+.hero__trust-item { display: flex; flex-direction: column; }
+
+/* =========================================================================
+   RESPONSIVE hero logo
+   ========================================================================= */
+@media (max-width: 920px) {
+  .hero__logo-img { width: 60%; max-width: 240px; }
+  .hero__logo-display { max-width: 300px; }
+  .hero__excellence { left: 0; bottom: -0.5rem; min-width: 160px; }
+}
+@media (max-width: 640px) {
+  .hero__logo-img { width: 70%; max-width: 200px; }
+  .hero__excellence { display: none; }
+  .excellence-badge { font-size: 0.74rem; padding: 0.5rem 1rem; }
+}

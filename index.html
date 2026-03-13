@@ -57,8 +57,9 @@
 <header class="header" id="header">
   <div class="container">
     <div class="header__inner">
-      <a href="index.html" class="logo logo--img" aria-label="Home — Dott.ssa Giulia Cortese Nutrizionista">
-        <img src="images/logo.png" alt="Dott.ssa Giulia Cortese – Biologa Nutrizionista" class="logo__img" />
+      <a href="index.html" class="logo" aria-label="Home">
+        <span class="logo__name">Dott.ssa Giulia Cortese</span>
+        <span class="logo__role">Biologa Nutrizionista &amp; Erborista</span>
       </a>
       <nav class="nav" aria-label="Principale">
         <a href="index.html"    class="nav__link">Home</a>
@@ -117,43 +118,41 @@
           <a href="servizi.html"  class="btn btn--outline">Scopri i Servizi</a>
         </div>
 
+        <!-- Badge eccellenza visibile -->
+        <div class="excellence-badge reveal">
+          <span class="excellence-badge__icon" aria-hidden="true">🏆</span>
+          <div class="excellence-badge__text">
+            <strong>Certificato Best Quality 2025</strong>
+            <span>MioDottore — Eccellenza verificata</span>
+          </div>
+        </div>
+
         <div class="hero__trust">
-          <div>
+          <div class="hero__trust-item">
             <span class="hero__trust-number" data-counter="89" data-suffix="">89</span>
             <span class="hero__trust-label">Recensioni verificate</span>
           </div>
           <div class="hero__trust-divider" aria-hidden="true"></div>
-          <div>
+          <div class="hero__trust-item">
             <span class="hero__trust-number" data-counter="9" data-suffix=".8">9.8</span>
-            <span class="hero__trust-label">Punteggio MioDottore</span>
-          </div>
-          <div class="hero__trust-divider" aria-hidden="true"></div>
-          <div>
-            <span class="hero__trust-number" data-counter="2" data-suffix="">2</span>
-            <span class="hero__trust-label">Studi a Cantù</span>
+            <span class="hero__trust-label">Punteggio su 10</span>
           </div>
         </div>
       </div>
 
-      <!-- Visual -->
+      <!-- Visual: logo grande animato -->
       <div class="hero__visual">
-        <div class="hero__ring" aria-hidden="true"></div>
-        <div class="hero__frame">
-          <img src="images/dottoressa-hero.jpg" alt="Dott.ssa Giulia Cortese, Biologa Nutrizionista a Cantù" loading="eager" />
+        <div class="hero__logo-display">
+          <img src="images/logo.png" alt="Logo Dott.ssa Giulia Cortese" class="hero__logo-img" />
         </div>
 
-        <div class="hero__float hero__float--1">
-          <span class="hero__float-icon" aria-hidden="true">🎓</span>
+        <!-- Badge eccellenza sovrapposto -->
+        <div class="hero__excellence" aria-label="Certificato Best Quality 2025">
+          <span class="hero__excellence-star" aria-hidden="true">🏆</span>
           <div>
-            <div class="hero__float-title">Laurea in Biologia</div>
-            <div class="hero__float-sub">Specialista Alimentazione</div>
+            <span class="hero__excellence-title">Best Quality 2025</span>
+            <span class="hero__excellence-sub">Certificato MioDottore</span>
           </div>
-        </div>
-
-        <div class="hero__float hero__float--2">
-          <div class="hero__float-icon" aria-hidden="true">🌱</div>
-          <div class="hero__float-title">Fitoterapia</div>
-          <div class="hero__float-sub">Certificata</div>
         </div>
       </div>
 
