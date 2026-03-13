@@ -1,205 +1,172 @@
 /**
- * nutrizionistacortese.it — Vanilla JS
- * Funzionalità: sticky header, menu mobile, scroll reveal, form, back-to-top
+ * nutrizionistacortese.it — Vanilla JS v2
+ * Header sticky · Menu mobile · Scroll reveal · Counter · Form · Back-to-top
  */
-
 (function () {
   'use strict';
 
   /* -----------------------------------------------------------------------
-     1. Sticky Header — aggiunge classe .scrolled oltre 40px di scroll
-     --------------------------------------------------------------------- */
+     1. Sticky header
+  ----------------------------------------------------------------------- */
   const header = document.querySelector('.header');
-
-  function handleHeaderScroll() {
-    if (!header) return;
-    header.classList.toggle('scrolled', window.scrollY > 40);
-  }
-
-  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
-  handleHeaderScroll(); // trigger all'avvio
+  const onScroll = () => {
+    if (header) header.classList.toggle('scrolled', window.scrollY > 40);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
   /* -----------------------------------------------------------------------
-     2. Menu mobile hamburger
-     --------------------------------------------------------------------- */
-  const hamburger   = document.querySelector('.hamburger');
-  const mobileMenu  = document.querySelector('.mobile-menu');
-  const mobileLinks = document.querySelectorAll('.mobile-menu__link');
+     2. Mobile menu
+  ----------------------------------------------------------------------- */
+  const hamburger  = document.querySelector('.hamburger');
+  const mobileMenu = document.querySelector('.mobile-menu');
 
   function closeMobileMenu() {
-    if (!hamburger || !mobileMenu) return;
-    hamburger.classList.remove('open');
-    mobileMenu.classList.remove('open');
+    hamburger?.classList.remove('open');
+    mobileMenu?.classList.remove('open');
     document.body.style.overflow = '';
   }
 
   if (hamburger && mobileMenu) {
     hamburger.addEventListener('click', () => {
-      const isOpen = hamburger.classList.toggle('open');
-      mobileMenu.classList.toggle('open', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+      const open = hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+      hamburger.setAttribute('aria-expanded', open);
     });
-
-    // Chiudi cliccando su un link
-    mobileLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
-
-    // Chiudi cliccando fuori
-    document.addEventListener('click', (e) => {
-      if (!header.contains(e.target) && !mobileMenu.contains(e.target)) {
-        closeMobileMenu();
-      }
+    document.querySelectorAll('.mobile-menu__link').forEach(l => l.addEventListener('click', closeMobileMenu));
+    document.addEventListener('click', e => {
+      if (!header?.contains(e.target) && !mobileMenu.contains(e.target)) closeMobileMenu();
     });
   }
 
   /* -----------------------------------------------------------------------
-     3. Active nav link — in base alla pagina corrente
-     --------------------------------------------------------------------- */
-  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-  const navLinks = document.querySelectorAll('.nav__link, .mobile-menu__link');
-
-  navLinks.forEach(link => {
+     3. Active nav link
+  ----------------------------------------------------------------------- */
+  const page = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav__link, .mobile-menu__link').forEach(link => {
     const href = link.getAttribute('href');
-    if (href === currentPath || (currentPath === '' && href === 'index.html')) {
-      link.classList.add('active');
-    }
+    if (href === page || (page === '' && href === 'index.html')) link.classList.add('active');
   });
 
   /* -----------------------------------------------------------------------
-     4. Scroll Reveal — Intersection Observer
-     --------------------------------------------------------------------- */
-  const revealElements = document.querySelectorAll('.reveal');
-
-  if (revealElements.length > 0) {
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-    );
-
-    revealElements.forEach(el => revealObserver.observe(el));
+     4. Scroll reveal (IntersectionObserver)
+  ----------------------------------------------------------------------- */
+  const revealEls = document.querySelectorAll('.reveal');
+  if (revealEls.length) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+    revealEls.forEach(el => io.observe(el));
   }
 
   /* -----------------------------------------------------------------------
-     5. Back to top
-     --------------------------------------------------------------------- */
-  const backToTop = document.querySelector('.back-to-top');
+     5. Animated counters
+  ----------------------------------------------------------------------- */
+  function animateCount(el, target, duration = 1600) {
+    const start = performance.now();
+    const suffix = el.dataset.suffix || '';
+    const step = now => {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(p * target) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
 
-  if (backToTop) {
-    window.addEventListener('scroll', () => {
-      backToTop.classList.toggle('visible', window.scrollY > 400);
-    }, { passive: true });
+  const counterEls = document.querySelectorAll('[data-counter]');
+  if (counterEls.length) {
+    const cio = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCount(e.target, parseInt(e.target.dataset.counter, 10));
+          cio.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    counterEls.forEach(el => cio.observe(el));
+  }
 
-    backToTop.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  /* -----------------------------------------------------------------------
+     6. Back to top
+  ----------------------------------------------------------------------- */
+  const btt = document.querySelector('.back-to-top');
+  if (btt) {
+    window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  /* -----------------------------------------------------------------------
+     7. Smooth anchor scroll
+  ----------------------------------------------------------------------- */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+        closeMobileMenu();
+      }
     });
-  }
+  });
 
   /* -----------------------------------------------------------------------
-     6. Contatto Form — validazione frontend + feedback visivo
-     --------------------------------------------------------------------- */
-  const contactForm = document.querySelector('#contact-form');
+     8. Contact form — validation + feedback
+  ----------------------------------------------------------------------- */
+  const form = document.querySelector('#contact-form');
+  if (form) {
+    const status = form.querySelector('.form-status');
 
-  if (contactForm) {
-    const statusEl = contactForm.querySelector('.form-status');
-
-    function showStatus(type, message) {
-      if (!statusEl) return;
-      statusEl.className = 'form-status ' + type;
-      statusEl.textContent = message;
-      statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function showStatus(type, msg) {
+      if (!status) return;
+      status.className = 'form-status ' + type;
+      status.textContent = msg;
+      status.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function validateEmail(email) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function validatePhone(phone) {
-      return phone === '' || /^[\d\s\+\-\(\)]{6,20}$/.test(phone);
-    }
-
-    contactForm.addEventListener('submit', function (e) {
+    form.addEventListener('submit', e => {
       e.preventDefault();
+      const nome     = form.querySelector('#nome')?.value.trim()     || '';
+      const email    = form.querySelector('#email')?.value.trim()    || '';
+      const telefono = form.querySelector('#telefono')?.value.trim() || '';
+      const messaggio= form.querySelector('#messaggio')?.value.trim()|| '';
+      const privacy  = form.querySelector('#privacy')?.checked       || false;
 
-      // Raccogli dati
-      const nome    = contactForm.querySelector('#nome')?.value.trim()    || '';
-      const cognome = contactForm.querySelector('#cognome')?.value.trim() || '';
-      const email   = contactForm.querySelector('#email')?.value.trim()   || '';
-      const telefono= contactForm.querySelector('#telefono')?.value.trim()|| '';
-      const servizio= contactForm.querySelector('#servizio')?.value       || '';
-      const messaggio= contactForm.querySelector('#messaggio')?.value.trim()|| '';
-      const privacy = contactForm.querySelector('#privacy')?.checked      || false;
+      if (!nome)                                 return showStatus('error', 'Inserisci il tuo nome.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showStatus('error', 'Email non valida.');
+      if (telefono && !/^[\d\s\+\-\(\)]{6,20}$/.test(telefono)) return showStatus('error', 'Numero di telefono non valido.');
+      if (!messaggio)                            return showStatus('error', 'Scrivi un breve messaggio.');
+      if (!privacy)                              return showStatus('error', 'Accetta la Privacy Policy per procedere.');
 
-      // Validazione
-      if (!nome) { showStatus('error', 'Inserisci il tuo nome.'); return; }
-      if (!email || !validateEmail(email)) { showStatus('error', 'Inserisci un indirizzo email valido.'); return; }
-      if (!validatePhone(telefono)) { showStatus('error', 'Il numero di telefono non è valido.'); return; }
-      if (!messaggio) { showStatus('error', 'Scrivi un messaggio.'); return; }
-      if (!privacy) { showStatus('error', 'Devi accettare la Privacy Policy per procedere.'); return; }
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.textContent = 'Invio in corso…'; }
 
-      // Simula invio (sostituire con fetch a un endpoint reale, Formspree, ecc.)
-      const submitBtn = contactForm.querySelector('button[type="submit"]');
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Invio in corso...'; }
-
+      // Simulazione invio — sostituire con fetch a Formspree/Netlify/EmailJS
       setTimeout(() => {
-        showStatus('success', '✓ Messaggio inviato con successo! Ti risponderò al più presto.');
-        contactForm.reset();
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Invia Messaggio'; }
+        showStatus('success', '✓ Messaggio inviato! Ti risponderò entro 24 ore lavorative.');
+        form.reset();
+        if (btn) { btn.disabled = false; btn.textContent = 'Invia Messaggio'; }
       }, 1200);
     });
   }
 
   /* -----------------------------------------------------------------------
-     7. Smooth scroll per anchor link interni
-     --------------------------------------------------------------------- */
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        const offset = 80; // altezza header
-        const top = target.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top, behavior: 'smooth' });
-        closeMobileMenu();
-      }
+     9. Micro-interaction: card tilt on mousemove (desktop only)
+  ----------------------------------------------------------------------- */
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.querySelectorAll('.svc-card, .review-card, .step-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width  - 0.5;
+        const y = (e.clientY - rect.top)  / rect.height - 0.5;
+        card.style.transform = `translateY(-6px) rotateX(${-y * 4}deg) rotateY(${x * 4}deg)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
     });
-  });
-
-  /* -----------------------------------------------------------------------
-     8. Counters animati nella hero (opzionale, attivati quando visibili)
-     --------------------------------------------------------------------- */
-  function animateCounter(el, target, duration) {
-    const start = performance.now();
-    const step = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const value = Math.round(progress * target);
-      el.textContent = value + (el.dataset.suffix || '');
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  const counters = document.querySelectorAll('[data-counter]');
-  if (counters.length > 0) {
-    const counterObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const el = entry.target;
-            animateCounter(el, parseInt(el.dataset.counter, 10), 1600);
-            counterObserver.unobserve(el);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach(el => counterObserver.observe(el));
   }
 
 })();
