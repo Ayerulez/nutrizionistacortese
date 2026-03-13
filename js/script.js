@@ -170,3 +170,26 @@
   }
 
 })();
+
+/* -----------------------------------------------------------------------
+   Cookie Banner
+----------------------------------------------------------------------- */
+(function cookieBanner() {
+  const COOKIE_KEY = 'nc_cookie_consent';
+  if (localStorage.getItem(COOKIE_KEY)) return; // già scelto
+
+  const banner = document.querySelector('.cookie-banner');
+  if (!banner) return;
+
+  // Mostra dopo 800ms per non disturbare il caricamento
+  setTimeout(() => banner.classList.add('visible'), 800);
+
+  function dismiss(accepted) {
+    localStorage.setItem(COOKIE_KEY, accepted ? 'accepted' : 'rejected');
+    banner.classList.remove('visible');
+    setTimeout(() => banner.remove(), 500);
+  }
+
+  banner.querySelector('.cookie-btn--accept')?.addEventListener('click', () => dismiss(true));
+  banner.querySelector('.cookie-btn--reject')?.addEventListener('click', () => dismiss(false));
+})();
