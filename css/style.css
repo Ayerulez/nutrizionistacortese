@@ -1317,7 +1317,6 @@ p:last-child { margin-bottom: 0; }
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 8px 24px rgba(37,30,22,0.10));
-  animation: logoFloat 6s ease-in-out infinite;
 }
 @keyframes logoFloat {
   0%,100% { transform: translateY(0); }
