@@ -1254,3 +1254,52 @@ p:last-child { margin-bottom: 0; }
   .cookie-banner { padding: 1.25rem; gap: 1rem; }
   .cookie-banner__actions { width: 100%; justify-content: flex-end; }
 }
+
+/* =========================================================================
+   LOGO con immagine
+   ========================================================================= */
+.logo--img { line-height: 1; }
+
+.logo__img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  /* mix-blend-mode per far sparire sfondo bianco residuo su sfondi chiari */
+  mix-blend-mode: multiply;
+}
+/* Su footer scuro il multiply non funziona — usa un logo chiaro o filtro */
+.logo__img--footer {
+  mix-blend-mode: normal;
+  filter: brightness(0) invert(1);   /* logo bianco sul footer scuro */
+  height: 44px;
+  opacity: 0.85;
+}
+
+/* =========================================================================
+   SOCIAL footer
+   ========================================================================= */
+.footer__social {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.footer__social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.87rem;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s;
+}
+.footer__social-link:hover { color: var(--sage-300); }
+.footer__social-link svg { flex-shrink: 0; }
+
+/* =========================================================================
+   Footer grid — 5 colonne con social
+   ========================================================================= */
+@media (min-width: 921px) {
+  .footer__grid {
+    grid-template-columns: 1.8fr 1fr 1fr 1.3fr 1fr;
+  }
+}
