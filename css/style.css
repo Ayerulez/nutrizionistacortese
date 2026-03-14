@@ -1317,6 +1317,7 @@ p:last-child { margin-bottom: 0; }
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 8px 24px rgba(37,30,22,0.10));
+  animation: logoFloat 6s ease-in-out infinite;
 }
 @keyframes logoFloat {
   0%,100% { transform: translateY(0); }
@@ -1542,4 +1543,103 @@ p:last-child { margin-bottom: 0; }
   .hero__logo-img { width: 70%; max-width: 200px; }
   .hero__excellence { display: none; }
   .excellence-badge { font-size: 0.74rem; padding: 0.5rem 1rem; }
+}
+
+/* =========================================================================
+   HERO DUO — logo + foto affiancati
+   ========================================================================= */
+.hero__duo {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.hero__duo-logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46%;
+}
+
+.hero__duo-logo .hero__logo-img {
+  width: 100%;
+  max-width: 220px;
+  animation: logoFloat 7s ease-in-out infinite;
+}
+
+.hero__duo-photo {
+  flex: 0 0 auto;
+  width: 54%;
+  border-radius: var(--r-2xl) var(--r-2xl) var(--r-xl) var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  aspect-ratio: 3/4;
+  position: relative;
+}
+
+.hero__duo-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+/* Badge eccellenza riposizionato per il duo */
+.hero__visual .hero__excellence {
+  position: absolute;
+  bottom: 1.5rem;
+  left: -1rem;
+  z-index: 3;
+}
+
+/* =========================================================================
+   HEADER MOBILE — logo role nascosto su schermi piccoli
+   ========================================================================= */
+.logo__role--desktop {
+  /* visibile di default su desktop */
+}
+@media (max-width: 640px) {
+  .logo__role--desktop {
+    display: none;
+  }
+  /* nome anche più compatto se necessario */
+  .logo__name {
+    font-size: 1rem;
+  }
+}
+
+/* =========================================================================
+   HERO DUO — responsive
+   ========================================================================= */
+@media (max-width: 920px) {
+  .hero__duo {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .hero__duo-logo {
+    width: 60%;
+    order: 1;
+  }
+  .hero__duo-photo {
+    width: 70%;
+    max-width: 280px;
+    order: 2;
+    aspect-ratio: 3/4;
+  }
+  .hero__visual .hero__excellence {
+    bottom: 0.5rem;
+    left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero__duo-logo { width: 55%; }
+  .hero__duo-photo { width: 65%; max-width: 220px; }
+  .hero__visual .hero__excellence { display: none; }
 }
