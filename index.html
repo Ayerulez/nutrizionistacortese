@@ -48,6 +48,50 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Override layout hero: forza 2 colonne affiancate, no wrap -->
+  <style>
+    /* Blocco singolo, massima specificità, sovrascrive tutto il CSS accumulato */
+    section.hero .hero__inner {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      grid-template-rows: auto !important;
+      align-items: center !important;
+      gap: 4rem !important;
+      flex-direction: unset !important;
+    }
+    section.hero .hero__text {
+      order: 0 !important;
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+    }
+    section.hero .hero__visual {
+      order: 0 !important;
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: row !important;
+    }
+    section.hero .hero__logo-plain {
+      width: 100% !important;
+      max-width: 420px !important;
+      height: auto !important;
+      display: block !important;
+    }
+    /* Mobile: colonna verticale */
+    @media (max-width: 768px) {
+      section.hero .hero__inner {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+      }
+      section.hero .hero__text  { grid-column: 1 !important; grid-row: 2 !important; }
+      section.hero .hero__visual { grid-column: 1 !important; grid-row: 1 !important; }
+      section.hero .hero__logo-plain { max-width: 220px !important; margin-inline: auto !important; }
+    }
+  </style>
+
 </head>
 <body>
 
