@@ -174,8 +174,8 @@
 /* -----------------------------------------------------------------------
    Cookie Banner
 ----------------------------------------------------------------------- */
-(function cookieBanner() {
-  const COOKIE_KEY = 'nc_cookie_consent';
+document.addEventListener('DOMContentLoaded', function() { (function cookieBanner() {
+  const COOKIE_KEY = 'nc_cookie_v2';
   if (localStorage.getItem(COOKIE_KEY)) return; // già scelto
 
   const banner = document.querySelector('.cookie-banner');
@@ -192,4 +192,5 @@
 
   banner.querySelector('.cookie-btn--accept')?.addEventListener('click', () => dismiss(true));
   banner.querySelector('.cookie-btn--reject')?.addEventListener('click', () => dismiss(false));
-})();
+  })();
+});

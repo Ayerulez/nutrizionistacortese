@@ -1858,3 +1858,64 @@ p:last-child { margin-bottom: 0; }
   }
   .hero__band-logo { width: 68%; }
 }
+
+/* =========================================================================
+   HERO LOGO PLAIN — logo semplice, grande, affiancato al testo
+   Niente banda, niente pattern, nessun fronzolo
+   ========================================================================= */
+
+/* Reset tutti gli stili precedenti della banda */
+.hero__logo-band,
+.hero__duo,
+.hero__duo-logo,
+.hero__duo-photo { display: none !important; }
+
+/* Logo plain */
+.hero__logo-plain {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  /* Animazione morbida */
+  animation: logoFloat 7s ease-in-out infinite;
+  /* Ombra delicata per dare profondità senza sfondo */
+  filter: drop-shadow(0 12px 36px rgba(90,130,96,0.15));
+}
+
+/* Il contenitore visual non ha position assoluta né min-height */
+.hero__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Garantisce che hero__inner stia su una riga sola su desktop */
+.hero__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 4rem;
+  /* NO flex-wrap, NO column su desktop */
+}
+
+/* Mobile: colonna, logo sopra il testo */
+@media (max-width: 920px) {
+  .hero__inner {
+    grid-template-columns: 1fr;
+  }
+  .hero__visual {
+    order: -1; /* logo prima del testo su mobile */
+  }
+  .hero__logo-plain {
+    max-width: 260px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero__logo-plain {
+    max-width: 200px;
+  }
+}
