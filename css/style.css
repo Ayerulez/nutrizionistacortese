@@ -1643,3 +1643,123 @@ p:last-child { margin-bottom: 0; }
   .hero__duo-photo { width: 65%; max-width: 220px; }
   .hero__visual .hero__excellence { display: none; }
 }
+
+/* =========================================================================
+   HERO LOGO BAND — banda verticale con logo protagonista
+   Ispira a luxury wellness: sfondo crema con pattern botanico SVG,
+   angoli arrotondati, ombra morbida, logo centrato e galleggiante
+   ========================================================================= */
+
+.hero__visual {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.hero__logo-band {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  min-height: 520px;
+  border-radius: var(--r-2xl) var(--r-2xl) 120px var(--r-2xl);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Sfondo: gradiente caldo con pattern foglie SVG inline */
+  background-color: var(--beige-100);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(212,232,212,0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(226,211,187,0.45) 0%, transparent 55%),
+    url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.07' fill='%23729e72'%3E%3Cellipse cx='30' cy='30' rx='12' ry='20' transform='rotate(-20 30 30)'/%3E%3Cellipse cx='90' cy='20' rx='8' ry='15' transform='rotate(15 90 20)'/%3E%3Cellipse cx='20' cy='90' rx='10' ry='18' transform='rotate(10 20 90)'/%3E%3Cellipse cx='95' cy='85' rx='7' ry='13' transform='rotate(-30 95 85)'/%3E%3Cellipse cx='60' cy='60' rx='6' ry='11' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: auto, auto, 120px 120px;
+
+  box-shadow:
+    var(--shadow-xl),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+
+  /* Bordo sottile */
+  border: 1px solid rgba(226,211,187,0.6);
+}
+
+/* Striscia dorata decorativa in cima */
+.hero__logo-band::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--gold-300), transparent);
+  opacity: 0.6;
+}
+
+/* Cerchio interno luminoso dietro il logo */
+.hero__logo-band::after {
+  content: '';
+  position: absolute;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.65) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero__band-logo {
+  position: relative;
+  z-index: 1;
+  width: 72%;
+  max-width: 280px;
+  height: auto;
+  filter: drop-shadow(0 16px 40px rgba(90,130,96,0.18));
+  animation: logoFloat 7s ease-in-out infinite;
+}
+
+/* Badge eccellenza sovrapposto in basso a sinistra della banda */
+.hero__logo-band .hero__excellence {
+  position: absolute;
+  bottom: 2rem;
+  left: -1.5rem;
+  z-index: 2;
+}
+
+/* =========================================================================
+   Rimuovi stili vecchi duo che non servono più
+   ========================================================================= */
+.hero__duo,
+.hero__duo-logo,
+.hero__duo-photo,
+.hero__logo-display,
+.hero__logo-img { /* svuota, non usato */ }
+
+/* =========================================================================
+   HEADER — solo nome su mobile (nascondi sottotitolo)
+   ========================================================================= */
+.logo__role--desktop {
+  display: block;
+}
+@media (max-width: 640px) {
+  .logo__role--desktop { display: none; }
+  .logo__name { font-size: 1rem; letter-spacing: -0.01em; }
+}
+
+/* Responsive banda logo */
+@media (max-width: 920px) {
+  .hero__logo-band {
+    max-width: 320px;
+    min-height: 360px;
+    margin-inline: auto;
+    border-radius: var(--r-xl) var(--r-xl) 80px var(--r-xl);
+  }
+  .hero__band-logo { width: 68%; }
+}
+
+@media (max-width: 640px) {
+  .hero__logo-band {
+    max-width: 280px;
+    min-height: 300px;
+    border-radius: var(--r-xl);
+  }
+  .hero__band-logo { width: 65%; }
+  .hero__logo-band .hero__excellence { display: none; }
+}

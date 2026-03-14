@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimi sui Social – Dott.ssa Giulia Cortese Nutrizionista</title>
+  <meta name="description" content="Segui i consigli di nutrizione, ricette e curiosità alimentari della Dott.ssa Giulia Cortese su Instagram. Biologa Nutrizionista ed Erborista." />
+  <link rel="canonical" href="https://www.nutrizionistacortese.it/social.html" />
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Seguimi sui Social – Dott.ssa Giulia Cortese Nutrizionista" />
+  <meta property="og:description" content="Consigli di nutrizione, ricette e alimentazione consapevole." />
+  <meta property="og:url"         content="https://www.nutrizionistacortese.it/social.html" />
+  <meta property="og:locale"      content="it_IT" />
+  <link rel="icon"             type="image/x-icon"         href="images/favicon.ico" />
+  <link rel="icon"             type="image/png" sizes="32x32" href="images/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180"              href="images/apple-touch-icon.png" />
+  <link rel="manifest"                                       href="site.webmanifest" />
+  <meta name="theme-color"    content="#5a8260" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* ── Stili specifici pagina Instagram ── */
+    .ig-page { padding-bottom: 5rem; }
+
+    /* Profilo card in cima */
+    .ig-profile {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 2.5rem 3rem;
+      margin-bottom: 3rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .ig-profile__avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 3px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) border-box;
+    }
+    .ig-profile__avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .ig-profile__handle {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    .ig-profile__handle span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+    }
+    .ig-profile__bio {
+      font-size: 0.9rem;
+      color: var(--text-body);
+      line-height: 1.6;
+      margin: 0.5rem 0 1rem;
+    }
+    .ig-follow-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      color: white;
+      border: none;
+      border-radius: var(--r-full);
+      padding: 0.7rem 1.6rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .ig-follow-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* Widget embed container */
+    .ig-embed-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      min-height: 400px;
+    }
+
+    .ig-embed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .ig-embed-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--text-primary);
+    }
+    .ig-embed-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Setup guide (visibile fino a quando non si configura SnapWidget) */
+    .ig-setup {
+      background: var(--sage-50);
+      border: 1.5px dashed var(--sage-300);
+      border-radius: var(--r-lg);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .ig-setup__icon { font-size: 3rem; margin-bottom: 1rem; }
+    .ig-setup h3 { margin-bottom: 0.75rem; }
+    .ig-setup p  { max-width: 520px; margin-inline: auto; font-size: 0.92rem; margin-bottom: 1.5rem; }
+
+    .setup-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      max-width: 680px;
+      margin: 2rem auto 0;
+      text-align: left;
+    }
+    .setup-step {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1.1rem;
+    }
+    .setup-step__num {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--sage-300);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .setup-step p { font-size: 0.82rem; margin: 0; line-height: 1.5; }
+    .setup-step strong { color: var(--text-primary); }
+
+    /* SnapWidget placeholder — sostituire con il codice embed reale */
+    #snapwidget-placeholder {
+      /* Quando SnapWidget è attivo, questo div verrà riempito dallo script */
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .ig-profile { flex-direction: column; align-items: flex-start; padding: 1.5rem; gap: 1.25rem; }
+      .ig-embed-wrap { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="index.html" class="logo" aria-label="Home">
+        <span class="logo__name">Dott.ssa Giulia Cortese</span>
+        <span class="logo__role logo__role--desktop">Biologa Nutrizionista &amp; Erborista</span>
+      </a>
+      <nav class="nav" aria-label="Principale">
+        <a href="index.html"     class="nav__link">Home</a>
+        <a href="servizi.html"   class="nav__link">Servizi</a>
+        <a href="social.html" class="nav__link active">Seguimi sui Social</a>
+        <a href="contatti.html"  class="nav__link">Contatti</a>
+      </nav>
+      <a href="https://www.miodottore.it/giulia-cortese/nutrizionista/cantu" target="_blank" rel="noopener" class="btn btn--primary header__cta" style="display:flex;">Prenota Visita</a>
+      <button class="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="mobile-menu">
+  <div class="mobile-menu__links">
+    <a href="index.html"     class="mobile-menu__link">Home</a>
+    <a href="servizi.html"   class="mobile-menu__link">Servizi</a>
+    <a href="social.html" class="mobile-menu__link">Seguimi sui Social</a>
+    <a href="contatti.html"  class="mobile-menu__link">Contatti</a>
+  </div>
+  <a href="https://www.miodottore.it/giulia-cortese/nutrizionista/cantu" target="_blank" rel="noopener" class="btn btn--primary" style="width:100%;justify-content:center;">Prenota Visita</a>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <div class="page-header__content">
+      <div class="eyebrow" style="justify-content:center;">Social &amp; Community</div>
+      <h1>Seguimi sui Social</h1>
+      <p>Consigli di nutrizione, ricette sane e approfondimenti sull'alimentazione consapevole. Seguimi per restare aggiornata!</p>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span class="breadcrumb__current" aria-current="page">Social</span>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+<!-- CONTENUTO -->
+<section class="section ig-page">
+  <div class="container">
+
+    <!-- Profilo -->
+    <div class="ig-profile reveal">
+      <div class="ig-profile__avatar">
+        <img src="images/dottoressa-about.jpg" alt="Dott.ssa Giulia Cortese" />
+      </div>
+      <div>
+        <div class="ig-profile__handle">
+          nutrizionista_giuliacortese
+          <span>· @nutrizionista_giuliacortese</span>
+        </div>
+        <p class="ig-profile__bio">
+          🌿 Biologa Nutrizionista &amp; Erborista<br>
+          🍃 Alimentazione intuitiva · Riabilitazione nutrizionale<br>
+          📍 Cantù (CO) e online<br>
+          🏆 Best Quality 2025 · MioDottore
+        </p>
+        <a href="https://www.instagram.com/nutrizionista_giuliacortese/" target="_blank" rel="noopener" class="ig-follow-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="white" stroke="none"/></svg>
+          Seguimi su Instagram
+        </a>
+      </div>
+    </div>
+
+    <!-- Feed embed -->
+    <div class="ig-embed-wrap reveal reveal-d1">
+      <div class="ig-embed-header">
+        <div>
+          <div class="ig-embed-title">I miei ultimi post</div>
+          <div class="ig-embed-sub">Aggiornato in tempo reale dal profilo Instagram</div>
+        </div>
+        <a href="https://www.instagram.com/nutrizionista_giuliacortese/" target="_blank" rel="noopener" class="btn btn--outline" style="font-size:0.82rem; padding:0.6rem 1.4rem;">
+          Vedi su Instagram →
+        </a>
+      </div>
+
+      <!--
+        ════════════════════════════════════════════════════════════
+        ISTRUZIONI ATTIVAZIONE FEED INSTAGRAM (5 minuti, gratis)
+        ════════════════════════════════════════════════════════════
+
+        OPZIONE A — SnapWidget (consigliato, gratuito)
+        1. Vai su https://snapwidget.com
+        2. Clicca "Get Started" → connetti il tuo account Instagram
+        3. Scegli layout "Grid" (tipo galleria)
+        4. Copia il codice embed generato
+        5. Incollalo qui sotto al posto del blocco ig-setup
+
+        OPZIONE B — Elfsight (alternativa, piano free con logo)
+        1. Vai su https://elfsight.com/instagram-feed-widget/
+        2. Crea widget → connetti Instagram → copia script
+        3. Incolla qui sotto
+
+        Una volta attivato, rimuovi il blocco ig-setup e il commento.
+        ════════════════════════════════════════════════════════════
+      -->
+
+      <!-- SOSTITUISCI QUESTO BLOCCO CON IL CODICE SNAPWIDGET/ELFSIGHT -->
+      <div class="ig-setup" id="ig-setup">
+        <div class="ig-setup__icon">📸</div>
+        <h3>Feed Instagram quasi pronto!</h3>
+        <p>
+          Per mostrare i post reali di Instagram servono 5 minuti di configurazione con
+          <strong>SnapWidget</strong> (gratuito). Segui i passaggi qui sotto, poi
+          sostituisci questo blocco con il codice embed.
+        </p>
+        <a href="https://snapwidget.com" target="_blank" rel="noopener" class="btn btn--primary">
+          Configura SnapWidget →
+        </a>
+
+        <div class="setup-steps">
+          <div class="setup-step">
+            <div class="setup-step__num">1</div>
+            <p>Vai su <strong>snapwidget.com</strong> e crea un account gratuito</p>
+          </div>
+          <div class="setup-step">
+            <div class="setup-step__num">2</div>
+            <p>Connetti l'account Instagram <strong>@nutrizionista_giuliacortese</strong></p>
+          </div>
+          <div class="setup-step">
+            <div class="setup-step__num">3</div>
+            <p>Scegli layout <strong>Griglia</strong>, imposta 6–9 post visibili</p>
+          </div>
+          <div class="setup-step">
+            <div class="setup-step__num">4</div>
+            <p>Copia il codice embed e <strong>incollalo qui</strong> nel file social.html</p>
+          </div>
+        </div>
+      </div>
+      <!-- FINE BLOCCO DA SOSTITUIRE -->
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- CTA -->
+<section class="section section--alt" aria-label="Prenota">
+  <div class="container">
+    <div class="cta-banner reveal">
+      <div>
+        <div class="eyebrow">Inizia il tuo percorso</div>
+        <h2>Ti è piaciuto quello che hai visto?</h2>
+        <p>Seguimi su Instagram per consigli quotidiani, poi prenota la tua prima visita — costruiamo insieme il tuo percorso.</p>
+      </div>
+      <div class="cta-banner__actions">
+        <a href="https://www.instagram.com/nutrizionista_giuliacortese/" target="_blank" rel="noopener" class="btn btn--ghost">📸 Seguimi</a>
+        <a href="https://www.miodottore.it/giulia-cortese/nutrizionista/cantu" target="_blank" rel="noopener" class="btn btn--ghost" style="font-size:0.82rem;">📅 Prenota Visita</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="logo" aria-label="Home">
+          <span class="logo__name" style="color:var(--sage-300);">Dott.ssa Giulia Cortese</span>
+          <span class="logo__role" style="color:rgba(255,255,255,0.3);">Biologa Nutrizionista</span>
+        </a>
+        <p>Studio di nutrizione. Percorsi personalizzati per il tuo benessere.</p>
+      </div>
+      <div>
+        <h5>Navigazione</h5>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="servizi.html">Servizi</a></li>
+          <li><a href="social.html">Seguimi sui Social</a></li>
+          <li><a href="contatti.html">Contatti</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Servizi</h5>
+        <ul class="footer__links">
+          <li><a href="servizi.html#visita">Visita Nutrizionistica</a></li>
+          <li><a href="servizi.html#riabilitazione">Riabilitazione</a></li>
+          <li><a href="servizi.html#educazione">Educazione Alimentare</a></li>
+          <li><a href="servizi.html#fitoterapia">Fitoterapia</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Contatti</h5>
+        <ul class="footer__contact-list">
+          <li class="footer__contact-item"><span>📞</span><a href="tel:+393201459853">320 145 9853</a></li>
+          <li class="footer__contact-item"><span>✉️</span><a href="mailto:dottoressa@nutrizionistacortese.it">dottoressa@nutrizionistacortese.it</a></li>
+          <li class="footer__contact-item"><span>📍</span><span>Cantù (CO) e dintorni</span></li>
+        </ul>
+      </div>
+      <!-- Social -->
+      <div>
+        <h5>Seguimi</h5>
+        <div class="footer__social">
+          <a href="https://www.instagram.com/nutrizionista_giuliacortese/" target="_blank" rel="noopener" class="footer__social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/></svg>
+            Instagram
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61554909033344" target="_blank" rel="noopener" class="footer__social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            Facebook
+          </a>
+          <a href="https://www.miodottore.it/giulia-cortese/nutrizionista/cantu" target="_blank" rel="noopener" class="footer__social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            MioDottore
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© <span id="year"></span> Dott.ssa Giulia Cortese – Biologa Nutrizionista</p>
+      <nav class="footer__legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<!-- Cookie banner -->
+<div class="cookie-banner" id="cookie-banner" role="dialog" aria-label="Informativa cookie">
+  <p class="cookie-banner__text">
+    <strong>Questo sito utilizza i cookie</strong> — solo tecnici, necessari al funzionamento.
+    <a href="#">Privacy Policy</a> · <a href="#">Cookie Policy</a>
+  </p>
+  <div class="cookie-banner__actions">
+    <button class="cookie-btn cookie-btn--reject">Solo necessari</button>
+    <button class="cookie-btn cookie-btn--accept">Accetto</button>
+  </div>
+</div>
+
+<button class="back-to-top" aria-label="Torna in cima">↑</button>
+<script src="js/script.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
