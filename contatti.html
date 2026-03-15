@@ -543,41 +543,43 @@ document.getElementById('year').textContent = new Date().getFullYear();
     renderGrid();
   };
 
-  /* Validazione submit */
+  /* Validazione submit — preventDefault SOLO in caso di errore,
+     se tutto ok il form viene inviato nativamente a Formspree */
   document.getElementById('contact-form').addEventListener('submit', function(e) {
     const statusEl = this.querySelector('.form-status');
 
+    // Reset status
+    statusEl.className = 'form-status';
+    statusEl.textContent = '';
+
+    let error = '';
+
     if (!this.querySelector('#nome').value.trim()) {
-      e.preventDefault();
-      statusEl.className = 'form-status error';
-      statusEl.textContent = 'Inserisci il tuo nome.';
-      return;
+      error = 'Inserisci il tuo nome.';
+    } else {
+      const em = this.querySelector('#email').value.trim();
+      if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        error = "Inserisci un'email valida.";
+      } else if (selected.length < MIN) {
+        error = 'Seleziona almeno ' + MIN + ' date di disponibilità nel calendario.';
+      } else if (!this.querySelector('#privacy').checked) {
+        error = 'Accetta la Privacy Policy per procedere.';
+      }
     }
-    const em = this.querySelector('#email').value.trim();
-    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-      e.preventDefault();
+
+    if (error) {
+      e.preventDefault(); // blocca SOLO se c'è un errore
       statusEl.className = 'form-status error';
-      statusEl.textContent = 'Inserisci un\'email valida.';
-      return;
-    }
-    if (selected.length < MIN) {
-      e.preventDefault();
-      statusEl.className = 'form-status error';
-      statusEl.textContent = 'Seleziona almeno ' + MIN + ' date di disponibilità nel calendario.';
+      statusEl.textContent = error;
       statusEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
       return;
     }
-    if (!this.querySelector('#privacy').checked) {
-      e.preventDefault();
-      statusEl.className = 'form-status error';
-      statusEl.textContent = 'Accetta la Privacy Policy per procedere.';
-      return;
-    }
 
+    // Tutto ok: lascia che il form vada a Formspree normalmente
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.textContent = 'Invio in corso…';
-    // Formspree gestisce l'invio e il redirect
+    // Niente e.preventDefault() → Formspree riceve il POST e redirige alla sua pagina di conferma
   });
 
   /* Init */
