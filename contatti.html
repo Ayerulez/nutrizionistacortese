@@ -613,7 +613,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
         statusEl.className = 'form-status error';
         statusEl.textContent = result.data && result.data.error
           ? 'Errore: ' + result.data.error
-          : 'Errore nell'invio (codice ' + result.status + '). Riprova o contattami via email.';
+          : "Errore nell'invio (codice " + result.status + "). Riprova o contattami via email.";
       }
     })
     .catch(function(err) {
