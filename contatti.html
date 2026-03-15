@@ -174,11 +174,11 @@
               <span class="contact-chip__value">320 145 9853</span>
             </div>
           </a>
-          <a href="mailto:dottoressa@nutrizionistacortese.it" class="contact-chip reveal reveal-d1">
+          <a href="/cdn-cgi/l/email-protection#34505b40405b4651474755745a4140465d4e5d5b5a5d474055575b46405147511a5d40" class="contact-chip reveal reveal-d1">
             <div class="contact-chip__icon" aria-hidden="true">✉️</div>
             <div>
               <span class="contact-chip__label">Email</span>
-              <span class="contact-chip__value">dottoressa@nutrizionistacortese.it</span>
+              <span class="contact-chip__value"><span class="__cf_email__" data-cfemail="9cf8f3e8e8f3eef9efeffddcf2e9e8eef5e6f5f3f2f5efe8fdfff3eee8f9eff9b2f5e8">[email&#160;protected]</span></span>
             </div>
           </a>
           <div class="contact-chip reveal reveal-d2">
@@ -265,7 +265,7 @@
             </div>
 
             <!-- CALENDARIO -->
-            <div class="cal-wrap">
+            <div class="cal-wrap" id="cal-section" style="display:none;">
               <span class="cal-label">Comunica le tue disponibilità <span style="color:var(--sage-500);">*</span></span>
               <span class="cal-sublabel">Clicca almeno 3 date (lun–sab). Puoi sfogliare i mesi.</span>
 
@@ -350,7 +350,7 @@
         <h5>Contatti</h5>
         <ul class="footer__contact-list">
           <li class="footer__contact-item"><span>📞</span><a href="tel:+393201459853">320 145 9853</a></li>
-          <li class="footer__contact-item"><span>✉️</span><a href="mailto:dottoressa@nutrizionistacortese.it">dottoressa@nutrizionistacortese.it</a></li>
+          <li class="footer__contact-item"><span>✉️</span><a href="/cdn-cgi/l/email-protection#e5818a91918a9780969684a58b9091978c9f8c8a8b8c969184868a9791809680cb8c91"><span class="__cf_email__" data-cfemail="e98d869d9d869b8c9a9a88a9879c9d9b8093808687809a9d888a869b9d8c9a8cc7809d">[email&#160;protected]</span></a></li>
           <li class="footer__contact-item"><span>📍</span><span>Cantù (CO) e online</span></li>
         </ul>
       </div>
@@ -396,7 +396,7 @@
   </div>
 </div>
 
-<script src="js/script.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="js/script.js"></script>
 <script>
 /* ── Anno footer ── */
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -560,7 +560,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
       const em = this.querySelector('#email').value.trim();
       if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
         error = "Inserisci un'email valida.";
-      } else if (selected.length < MIN) {
+      } else if (calSection.style.display !== 'none' && selected.length < MIN) {
         error = 'Seleziona almeno ' + MIN + ' date di disponibilità nel calendario.';
       } else if (!this.querySelector('#privacy').checked) {
         error = 'Accetta la Privacy Policy per procedere.';
@@ -613,16 +613,34 @@ document.getElementById('year').textContent = new Date().getFullYear();
         statusEl.className = 'form-status error';
         statusEl.textContent = result.data && result.data.error
           ? 'Errore: ' + result.data.error
-          : "Errore nell'invio (codice " + result.status + "). Riprova o contattami via email.";
+          : "Errore nell'invio (cod. " + result.status + "). Riprova o scrivi a dottoressa@nutrizionistacortese.it";
       }
     })
-    .catch(function(err) {
+    .catch(function() {
       btn.disabled = false;
       btn.textContent = 'Invia Richiesta di Appuntamento';
       statusEl.className = 'form-status error';
       statusEl.textContent = 'Errore di rete. Controlla la connessione e riprova.';
     });
   });
+
+  /* ── Mostra/nascondi calendario in base al servizio selezionato ── */
+  const servizioSelect = document.getElementById('servizio');
+  const calSection     = document.getElementById('cal-section');
+
+  function toggleCalendar() {
+    const val = servizioSelect.value;
+    const showCal = val !== '' && val !== 'Non so ancora';
+    calSection.style.display = showCal ? 'block' : 'none';
+    if (!showCal) {
+      selected = [];
+      syncHidden();
+      renderHint();
+      renderChips();
+    }
+  }
+  servizioSelect.addEventListener('change', toggleCalendar);
+  toggleCalendar();
 
   /* Init */
   renderGrid();
