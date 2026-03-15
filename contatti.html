@@ -575,11 +575,53 @@ document.getElementById('year').textContent = new Date().getFullYear();
       return;
     }
 
-    // Tutto ok: lascia che il form vada a Formspree normalmente
+    // Tutto ok: invia via fetch per vedere la risposta di Formspree
+    e.preventDefault();
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.textContent = 'Invio in corso…';
-    // Niente e.preventDefault() → Formspree riceve il POST e redirige alla sua pagina di conferma
+    statusEl.className = 'form-status';
+    statusEl.textContent = '';
+
+    const formData = new FormData(this);
+
+    fetch('https://formspree.io/f/xreyalld', {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function(response) {
+      return response.json().then(function(data) {
+        return { ok: response.ok, status: response.status, data: data };
+      });
+    })
+    .then(function(result) {
+      btn.disabled = false;
+      btn.textContent = 'Invia Richiesta di Appuntamento';
+      if (result.ok) {
+        statusEl.className = 'form-status success';
+        statusEl.textContent = '✓ Richiesta inviata! Ti risponderò entro 24 ore lavorative.';
+        document.getElementById('contact-form').reset();
+        // Reset calendario
+        selected = [];
+        syncHidden();
+        renderHint();
+        renderChips();
+        renderGrid();
+        statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        statusEl.className = 'form-status error';
+        statusEl.textContent = result.data && result.data.error
+          ? 'Errore: ' + result.data.error
+          : 'Errore nell'invio (codice ' + result.status + '). Riprova o contattami via email.';
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Invia Richiesta di Appuntamento';
+      statusEl.className = 'form-status error';
+      statusEl.textContent = 'Errore di rete. Controlla la connessione e riprova.';
+    });
   });
 
   /* Init */
