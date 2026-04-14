@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Area Riservata – Dott.ssa Giulia Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── CSS Variables (coerenti col sito) ── */
+    :root {
+      --sage-50:  #f6f9f6; --sage-100: #ecf3ec; --sage-200: #d8e8d8;
+      --sage-300: #b8cfb8; --sage-400: #94b894; --sage-500: #729e72;
+      --sage-600: #5a8260; --sage-700: #3e5e42;
+      --beige-50: #fdfbf7; --beige-100: #f8f4ec; --beige-200: #f0e9d8;
+      --gold-300: #d4a853; --gold-400: #b8923e;
+      --stone-600: #7a6a58; --stone-800: #3d3028; --stone-900: #251e16;
+      --white: #ffffff; --border: #e8e2d9; --border-sage: #d8e8d8;
+      --text-primary: #251e16; --text-body: #7a6a58; --text-muted: #a89880;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Jost', system-ui, sans-serif;
+      --r-sm: 4px; --r-md: 10px; --r-lg: 16px; --r-xl: 24px; --r-2xl: 36px;
+      --shadow-sm: 0 2px 8px rgba(37,30,22,0.07);
+      --shadow-md: 0 6px 24px rgba(37,30,22,0.10);
+      --shadow-lg: 0 16px 48px rgba(37,30,22,0.13);
+      --ease-out: cubic-bezier(0.22,1,0.36,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font-body); background: var(--beige-50); color: var(--text-body); min-height: 100vh; }
+    ::selection { background: var(--sage-200); color: var(--stone-900); }
+
+    h1,h2,h3,h4 { font-family: var(--font-display); color: var(--text-primary); font-weight: 600; line-height: 1.2; }
+    p { line-height: 1.7; }
+    button { font-family: var(--font-body); cursor: pointer; }
+    input, select, textarea { font-family: var(--font-body); font-size: 0.9rem; }
+
+    /* ── SCREENS ── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; }
+
+    /* ════════════════════════════════════
+       LOGIN SCREEN
+    ════════════════════════════════════ */
+    #screen-login {
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--stone-900) 0%, var(--sage-700) 60%, var(--sage-600) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    #screen-login::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='40' cy='40' r='0.8' fill='rgba(255,255,255,0.04)'/%3E%3C/svg%3E") repeat;
+    }
+    .login-card {
+      position: relative; z-index: 1;
+      background: var(--white);
+      border-radius: var(--r-2xl);
+      padding: 3rem;
+      width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.5s var(--ease-out) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-logo img { height: 64px; margin: 0 auto 0.75rem; }
+    .login-logo h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    .login-logo p  { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .login-badge {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      background: var(--sage-50); border: 1px solid var(--sage-200);
+      border-radius: var(--r-full, 9999px); padding: 0.45rem 1rem;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--sage-600);
+      margin-bottom: 1.75rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-primary); margin-bottom: 0.4rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border); border-radius: var(--r-md);
+      background: var(--beige-50); color: var(--text-primary);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--sage-400);
+      box-shadow: 0 0 0 3px rgba(90,130,96,0.12);
+      background: var(--white);
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.85rem 2rem; border-radius: 9999px;
+      font-weight: 600; font-size: 0.88rem; letter-spacing: 0.04em;
+      border: 1.5px solid transparent;
+      transition: all 0.3s var(--ease-out);
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: none; }
+    .btn-primary {
+      background: var(--sage-600); color: var(--white); border-color: var(--sage-600);
+      box-shadow: 0 4px 14px rgba(90,130,96,0.3);
+    }
+    .btn-primary:hover { box-shadow: 0 8px 24px rgba(90,130,96,0.4); }
+    .btn-secondary {
+      background: var(--white); color: var(--sage-600); border-color: var(--sage-300);
+    }
+    .btn-secondary:hover { background: var(--sage-50); border-color: var(--sage-400); }
+    .btn-danger {
+      background: #fef2f2; color: #c53030; border-color: #fecaca;
+    }
+    .btn-danger:hover { background: #fee2e2; }
+    .btn-ghost {
+      background: transparent; color: var(--text-body); border-color: var(--border);
+    }
+    .btn-ghost:hover { background: var(--sage-50); border-color: var(--sage-300); color: var(--sage-600); }
+    .btn-sm { padding: 0.5rem 1.1rem; font-size: 0.8rem; }
+    .btn-full { width: 100%; }
+
+    .login-error {
+      background: #fef2f2; color: #c53030; border: 1px solid #fecaca;
+      border-radius: var(--r-md); padding: 0.75rem 1rem;
+      font-size: 0.85rem; margin-bottom: 1rem; display: none;
+    }
+
+    /* ════════════════════════════════════
+       APP SHELL (dopo login)
+    ════════════════════════════════════ */
+    #screen-app {
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 64px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 1.5rem;
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    .topbar__logo { display: flex; align-items: center; gap: 0.75rem; }
+    .topbar__logo img { height: 36px; }
+    .topbar__title {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .topbar__badge {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--sage-600);
+      background: var(--sage-50); border: 1px solid var(--sage-200);
+      border-radius: 9999px; padding: 0.2rem 0.6rem;
+    }
+    .topbar__spacer { flex: 1; }
+    .topbar__user {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.83rem; color: var(--text-muted);
+    }
+    .topbar__avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--sage-100); display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 700; color: var(--sage-600);
+      font-family: var(--font-display);
+    }
+
+    /* Layout principale */
+    .app-body {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 0;
+      position: sticky; top: 64px; height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+    .sidebar-section { margin-bottom: 0.5rem; }
+    .sidebar-section-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0 1.25rem; margin-bottom: 0.35rem;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.65rem 1.25rem; font-size: 0.87rem; font-weight: 500;
+      color: var(--text-body); text-decoration: none;
+      border-radius: 0; cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sidebar-link:hover { background: var(--sage-50); color: var(--sage-600); }
+    .sidebar-link.active {
+      background: var(--sage-50); color: var(--sage-600);
+      border-right: 3px solid var(--sage-600); font-weight: 600;
+    }
+    .sidebar-link svg { flex-shrink: 0; opacity: 0.7; }
+    .sidebar-link.active svg { opacity: 1; }
+
+    /* Main content */
+    .main {
+      padding: 2rem;
+      overflow-y: auto;
+      background: var(--beige-50);
+    }
+
+    /* Page header */
+    .page-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-head h2 { font-size: 1.8rem; }
+    .page-head p  { font-size: 0.88rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* Cards */
+    .card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-xl); padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-title {
+      font-family: var(--font-display); font-size: 1.05rem;
+      font-weight: 600; color: var(--text-primary);
+      margin-bottom: 1rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    /* Grid layout */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .col-span-2 { grid-column: span 2; }
+    .col-span-3 { grid-column: span 3; }
+
+    /* Stats */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 1.25rem;
+      transition: box-shadow 0.2s;
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); }
+    .stat-card__label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .stat-card__value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+    .stat-card__sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    /* Patients list */
+    .patient-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .patient-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem; background: var(--white);
+      border: 1px solid var(--border); border-radius: var(--r-lg);
+      cursor: pointer; transition: all 0.2s var(--ease-out);
+    }
+    .patient-item:hover { border-color: var(--sage-300); box-shadow: var(--shadow-md); transform: translateX(3px); }
+    .patient-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--sage-100); display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+      color: var(--sage-600); flex-shrink: 0;
+    }
+    .patient-name { font-weight: 600; color: var(--text-primary); font-size: 0.95rem; }
+    .patient-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+    .patient-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em;
+      padding: 0.2rem 0.55rem; border-radius: 9999px;
+      background: var(--sage-100); color: var(--sage-600);
+      border: 1px solid var(--sage-200);
+    }
+    .tag-diet { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .tag-allergy { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .patient-spacer { flex: 1; }
+    .patient-chevron { color: var(--text-muted); font-size: 1.1rem; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 3rem 2rem;
+      color: var(--text-muted);
+    }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+    /* Form sections */
+    .form-section {
+      border: 1px solid var(--border); border-radius: var(--r-lg);
+      overflow: hidden; margin-bottom: 1rem;
+    }
+    .form-section-header {
+      padding: 0.9rem 1.25rem; background: var(--sage-50);
+      border-bottom: 1px solid var(--border-sage);
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--sage-600);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .form-section-body { padding: 1.25rem; background: var(--white); }
+
+    /* Checkbox group */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .checkbox-chip input { display: none; }
+    .checkbox-chip label {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.85rem; border-radius: 9999px;
+      border: 1.5px solid var(--border); background: var(--beige-50);
+      font-size: 0.8rem; font-weight: 500; color: var(--text-body);
+      cursor: pointer; transition: all 0.15s; user-select: none;
+    }
+    .checkbox-chip input:checked + label {
+      background: var(--sage-600); color: var(--white); border-color: var(--sage-600);
+    }
+    .checkbox-chip label:hover { border-color: var(--sage-300); background: var(--sage-50); }
+
+    /* Range slider */
+    .range-wrap { display: flex; align-items: center; gap: 0.75rem; }
+    .range-wrap input[type=range] { flex: 1; accent-color: var(--sage-600); }
+    .range-value {
+      min-width: 40px; text-align: center; font-weight: 700;
+      color: var(--sage-600); font-size: 0.9rem;
+    }
+
+    /* Visit timeline */
+    .visit-timeline { display: flex; flex-direction: column; gap: 1rem; }
+    .visit-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .visit-card:hover { box-shadow: var(--shadow-md); }
+    .visit-card-header {
+      padding: 0.9rem 1.25rem;
+      background: linear-gradient(135deg, var(--sage-50), var(--beige-50));
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .visit-date {
+      font-family: var(--font-display); font-size: 1rem;
+      font-weight: 700; color: var(--text-primary);
+    }
+    .visit-location {
+      font-size: 0.78rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .visit-card-body { padding: 1.25rem; }
+    .visit-metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .visit-metric { display: flex; flex-direction: column; }
+    .visit-metric__label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+    .visit-metric__value { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+    .visit-metric__unit { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb-link { cursor: pointer; color: var(--sage-600); text-decoration: none; }
+    .breadcrumb-link:hover { text-decoration: underline; }
+    .breadcrumb-sep { opacity: 0.4; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0.25rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      padding: 0.65rem 1.25rem; font-size: 0.87rem; font-weight: 500;
+      border: none; background: none; cursor: pointer; color: var(--text-muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn.active { color: var(--sage-600); border-bottom-color: var(--sage-600); font-weight: 600; }
+    .tab-btn:hover:not(.active) { color: var(--text-primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(37,30,22,0.55);
+      backdrop-filter: blur(4px); z-index: 1000;
+      display: none; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: var(--white); border-radius: var(--r-xl);
+      width: 100%; max-width: 680px; max-height: 90vh;
+      overflow-y: auto; box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s var(--ease-out) both;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: none; opacity: 1; }
+    }
+    .modal-header {
+      padding: 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--white); z-index: 1;
+    }
+    .modal-header h3 { font-size: 1.3rem; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+      background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 1.1rem; transition: all 0.15s;
+    }
+    .modal-close:hover { background: var(--sage-50); color: var(--text-primary); border-color: var(--sage-300); }
+    .modal-body { padding: 1.5rem; }
+    .modal-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 0.75rem;
+      position: sticky; bottom: 0; background: var(--white);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 2000;
+      background: var(--stone-900); color: var(--white);
+      padding: 0.85rem 1.25rem; border-radius: var(--r-lg);
+      font-size: 0.87rem; font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.35s var(--ease-out);
+      display: flex; align-items: center; gap: 0.6rem;
+      max-width: 320px;
+    }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.success { background: var(--sage-600); }
+    .toast.error   { background: #c53030; }
+
+    /* Search bar */
+    .search-wrap {
+      position: relative; margin-bottom: 1.25rem;
+    }
+    .search-wrap input {
+      width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem;
+      border: 1.5px solid var(--border); border-radius: var(--r-lg);
+      background: var(--white); font-size: 0.88rem; color: var(--text-primary);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--sage-400); box-shadow: 0 0 0 3px rgba(90,130,96,0.1); }
+    .search-wrap svg { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+
+    /* Utility */
+    .flex { display: flex; }
+    .gap-sm { gap: 0.5rem; }
+    .gap-md { gap: 1rem; }
+    .mt-sm { margin-top: 0.5rem; }
+    .mt-md { margin-top: 1rem; }
+    .mt-lg { margin-top: 1.5rem; }
+    .mb-md { margin-bottom: 1rem; }
+    .text-muted { color: var(--text-muted); font-size: 0.85rem; }
+    .text-sm { font-size: 0.82rem; }
+    .font-bold { font-weight: 700; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .flex-wrap { flex-wrap: wrap; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .app-body { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .col-span-2, .col-span-3 { grid-column: span 1; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .main { padding: 1rem; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .login-card { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN: LOGIN
+══════════════════════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <h1>Dott.ssa Giulia Cortese</h1>
+      <p>Biologa Nutrizionista &amp; Erborista</p>
+    </div>
+    <div class="login-badge">🔒 Area Riservata</div>
+    <div class="login-error" id="login-error">Credenziali non valide. Riprova.</div>
+    <div class="form-group">
+      <label for="login-user">Nome utente</label>
+      <input type="text" id="login-user" placeholder="Inserisci il nome utente" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label for="login-pass">Password</label>
+      <input type="password" id="login-pass" placeholder="Inserisci la password" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full mt-md" onclick="doLogin()">Accedi</button>
+    <p class="text-muted text-sm mt-md" style="text-align:center;">
+      <a href="../index.html" style="color:var(--sage-600);">← Torna al sito</a>
+    </p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     SCREEN: APP
+══════════════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span>Dott.ssa Cortese</span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="margin-left:0.5rem;">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <button class="sidebar-link active" onclick="showPage('dashboard')" id="nav-dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </button>
+        <button class="sidebar-link" onclick="showPage('pazienti')" id="nav-pazienti">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Pazienti
+        </button>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <button class="sidebar-link" onclick="showPage('studi')" id="nav-studi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Strutture/Studi
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="main" id="main-content">
+
+      <!-- ── PAGE: DASHBOARD ── -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-head">
+          <div>
+            <h2>Benvenuta 👋</h2>
+            <p>Panoramica dello studio</p>
+          </div>
+        </div>
+        <div class="stat-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__label">Pazienti totali</div>
+            <div class="stat-card__value" id="stat-totale">0</div>
+            <div class="stat-card__sub">in archivio</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Visite totali</div>
+            <div class="stat-card__value" id="stat-visite">0</div>
+            <div class="stat-card__sub">registrate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Ultimo paziente</div>
+            <div class="stat-card__value" id="stat-ultimo" style="font-size:1rem;padding-top:0.3rem;">—</div>
+            <div class="stat-card__sub">aggiunto</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Strutture</div>
+            <div class="stat-card__value" id="stat-studi">0</div>
+            <div class="stat-card__sub">configurate</div>
+          </div>
+        </div>
+        <div class="card mt-md">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Ultimi pazienti
+          </div>
+          <div id="dash-patients"></div>
+        </div>
+      </div>
+
+      <!-- ── PAGE: PAZIENTI ── -->
+      <div id="page-pazienti" class="page" style="display:none;">
+        <div id="view-list">
+          <div class="page-head">
+            <div>
+              <h2>Pazienti</h2>
+              <p>Gestisci l'archivio anagrafico</p>
+            </div>
+            <button class="btn btn-primary" onclick="openNewPatientModal()">+ Nuovo paziente</button>
+          </div>
+          <div class="search-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" placeholder="Cerca per nome, cognome, codice fiscale…" oninput="renderPatientList()" />
+          </div>
+          <div id="patient-list-container"></div>
+        </div>
+
+        <!-- Dettaglio paziente -->
+        <div id="view-patient" style="display:none;">
+          <div class="breadcrumb">
+            <span class="breadcrumb-link" onclick="showPatientList()">Pazienti</span>
+            <span class="breadcrumb-sep">›</span>
+            <span id="breadcrumb-name">—</span>
+          </div>
+
+          <div class="page-head">
+            <div style="display:flex;align-items:center;gap:1rem;">
+              <div class="patient-avatar" id="detail-avatar" style="width:56px;height:56px;font-size:1.4rem;"></div>
+              <div>
+                <h2 id="detail-name">—</h2>
+                <p id="detail-meta">—</p>
+              </div>
+            </div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="editPatient()">✏️ Modifica anagrafica</button>
+              <button class="btn btn-primary" onclick="openNewVisitModal()">+ Nuova visita</button>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-visite', this)">Visite</button>
+            <button class="tab-btn" onclick="switchTab('tab-anagrafica', this)">Anagrafica</button>
+            <button class="tab-btn" onclick="switchTab('tab-grafici', this)">Grafici</button>
+          </div>
+
+          <!-- Tab visite -->
+          <div id="tab-visite" class="tab-panel active">
+            <div id="visit-list-container"></div>
+          </div>
+
+          <!-- Tab anagrafica -->
+          <div id="tab-anagrafica" class="tab-panel">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-title">👤 Dati anagrafici</div>
+                <div id="anagrafica-display"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">🏥 Dati clinici</div>
+                <div id="clinici-display"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab grafici -->
+          <div id="tab-grafici" class="tab-panel">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-title">⚖️ Andamento peso (kg)</div>
+                <canvas id="chart-peso" height="200"></canvas>
+              </div>
+              <div class="card">
+                <div class="card-title">📊 Andamento BMI</div>
+                <canvas id="chart-bmi" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PAGE: STUDI ── -->
+      <div id="page-studi" class="page" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Strutture / Studi</h2>
+            <p>Luoghi dove effettui le visite</p>
+          </div>
+          <button class="btn btn-primary" onclick="openStudiModal()">+ Aggiungi struttura</button>
+        </div>
+        <div id="studi-list"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     MODAL: NUOVO/MODIFICA PAZIENTE
+══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-patient">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-patient-title">Nuovo paziente</h3>
+      <button class="modal-close" onclick="closeModal('modal-patient')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Dati anagrafici -->
+      <div class="form-section">
+        <div class="form-section-header">👤 Dati anagrafici</div>
+        <div class="form-section-body">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Nome <span style="color:var(--sage-500)">*</span></label>
+              <input type="text" id="p-nome" placeholder="Nome" />
+            </div>
+            <div class="form-group">
+              <label>Cognome <span style="color:var(--sage-500)">*</span></label>
+              <input type="text" id="p-cognome" placeholder="Cognome" />
+            </div>
+            <div class="form-group">
+              <label>Data di nascita</label>
+              <input type="date" id="p-nascita" />
+            </div>
+            <div class="form-group">
+              <label>Sesso</label>
+              <select id="p-sesso">
+                <option value="">—</option>
+                <option>Femmina</option>
+                <option>Maschio</option>
+                <option>Altro</option>
+              </select>
+            </div>
+            <div class="form-group col-span-2">
+              <label>Codice Fiscale</label>
+              <input type="text" id="p-cf" placeholder="RSSMRA80A01F205X" style="text-transform:uppercase;" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Residenza -->
+      <div class="form-section">
+        <div class="form-section-header">📍 Residenza</div>
+        <div class="form-section-body">
+          <div class="grid-2">
+            <div class="form-group col-span-2">
+              <label>Indirizzo</label>
+              <input type="text" id="p-indirizzo" placeholder="Via Roma 1" />
+            </div>
+            <div class="form-group">
+              <label>Città</label>
+              <input type="text" id="p-citta" placeholder="Cantù" />
+            </div>
+            <div class="form-group">
+              <label>Provincia</label>
+              <input type="text" id="p-provincia" placeholder="CO" maxlength="2" style="text-transform:uppercase;" />
+            </div>
+            <div class="form-group">
+              <label>CAP</label>
+              <input type="text" id="p-cap" placeholder="22063" maxlength="5" />
+            </div>
+            <div class="form-group">
+              <label>Telefono</label>
+              <input type="tel" id="p-tel" placeholder="+39 000 0000000" />
+            </div>
+            <div class="form-group col-span-2">
+              <label>Email</label>
+              <input type="email" id="p-email" placeholder="paziente@email.it" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dati fisici iniziali -->
+      <div class="form-section">
+        <div class="form-section-header">📏 Dati fisici iniziali</div>
+        <div class="form-section-body">
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Altezza (cm)</label>
+              <input type="number" id="p-altezza" placeholder="170" min="100" max="220" />
+            </div>
+            <div class="form-group">
+              <label>Peso iniziale (kg)</label>
+              <input type="number" id="p-peso" placeholder="70" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>BMI</label>
+              <input type="number" id="p-bmi" placeholder="Auto" step="0.1" readonly style="background:var(--sage-50);color:var(--sage-600);font-weight:600;" />
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Circonferenza vita (cm)</label>
+              <input type="number" id="p-vita" placeholder="80" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Circonferenza fianchi (cm)</label>
+              <input type="number" id="p-fianchi" placeholder="95" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Massa grassa (%)</label>
+              <input type="number" id="p-grassi" placeholder="25" step="0.1" />
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Plica tricipitale (mm)</label>
+              <input type="number" id="p-plica-tricip" placeholder="0" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Plica bicipitale (mm)</label>
+              <input type="number" id="p-plica-bicip" placeholder="0" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Plica sottoscapolare (mm)</label>
+              <input type="number" id="p-plica-sotto" placeholder="0" step="0.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anamnesi nutrizionale -->
+      <div class="form-section">
+        <div class="form-section-header">🥗 Anamnesi nutrizionale</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>Tipo di dieta</label>
+            <div class="checkbox-group" id="dieta-group">
+              <div class="checkbox-chip"><input type="radio" name="dieta" id="d1" value="Onnivora"><label for="d1">🥩 Onnivora</label></div>
+              <div class="checkbox-chip"><input type="radio" name="dieta" id="d2" value="Vegetariana"><label for="d2">🥦 Vegetariana</label></div>
+              <div class="checkbox-chip"><input type="radio" name="dieta" id="d3" value="Vegana"><label for="d3">🌱 Vegana</label></div>
+              <div class="checkbox-chip"><input type="radio" name="dieta" id="d4" value="Pescetariana"><label for="d4">🐟 Pescetariana</label></div>
+              <div class="checkbox-chip"><input type="radio" name="dieta" id="d5" value="Altra"><label for="d5">Altra</label></div>
+            </div>
+          </div>
+          <div class="form-group mt-md">
+            <label>Stile di vita / Attività fisica</label>
+            <div class="checkbox-group">
+              <div class="checkbox-chip"><input type="radio" name="attivita" id="a1" value="Sedentario"><label for="a1">🪑 Sedentario</label></div>
+              <div class="checkbox-chip"><input type="radio" name="attivita" id="a2" value="Lieve attività"><label for="a2">🚶 Lieve attività</label></div>
+              <div class="checkbox-chip"><input type="radio" name="attivita" id="a3" value="Moderatamente attivo"><label for="a3">🏃 Moderatamente attivo</label></div>
+              <div class="checkbox-chip"><input type="radio" name="attivita" id="a4" value="Molto attivo"><label for="a4">💪 Molto attivo</label></div>
+              <div class="checkbox-chip"><input type="radio" name="attivita" id="a5" value="Sportivo agonistico"><label for="a5">🏅 Sportivo agonistico</label></div>
+            </div>
+          </div>
+          <div class="form-group mt-md">
+            <label>Allergie / Intolleranze alimentari</label>
+            <div class="checkbox-group" id="allergie-group">
+              <div class="checkbox-chip"><input type="checkbox" id="all-lattosio"><label for="all-lattosio">Lattosio</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-glutine"><label for="all-glutine">Glutine</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-fruttosio"><label for="all-fruttosio">Fruttosio</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-nichel"><label for="all-nichel">Nichel</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-fruttasecca"><label for="all-fruttasecca">Frutta secca</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-crostacei"><label for="all-crostacei">Crostacei</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-uova"><label for="all-uova">Uova</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="all-soia"><label for="all-soia">Soia</label></div>
+            </div>
+          </div>
+          <div class="form-group mt-md">
+            <label>Patologie note</label>
+            <div class="checkbox-group">
+              <div class="checkbox-chip"><input type="checkbox" id="pat-diabete"><label for="pat-diabete">Diabete</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-ipertensione"><label for="pat-ipertensione">Ipertensione</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-colesterolo"><label for="pat-colesterolo">Ipercolesterolemia</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-tiroide"><label for="pat-tiroide">Patologie tiroidee</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-colon"><label for="pat-colon">Colon irritabile</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-celiachia"><label for="pat-celiachia">Celiachia</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-pcos"><label for="pat-pcos">PCOS</label></div>
+              <div class="checkbox-chip"><input type="checkbox" id="pat-autoimmune"><label for="pat-autoimmune">Malattia autoimmune</label></div>
+            </div>
+          </div>
+          <div class="form-group mt-md">
+            <label>Note aggiuntive / Altre patologie / Farmaci</label>
+            <textarea id="p-note-cliniche" placeholder="Es: in terapia con metformina, storia di DCA…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Obiettivo del percorso</label>
+            <select id="p-obiettivo">
+              <option value="">— Seleziona —</option>
+              <option>Perdita di peso</option>
+              <option>Aumento di peso</option>
+              <option>Mantenimento del peso</option>
+              <option>Riabilitazione nutrizionale</option>
+              <option>Gestione patologia cronica</option>
+              <option>Miglioramento composizione corporea</option>
+              <option>Nutrizione in gravidanza/allattamento</option>
+              <option>Alimentazione intuitiva</option>
+              <option>Altro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-patient')">Annulla</button>
+      <button class="btn btn-primary" onclick="savePatient()">💾 Salva paziente</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     MODAL: NUOVA VISITA
+══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-visit">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuova visita</h3>
+      <button class="modal-close" onclick="closeModal('modal-visit')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-section">
+        <div class="form-section-header">📅 Dati visita</div>
+        <div class="form-section-body">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Data <span style="color:var(--sage-500)">*</span></label>
+              <input type="date" id="v-data" />
+            </div>
+            <div class="form-group">
+              <label>Struttura / Studio</label>
+              <select id="v-struttura">
+                <option value="">— Seleziona —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">⚖️ Misurazioni</div>
+        <div class="form-section-body">
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Peso (kg)</label>
+              <input type="number" id="v-peso" placeholder="70" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>BMI</label>
+              <input type="number" id="v-bmi" placeholder="Auto" step="0.1" readonly style="background:var(--sage-50);color:var(--sage-600);font-weight:600;" />
+            </div>
+            <div class="form-group">
+              <label>Massa grassa (%)</label>
+              <input type="number" id="v-grassi" placeholder="25" step="0.1" />
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Circonferenza vita (cm)</label>
+              <input type="number" id="v-vita" placeholder="80" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Circonferenza fianchi (cm)</label>
+              <input type="number" id="v-fianchi" placeholder="95" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Massa magra (kg)</label>
+              <input type="number" id="v-magra" placeholder="50" step="0.1" />
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Plica tricipitale (mm)</label>
+              <input type="number" id="v-plica-tricip" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Plica bicipitale (mm)</label>
+              <input type="number" id="v-plica-bicip" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label>Plica sottoscapolare (mm)</label>
+              <input type="number" id="v-plica-sotto" step="0.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">💬 Resoconto visita</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>Stato di salute / Andamento dal periodo precedente</label>
+            <textarea id="v-andamento" placeholder="Come si sente il paziente? Variazioni rispetto all'ultima visita…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Discussione / Note visita</label>
+            <textarea id="v-note" placeholder="Cosa ci si è detti, indicazioni date, variazioni del piano…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Richieste e variazioni del piano</label>
+            <textarea id="v-variazioni" placeholder="Modifiche richieste dal paziente, aggiustamenti al piano alimentare…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Prossimi obiettivi</label>
+            <textarea id="v-obiettivi" placeholder="Target per la prossima visita…" style="min-height:70px;"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-visit')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveVisit()">💾 Salva visita</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     MODAL: STRUTTURE
+══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-studio">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Struttura / Studio</h3>
+      <button class="modal-close" onclick="closeModal('modal-studio')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome struttura <span style="color:var(--sage-500)">*</span></label>
+        <input type="text" id="s-nome" placeholder="Es: Studio Cortese Cantù" />
+      </div>
+      <div class="form-group">
+        <label>Indirizzo</label>
+        <input type="text" id="s-indirizzo" placeholder="Via Roma 1, Cantù (CO)" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-studio')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveStudio()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+/* ════════════════════════════════════════════════════════
+   DATI & STATO
+════════════════════════════════════════════════════════ */
+// ⚠️ TEMPORANEO: credenziali in chiaro — migrare a Supabase per produzione
+const CREDENTIALS = { user: 'TestAreaRiservata', pass: 'pass2626??!!a' };
+
+const DB_KEY = 'nc_app_data';
+
+function loadDB() {
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || { pazienti: [], studi: [] };
+  } catch { return { pazienti: [], studi: [] }; }
+}
+function saveDB(db) {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+let db = loadDB();
+let currentPatientId = null;
+let editingPatientId = null;
+let weightChart = null;
+let bmiChart = null;
+
+/* ════════════════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════════════════ */
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (u === CREDENTIALS.user && p === CREDENTIALS.pass) {
+    err.style.display = 'none';
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-app').classList.add('active');
+    showPage('dashboard');
+  } else {
+    err.style.display = 'block';
+    document.getElementById('login-pass').value = '';
+  }
+}
+function doLogout() {
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+// Login con Enter
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+/* ════════════════════════════════════════════════════════
+   NAVIGAZIONE
+════════════════════════════════════════════════════════ */
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.style.display = 'block';
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'pazienti') { showPatientList(); renderPatientList(); }
+  if (page === 'studi') renderStudi();
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  if (tabId === 'tab-grafici') renderCharts();
+}
+
+/* ════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════ */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ════════════════════════════════════════════════════════
+   MODAL
+════════════════════════════════════════════════════════ */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Chiudi cliccando overlay
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
+});
+
+/* ════════════════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const allVisite = db.pazienti.reduce((sum, p) => sum + (p.visite || []).length, 0);
+  document.getElementById('stat-totale').textContent = db.pazienti.length;
+  document.getElementById('stat-visite').textContent = allVisite;
+  document.getElementById('stat-studi').textContent = db.studi.length;
+  const last = db.pazienti[db.pazienti.length - 1];
+  document.getElementById('stat-ultimo').textContent = last ? last.nome + ' ' + last.cognome : '—';
+
+  const container = document.getElementById('dash-patients');
+  if (!db.pazienti.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state__icon">👥</div><h3>Nessun paziente ancora</h3><p>Vai su Pazienti per aggiungere la prima anagrafica.</p></div>';
+    return;
+  }
+  const recent = [...db.pazienti].slice(-5).reverse();
+  container.innerHTML = '<div class="patient-list">' + recent.map(p => patientItemHTML(p)).join('') + '</div>';
+}
+
+/* ════════════════════════════════════════════════════════
+   PAZIENTI — LISTA
+════════════════════════════════════════════════════════ */
+function initials(p) { return ((p.nome||'?')[0] + (p.cognome||'?')[0]).toUpperCase(); }
+
+function patientItemHTML(p) {
+  const tags = [];
+  if (p.dieta) tags.push(`<span class="tag tag-diet">${p.dieta}</span>`);
+  if (p.allergie && p.allergie.length) tags.push(`<span class="tag tag-allergy">⚠ Allergie</span>`);
+  const visite = (p.visite || []).length;
+  return `<div class="patient-item" onclick="openPatient('${p.id}')">
+    <div class="patient-avatar">${initials(p)}</div>
+    <div style="flex:1;min-width:0;">
+      <div class="patient-name">${p.nome} ${p.cognome}</div>
+      <div class="patient-meta">${p.eta ? p.eta + ' anni · ' : ''}${visite} visit${visite === 1 ? 'a' : 'e'} · ${p.obiettivo || 'obiettivo non definito'}</div>
+      ${tags.length ? `<div class="patient-tags mt-sm">${tags.join('')}</div>` : ''}
+    </div>
+    <span class="patient-chevron">›</span>
+  </div>`;
+}
+
+function renderPatientList() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let list = db.pazienti;
+  if (q) list = list.filter(p =>
+    (p.nome + ' ' + p.cognome + ' ' + (p.cf||'')).toLowerCase().includes(q)
+  );
+  const container = document.getElementById('patient-list-container');
+  if (!container) return;
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state__icon">🔍</div><h3>' +
+      (db.pazienti.length ? 'Nessun risultato' : 'Nessun paziente') + '</h3>' +
+      '<p>' + (db.pazienti.length ? 'Prova con un altro termine di ricerca.' : 'Clicca "+ Nuovo paziente" per iniziare.') + '</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="patient-list">' + list.map(patientItemHTML).join('') + '</div>';
+}
+
+function showPatientList() {
+  document.getElementById('view-list').style.display = 'block';
+  document.getElementById('view-patient').style.display = 'none';
+  currentPatientId = null;
+}
+
+/* ════════════════════════════════════════════════════════
+   NUOVO/MODIFICA PAZIENTE — MODAL
+════════════════════════════════════════════════════════ */
+function openNewPatientModal() {
+  editingPatientId = null;
+  document.getElementById('modal-patient-title').textContent = 'Nuovo paziente';
+  // Reset form
+  ['p-nome','p-cognome','p-cf','p-indirizzo','p-citta','p-provincia','p-cap','p-tel','p-email',
+   'p-altezza','p-peso','p-bmi','p-vita','p-fianchi','p-grassi','p-plica-tricip','p-plica-bicip',
+   'p-plica-sotto','p-note-cliniche'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('p-sesso').value = '';
+  document.getElementById('p-nascita').value = '';
+  document.getElementById('p-obiettivo').value = '';
+  document.querySelectorAll('[name=dieta],[name=attivita]').forEach(r => r.checked = false);
+  document.querySelectorAll('#modal-patient input[type=checkbox]').forEach(c => c.checked = false);
+  openModal('modal-patient');
+}
+
+function editPatient() {
+  const p = db.pazienti.find(x => x.id === currentPatientId);
+  if (!p) return;
+  editingPatientId = p.id;
+  document.getElementById('modal-patient-title').textContent = 'Modifica anagrafica';
+  document.getElementById('p-nome').value = p.nome || '';
+  document.getElementById('p-cognome').value = p.cognome || '';
+  document.getElementById('p-cf').value = p.cf || '';
+  document.getElementById('p-nascita').value = p.nascita || '';
+  document.getElementById('p-sesso').value = p.sesso || '';
+  document.getElementById('p-indirizzo').value = p.indirizzo || '';
+  document.getElementById('p-citta').value = p.citta || '';
+  document.getElementById('p-provincia').value = p.provincia || '';
+  document.getElementById('p-cap').value = p.cap || '';
+  document.getElementById('p-tel').value = p.tel || '';
+  document.getElementById('p-email').value = p.email || '';
+  document.getElementById('p-altezza').value = p.altezza || '';
+  document.getElementById('p-peso').value = p.pesoIniziale || '';
+  document.getElementById('p-bmi').value = p.bmiIniziale || '';
+  document.getElementById('p-vita').value = p.vita || '';
+  document.getElementById('p-fianchi').value = p.fianchi || '';
+  document.getElementById('p-grassi').value = p.grassiIniziale || '';
+  document.getElementById('p-plica-tricip').value = p.plicaTricip || '';
+  document.getElementById('p-plica-bicip').value = p.plicaBicip || '';
+  document.getElementById('p-plica-sotto').value = p.plicaSotto || '';
+  document.getElementById('p-note-cliniche').value = p.noteCliniche || '';
+  document.getElementById('p-obiettivo').value = p.obiettivo || '';
+  if (p.dieta) { const r = document.querySelector(`[name=dieta][value="${p.dieta}"]`); if (r) r.checked = true; }
+  if (p.attivita) { const r = document.querySelector(`[name=attivita][value="${p.attivita}"]`); if (r) r.checked = true; }
+  (p.allergie || []).forEach(a => {
+    const map = {'Lattosio':'all-lattosio','Glutine':'all-glutine','Fruttosio':'all-fruttosio','Nichel':'all-nichel',
+                 'Frutta secca':'all-fruttasecca','Crostacei':'all-crostacei','Uova':'all-uova','Soia':'all-soia'};
+    if (map[a]) { const el = document.getElementById(map[a]); if (el) el.checked = true; }
+  });
+  (p.patologie || []).forEach(a => {
+    const map = {'Diabete':'pat-diabete','Ipertensione':'pat-ipertensione','Ipercolesterolemia':'pat-colesterolo',
+                 'Patologie tiroidee':'pat-tiroide','Colon irritabile':'pat-colon','Celiachia':'pat-celiachia',
+                 'PCOS':'pat-pcos','Malattia autoimmune':'pat-autoimmune'};
+    if (map[a]) { const el = document.getElementById(map[a]); if (el) el.checked = true; }
+  });
+  openModal('modal-patient');
+}
+
+// BMI auto-calc
+document.getElementById('p-peso').addEventListener('input', calcBMI_patient);
+document.getElementById('p-altezza').addEventListener('input', calcBMI_patient);
+function calcBMI_patient() {
+  const h = parseFloat(document.getElementById('p-altezza').value);
+  const w = parseFloat(document.getElementById('p-peso').value);
+  if (h > 0 && w > 0) document.getElementById('p-bmi').value = (w / ((h/100)**2)).toFixed(1);
+  else document.getElementById('p-bmi').value = '';
+}
+
+function savePatient() {
+  const nome = document.getElementById('p-nome').value.trim();
+  const cognome = document.getElementById('p-cognome').value.trim();
+  if (!nome || !cognome) { showToast('Nome e cognome sono obbligatori', 'error'); return; }
+
+  const allergie = [];
+  const mapAll = {'all-lattosio':'Lattosio','all-glutine':'Glutine','all-fruttosio':'Fruttosio','all-nichel':'Nichel',
+                  'all-fruttasecca':'Frutta secca','all-crostacei':'Crostacei','all-uova':'Uova','all-soia':'Soia'};
+  Object.entries(mapAll).forEach(([id, val]) => { if (document.getElementById(id)?.checked) allergie.push(val); });
+
+  const patologie = [];
+  const mapPat = {'pat-diabete':'Diabete','pat-ipertensione':'Ipertensione','pat-colesterolo':'Ipercolesterolemia',
+                  'pat-tiroide':'Patologie tiroidee','pat-colon':'Colon irritabile','pat-celiachia':'Celiachia',
+                  'pat-pcos':'PCOS','pat-autoimmune':'Malattia autoimmune'};
+  Object.entries(mapPat).forEach(([id, val]) => { if (document.getElementById(id)?.checked) patologie.push(val); });
+
+  const dietaEl = document.querySelector('[name=dieta]:checked');
+  const attivitaEl = document.querySelector('[name=attivita]:checked');
+
+  const nascita = document.getElementById('p-nascita').value;
+  let eta = null;
+  if (nascita) {
+    const diff = Date.now() - new Date(nascita).getTime();
+    eta = Math.floor(diff / (365.25*24*3600*1000));
+  }
+
+  const data = {
+    nome, cognome,
+    cf: document.getElementById('p-cf').value.toUpperCase().trim(),
+    nascita, eta, sesso: document.getElementById('p-sesso').value,
+    indirizzo: document.getElementById('p-indirizzo').value.trim(),
+    citta: document.getElementById('p-citta').value.trim(),
+    provincia: document.getElementById('p-provincia').value.toUpperCase().trim(),
+    cap: document.getElementById('p-cap').value.trim(),
+    tel: document.getElementById('p-tel').value.trim(),
+    email: document.getElementById('p-email').value.trim(),
+    altezza: parseFloat(document.getElementById('p-altezza').value) || null,
+    pesoIniziale: parseFloat(document.getElementById('p-peso').value) || null,
+    bmiIniziale: parseFloat(document.getElementById('p-bmi').value) || null,
+    vita: parseFloat(document.getElementById('p-vita').value) || null,
+    fianchi: parseFloat(document.getElementById('p-fianchi').value) || null,
+    grassiIniziale: parseFloat(document.getElementById('p-grassi').value) || null,
+    plicaTricip: parseFloat(document.getElementById('p-plica-tricip').value) || null,
+    plicaBicip: parseFloat(document.getElementById('p-plica-bicip').value) || null,
+    plicaSotto: parseFloat(document.getElementById('p-plica-sotto').value) || null,
+    dieta: dietaEl ? dietaEl.value : null,
+    attivita: attivitaEl ? attivitaEl.value : null,
+    allergie, patologie,
+    noteCliniche: document.getElementById('p-note-cliniche').value.trim(),
+    obiettivo: document.getElementById('p-obiettivo').value,
+  };
+
+  if (editingPatientId) {
+    const idx = db.pazienti.findIndex(x => x.id === editingPatientId);
+    if (idx >= 0) {
+      db.pazienti[idx] = { ...db.pazienti[idx], ...data };
+      showToast('Anagrafica aggiornata');
+    }
+  } else {
+    data.id = 'p_' + Date.now();
+    data.visite = [];
+    data.createdAt = new Date().toISOString();
+    db.pazienti.push(data);
+    showToast('Paziente salvato');
+  }
+
+  saveDB(db);
+  closeModal('modal-patient');
+  renderPatientList();
+  if (currentPatientId) openPatient(currentPatientId);
+}
+
+/* ════════════════════════════════════════════════════════
+   DETTAGLIO PAZIENTE
+════════════════════════════════════════════════════════ */
+function openPatient(id) {
+  currentPatientId = id;
+  const p = db.pazienti.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('view-list').style.display = 'none';
+  document.getElementById('view-patient').style.display = 'block';
+  document.getElementById('breadcrumb-name').textContent = p.nome + ' ' + p.cognome;
+  document.getElementById('detail-avatar').textContent = initials(p);
+  document.getElementById('detail-name').textContent = p.nome + ' ' + p.cognome;
+  document.getElementById('detail-meta').textContent =
+    [p.eta ? p.eta + ' anni' : null, p.cf || null, p.citta || null].filter(Boolean).join(' · ');
+
+  // Tab default
+  document.querySelectorAll('.tab-panel').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-visite').classList.add('active');
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+
+  renderVisitList(p);
+  renderAnagraficaDisplay(p);
+}
+
+function renderAnagraficaDisplay(p) {
+  document.getElementById('anagrafica-display').innerHTML = `
+    <table style="width:100%;font-size:0.87rem;border-collapse:collapse;">
+      ${row('Nome', p.nome + ' ' + p.cognome)}
+      ${row('Codice Fiscale', p.cf || '—')}
+      ${row('Data di nascita', p.nascita ? new Date(p.nascita).toLocaleDateString('it-IT') : '—')}
+      ${row('Età', p.eta ? p.eta + ' anni' : '—')}
+      ${row('Sesso', p.sesso || '—')}
+      ${row('Telefono', p.tel || '—')}
+      ${row('Email', p.email || '—')}
+      ${row('Indirizzo', [p.indirizzo, p.citta, p.provincia].filter(Boolean).join(', ') || '—')}
+    </table>`;
+  document.getElementById('clinici-display').innerHTML = `
+    <table style="width:100%;font-size:0.87rem;border-collapse:collapse;">
+      ${row('Altezza', p.altezza ? p.altezza + ' cm' : '—')}
+      ${row('Peso iniziale', p.pesoIniziale ? p.pesoIniziale + ' kg' : '—')}
+      ${row('BMI iniziale', p.bmiIniziale || '—')}
+      ${row('Tipo di dieta', p.dieta || '—')}
+      ${row('Attività fisica', p.attivita || '—')}
+      ${row('Allergie', p.allergie?.join(', ') || '—')}
+      ${row('Patologie', p.patologie?.join(', ') || '—')}
+      ${row('Obiettivo', p.obiettivo || '—')}
+      ${row('Note cliniche', p.noteCliniche || '—')}
+    </table>`;
+}
+function row(label, val) {
+  return `<tr><td style="padding:0.45rem 0;color:var(--text-muted);width:45%;vertical-align:top;">${label}</td>
+              <td style="padding:0.45rem 0;font-weight:500;color:var(--text-primary);">${val}</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════
+   VISITE
+════════════════════════════════════════════════════════ */
+function openNewVisitModal() {
+  document.getElementById('v-data').value = new Date().toISOString().split('T')[0];
+  ['v-peso','v-bmi','v-grassi','v-vita','v-fianchi','v-magra','v-plica-tricip','v-plica-bicip',
+   'v-plica-sotto','v-andamento','v-note','v-variazioni','v-obiettivi'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  // Popola select strutture
+  const sel = document.getElementById('v-struttura');
+  sel.innerHTML = '<option value="">— Seleziona —</option>' +
+    db.studi.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+  openModal('modal-visit');
+}
+
+// BMI auto-calc visita
+document.getElementById('v-peso').addEventListener('input', calcBMI_visit);
+function calcBMI_visit() {
+  const p = db.pazienti.find(x => x.id === currentPatientId);
+  if (!p || !p.altezza) return;
+  const w = parseFloat(document.getElementById('v-peso').value);
+  if (w > 0) document.getElementById('v-bmi').value = (w / ((p.altezza/100)**2)).toFixed(1);
+  else document.getElementById('v-bmi').value = '';
+}
+
+function saveVisit() {
+  const data = document.getElementById('v-data').value;
+  if (!data) { showToast('La data è obbligatoria', 'error'); return; }
+  const p = db.pazienti.find(x => x.id === currentPatientId);
+  if (!p) return;
+  const visita = {
+    id: 'v_' + Date.now(),
+    data,
+    struttura: document.getElementById('v-struttura').value,
+    peso: parseFloat(document.getElementById('v-peso').value) || null,
+    bmi: parseFloat(document.getElementById('v-bmi').value) || null,
+    grassi: parseFloat(document.getElementById('v-grassi').value) || null,
+    vita: parseFloat(document.getElementById('v-vita').value) || null,
+    fianchi: parseFloat(document.getElementById('v-fianchi').value) || null,
+    magra: parseFloat(document.getElementById('v-magra').value) || null,
+    plicaTricip: parseFloat(document.getElementById('v-plica-tricip').value) || null,
+    plicaBicip: parseFloat(document.getElementById('v-plica-bicip').value) || null,
+    plicaSotto: parseFloat(document.getElementById('v-plica-sotto').value) || null,
+    andamento: document.getElementById('v-andamento').value.trim(),
+    note: document.getElementById('v-note').value.trim(),
+    variazioni: document.getElementById('v-variazioni').value.trim(),
+    obiettivi: document.getElementById('v-obiettivi').value.trim(),
+  };
+  if (!p.visite) p.visite = [];
+  p.visite.unshift(visita);
+  saveDB(db);
+  closeModal('modal-visit');
+  renderVisitList(p);
+  showToast('Visita salvata');
+}
+
+function renderVisitList(p) {
+  const container = document.getElementById('visit-list-container');
+  if (!p.visite || !p.visite.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state__icon">📋</div><h3>Nessuna visita ancora</h3><p>Clicca "+ Nuova visita" per registrare la prima visita.</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="visit-timeline">' + p.visite.map(v => `
+    <div class="visit-card">
+      <div class="visit-card-header">
+        <div>
+          <div class="visit-date">${new Date(v.data).toLocaleDateString('it-IT', {day:'2-digit',month:'long',year:'numeric'})}</div>
+          ${v.struttura ? `<div class="visit-location">📍 ${v.struttura}</div>` : ''}
+        </div>
+        <div style="flex:1;"></div>
+        <div class="visit-metrics">
+          ${v.peso  ? `<div class="visit-metric"><span class="visit-metric__label">Peso</span><span class="visit-metric__value">${v.peso}<span class="visit-metric__unit"> kg</span></span></div>` : ''}
+          ${v.bmi   ? `<div class="visit-metric"><span class="visit-metric__label">BMI</span><span class="visit-metric__value">${v.bmi}</span></div>` : ''}
+          ${v.grassi? `<div class="visit-metric"><span class="visit-metric__label">Grasso</span><span class="visit-metric__value">${v.grassi}<span class="visit-metric__unit">%</span></span></div>` : ''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteVisit('${p.id}','${v.id}')">✕</button>
+      </div>
+      <div class="visit-card-body">
+        ${v.andamento ? `<p class="text-sm mb-md"><strong style="color:var(--text-primary);">Andamento:</strong> ${v.andamento}</p>` : ''}
+        ${v.note      ? `<p class="text-sm mb-md"><strong style="color:var(--text-primary);">Note visita:</strong> ${v.note}</p>` : ''}
+        ${v.variazioni? `<p class="text-sm mb-md"><strong style="color:var(--text-primary);">Variazioni:</strong> ${v.variazioni}</p>` : ''}
+        ${v.obiettivi ? `<p class="text-sm"><strong style="color:var(--text-primary);">Prossimi obiettivi:</strong> ${v.obiettivi}</p>` : ''}
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function deleteVisit(pid, vid) {
+  if (!confirm('Eliminare questa visita?')) return;
+  const p = db.pazienti.find(x => x.id === pid);
+  if (!p) return;
+  p.visite = p.visite.filter(v => v.id !== vid);
+  saveDB(db);
+  renderVisitList(p);
+  showToast('Visita eliminata');
+}
+
+/* ════════════════════════════════════════════════════════
+   GRAFICI
+════════════════════════════════════════════════════════ */
+function renderCharts() {
+  const p = db.pazienti.find(x => x.id === currentPatientId);
+  if (!p) return;
+  const visite = [...(p.visite || [])].sort((a,b) => new Date(a.data) - new Date(b.data));
+  const labels = visite.map(v => new Date(v.data).toLocaleDateString('it-IT', {day:'2-digit',month:'short'}));
+  const pesi  = visite.map(v => v.peso);
+  const bmis  = visite.map(v => v.bmi);
+
+  const chartOpts = (label, color) => ({
+    type: 'line',
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0e9d8' }, ticks: { font: { family: 'Jost', size: 11 } } },
+        y: { grid: { color: '#f0e9d8' }, ticks: { font: { family: 'Jost', size: 11 } } }
+      },
+      elements: { line: { tension: 0.35 }, point: { radius: 5, hoverRadius: 7 } }
+    }
+  });
+
+  if (weightChart) weightChart.destroy();
+  if (bmiChart) bmiChart.destroy();
+
+  weightChart = new Chart(document.getElementById('chart-peso'), {
+    ...chartOpts(),
+    type: 'line',
+    data: { labels, datasets: [{ data: pesi, borderColor: '#5a8260', backgroundColor: 'rgba(90,130,96,0.08)', fill: true, tension: 0.35, pointBackgroundColor: '#5a8260' }] },
+    options: chartOpts().options
+  });
+
+  bmiChart = new Chart(document.getElementById('chart-bmi'), {
+    ...chartOpts(),
+    type: 'line',
+    data: { labels, datasets: [{ data: bmis, borderColor: '#d4a853', backgroundColor: 'rgba(212,168,83,0.08)', fill: true, tension: 0.35, pointBackgroundColor: '#d4a853' }] },
+    options: chartOpts().options
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   STRUTTURE
+════════════════════════════════════════════════════════ */
+function openStudiModal() {
+  document.getElementById('s-nome').value = '';
+  document.getElementById('s-indirizzo').value = '';
+  openModal('modal-studio');
+}
+function saveStudio() {
+  const nome = document.getElementById('s-nome').value.trim();
+  if (!nome) { showToast('Il nome è obbligatorio', 'error'); return; }
+  db.studi.push({ id: 's_' + Date.now(), nome, indirizzo: document.getElementById('s-indirizzo').value.trim() });
+  saveDB(db);
+  closeModal('modal-studio');
+  renderStudi();
+  showToast('Struttura salvata');
+}
+function deleteStudio(id) {
+  if (!confirm('Eliminare questa struttura?')) return;
+  db.studi = db.studi.filter(s => s.id !== id);
+  saveDB(db);
+  renderStudi();
+  showToast('Struttura eliminata');
+}
+function renderStudi() {
+  document.getElementById('stat-studi').textContent = db.studi.length;
+  const container = document.getElementById('studi-list');
+  if (!db.studi.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state__icon">🏥</div><h3>Nessuna struttura</h3><p>Aggiungi i luoghi dove effettui le visite — potrai selezionarle durante la registrazione di ogni visita.</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="patient-list">' + db.studi.map(s => `
+    <div class="patient-item" style="cursor:default;">
+      <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);">🏥</div>
+      <div style="flex:1;">
+        <div class="patient-name">${s.nome}</div>
+        ${s.indirizzo ? `<div class="patient-meta">${s.indirizzo}</div>` : ''}
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteStudio('${s.id}')">Elimina</button>
+    </div>`).join('') + '</div>';
+}
+
+/* ════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════ */
+db = loadDB();
+</script>
+</body>
+</html>
