@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impostazioni – Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span class="topbar__email" id="topbar-email"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <a href="index.html"        class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html"     class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html"       class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <a href="impostazioni.html" class="sidebar-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-head"><div><h2>Impostazioni</h2><p>Strutture, prestazioni e account</p></div></div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-strutture',this)">🏥 Strutture</button>
+        <button class="tab-btn" onclick="switchTab('tab-prestazioni',this)">💊 Prestazioni</button>
+        <button class="tab-btn" onclick="switchTab('tab-account',this)">👤 Account</button>
+      </div>
+
+      <!-- ── TAB STRUTTURE ── -->
+      <div id="tab-strutture" class="tab-panel active">
+        <div class="page-head" style="margin-bottom:1rem;">
+          <p class="text-muted text-sm">I luoghi dove effettui le visite. Selezionabili durante la creazione di ogni visita.</p>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-struttura')">+ Aggiungi struttura</button>
+        </div>
+        <div id="strutture-list"></div>
+      </div>
+
+      <!-- ── TAB PRESTAZIONI ── -->
+      <div id="tab-prestazioni" class="tab-panel">
+        <div class="page-head" style="margin-bottom:1rem;">
+          <p class="text-muted text-sm">Le tipologie di visita che eroghi. Selezionabili durante la registrazione di ogni visita.</p>
+          <button class="btn btn-primary btn-sm" onclick="openNewPrestazione()">+ Aggiungi prestazione</button>
+        </div>
+        <div id="prestazioni-list"></div>
+      </div>
+
+      <!-- ── TAB ACCOUNT ── -->
+      <div id="tab-account" class="tab-panel">
+        <div class="card" style="max-width:500px;">
+          <div class="card-title">👤 Il tuo account</div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="account-email" readonly />
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;" />
+          <div class="card-title" style="border:none;padding:0;margin-bottom:1rem;">🔑 Cambia password</div>
+          <div class="alert alert-error" id="pwd-error"></div>
+          <div class="alert alert-success" id="pwd-success"></div>
+          <div class="form-group">
+            <label>Nuova password</label>
+            <input type="password" id="new-pwd" placeholder="Minimo 8 caratteri" />
+          </div>
+          <div class="form-group">
+            <label>Conferma nuova password</label>
+            <input type="password" id="confirm-pwd" placeholder="Ripeti la password" />
+          </div>
+          <button class="btn btn-primary" id="btn-change-pwd" onclick="changePassword()">Aggiorna password</button>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0;" />
+          <div class="card-title" style="border:none;padding:0;margin-bottom:.75rem;font-size:.95rem;">ℹ️ Note GDPR</div>
+          <p class="text-sm" style="color:var(--text-muted);line-height:1.7;">
+            I dati dei pazienti sono classificati come <strong>dati sulla salute</strong> ai sensi dell'art. 9 GDPR.
+            Sono salvati su Supabase (server EU) con accesso protetto da Row Level Security.<br><br>
+            Conservare i dati per il periodo previsto dalla normativa italiana (min. 10 anni per dati sanitari).
+            In caso di richiesta di cancellazione da parte del paziente, procedere dall'elenco pazienti → elimina.
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ MODAL STRUTTURA ══ -->
+<div class="modal-overlay" id="modal-struttura">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 id="modal-str-title">Nuova struttura</h3>
+      <button class="modal-close" onclick="closeModal('modal-struttura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="str-editing-id" />
+      <div class="form-group"><label>Nome *</label><input type="text" id="str-nome" placeholder="Es: Studio Cortese Cantù" /></div>
+      <div class="form-group"><label>Indirizzo</label><input type="text" id="str-indirizzo" placeholder="Via Roma 1, Cantù (CO)" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-struttura')">Annulla</button>
+      <button class="btn btn-primary" id="btn-save-str" onclick="saveStruttura()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PRESTAZIONE ══ -->
+<div class="modal-overlay" id="modal-prestazione">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 id="modal-prest-title">Nuova prestazione</h3>
+      <button class="modal-close" onclick="closeModal('modal-prestazione')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="prest-error"></div>
+      <input type="hidden" id="prest-editing-id" />
+      <div class="grid-2">
+        <div class="form-group col-span-2"><label>Nome prestazione *</label><input type="text" id="prest-nome" placeholder="Es: Visita nutrizionistica, Controllo…" /></div>
+        <div class="form-group col-span-2"><label>Descrizione</label><textarea id="prest-descr" style="min-height:70px;" placeholder="Breve descrizione della prestazione"></textarea></div>
+        <div class="form-group"><label>Durata (minuti)</label><input type="number" id="prest-durata" placeholder="60" min="1" /></div>
+        <div class="form-group"><label>Prezzo (€)</label><input type="number" id="prest-prezzo" placeholder="80.00" step=".01" min="0" /></div>
+      </div>
+      <div class="form-group">
+        <label>Strutture associate <span class="text-muted text-sm">(opzionale)</span></label>
+        <div id="prest-strutture-checks" class="checkbox-group" style="margin-top:.5rem;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-prestazione')">Annulla</button>
+      <button class="btn btn-primary" id="btn-save-prest" onclick="savePrestazione()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { sb, requireAuth, logout, getStrutture, saveStruttura as sbSaveStr, deleteStruttura,
+         getPrestazioni, savePrestazione as sbSavePrest, deletePrestazione } from './js/supabase.js';
+import { loading, toast, showAlert, hideAlert, setBtn, openModal, closeModal,
+         initModals, n, val, flt, emptyState } from './js/ui.js';
+
+let S = { user:null, strutture:[], prestazioni:[] };
+
+async function init() {
+  loading(true);
+  S.user = await requireAuth();
+  if (!S.user) return;
+  n('topbar-email').textContent = S.user.email;
+  n('account-email').value      = S.user.email;
+  n('app').style.display = 'block';
+  n('btn-logout').addEventListener('click', logout);
+  initModals();
+  loading(false);
+  await Promise.all([loadStrutture(), loadPrestazioni()]);
+}
+
+window.switchTab = (tabId, btn) => {
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  n(tabId)?.classList.add('active'); btn.classList.add('active');
+};
+
+// ─── STRUTTURE ───────────────────────────────────────────
+async function loadStrutture() {
+  S.strutture = await getStrutture();
+  const cont = n('strutture-list');
+  if (!S.strutture.length) {
+    cont.innerHTML = emptyState('🏥','Nessuna struttura','Aggiungi i luoghi dove effettui le visite.'); return;
+  }
+  cont.innerHTML = '<div class="patient-list">' + S.strutture.map(s=>`
+    <div class="patient-item" style="cursor:default;">
+      <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);font-size:1.2rem;">🏥</div>
+      <div style="flex:1;">
+        <div class="patient-name">${s.nome}</div>
+        ${s.indirizzo?`<div class="patient-meta">${s.indirizzo}</div>`:''}
+      </div>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-secondary btn-sm" onclick="editStruttura('${s.id}','${s.nome.replace(/'/g,"\\'")}','${(s.indirizzo||'').replace(/'/g,"\\'")}')">✏️ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="delStruttura('${s.id}')">Elimina</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+window.editStruttura = (id, nome, indirizzo) => {
+  n('str-editing-id').value = id;
+  n('str-nome').value = nome;
+  n('str-indirizzo').value = indirizzo;
+  n('modal-str-title').textContent = 'Modifica struttura';
+  openModal('modal-struttura');
+};
+
+// Apri modale per nuova struttura
+document.getElementById('modal-struttura').addEventListener('click', e => {
+  // reset se cliccato X (closeModal lo fa già) — gestiamo reset quando si apre da zero
+});
+// Override apertura nuova struttura dal button
+document.querySelector('[onclick="openModal(\'modal-struttura\')"]')?.addEventListener('click', () => {
+  n('str-editing-id').value = '';
+  n('str-nome').value = '';
+  n('str-indirizzo').value = '';
+  n('modal-str-title').textContent = 'Nuova struttura';
+});
+
+window.saveStruttura = async () => {
+  const nome = val('str-nome');
+  if (!nome) { toast('Il nome è obbligatorio','error'); return; }
+  const editId = n('str-editing-id').value;
+  setBtn('btn-save-str', true);
+  try {
+    if (editId) {
+      const { error } = await sb.from('strutture').update({ nome, indirizzo:val('str-indirizzo')||null }).eq('id',editId);
+      if (error) throw error;
+      toast('Struttura aggiornata');
+    } else {
+      await sbSaveStr({ nome, indirizzo: val('str-indirizzo') }, S.user.id);
+      toast('Struttura salvata');
+    }
+    closeModal('modal-struttura');
+    await loadStrutture();
+  } catch(e) { toast('Errore: '+e.message,'error'); }
+  finally { setBtn('btn-save-str',false); }
+};
+
+window.delStruttura = async id => {
+  if (!confirm('Eliminare questa struttura? Le visite associate perderanno il riferimento.')) return;
+  try { await deleteStruttura(id); toast('Struttura eliminata'); await loadStrutture(); }
+  catch(e) { toast('Errore: '+e.message,'error'); }
+};
+
+// ─── PRESTAZIONI ─────────────────────────────────────────
+async function loadPrestazioni() {
+  S.prestazioni = await getPrestazioni();
+  const cont = n('prestazioni-list');
+  if (!S.prestazioni.length) {
+    cont.innerHTML = emptyState('💊','Nessuna prestazione',
+      'Aggiungi le tipologie di visita che eroghi (es: Prima visita, Controllo mensile…).');
+    return;
+  }
+  cont.innerHTML = '<div class="patient-list">' + S.prestazioni.map(p => {
+    const strutIds = (p.prestazioni_strutture||[]).map(ps=>ps.struttura_id);
+    const strutNomi = strutIds.map(id=>S.strutture.find(s=>s.id===id)?.nome).filter(Boolean);
+    return `<div class="patient-item" style="cursor:default;">
+      <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);font-size:1.1rem;">💊</div>
+      <div style="flex:1;">
+        <div class="patient-name">${p.nome}</div>
+        <div class="patient-meta">
+          ${p.durata_minuti?p.durata_minuti+' min':''}
+          ${p.durata_minuti&&p.prezzo?' · ':''}
+          ${p.prezzo?'€ '+parseFloat(p.prezzo).toFixed(2):''}
+        </div>
+        ${p.descrizione?`<div class="patient-meta">${p.descrizione}</div>`:''}
+        ${strutNomi.length?`<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.35rem;">
+          ${strutNomi.map(n=>`<span style="font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);">📍 ${n}</span>`).join('')}
+        </div>`:''  }
+      </div>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-secondary btn-sm" onclick="editPrestazione('${p.id}')">✏️ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="delPrestazione('${p.id}')">Elimina</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function buildStruttureChecks(selectedIds = []) {
+  const wrap = n('prest-strutture-checks');
+  if (!S.strutture.length) { wrap.innerHTML='<span class="text-muted text-sm">Nessuna struttura configurata</span>'; return; }
+  wrap.innerHTML = S.strutture.map(s=>`
+    <div class="checkbox-chip">
+      <input type="checkbox" id="ps-${s.id}" value="${s.id}" ${selectedIds.includes(s.id)?'checked':''}>
+      <label for="ps-${s.id}">📍 ${s.nome}</label>
+    </div>`).join('');
+}
+
+window.openNewPrestazione = () => {
+  n('prest-editing-id').value='';
+  n('prest-nome').value=''; n('prest-descr').value='';
+  n('prest-durata').value=''; n('prest-prezzo').value='';
+  n('modal-prest-title').textContent='Nuova prestazione';
+  hideAlert('prest-error');
+  buildStruttureChecks();
+  openModal('modal-prestazione');
+};
+
+window.editPrestazione = async id => {
+  const p = S.prestazioni.find(x=>x.id===id);
+  if (!p) return;
+  n('prest-editing-id').value = id;
+  n('prest-nome').value     = p.nome||'';
+  n('prest-descr').value    = p.descrizione||'';
+  n('prest-durata').value   = p.durata_minuti||'';
+  n('prest-prezzo').value   = p.prezzo||'';
+  n('modal-prest-title').textContent = 'Modifica prestazione';
+  hideAlert('prest-error');
+  const strutIds = (p.prestazioni_strutture||[]).map(ps=>ps.struttura_id);
+  buildStruttureChecks(strutIds);
+  openModal('modal-prestazione');
+};
+
+window.savePrestazione = async () => {
+  hideAlert('prest-error');
+  const nome = val('prest-nome');
+  if (!nome) { showAlert('prest-error','Il nome è obbligatorio.'); return; }
+  const editId = n('prest-editing-id').value || null;
+  const strutIds = [...document.querySelectorAll('#prest-strutture-checks input:checked')].map(c=>c.value);
+  const durata = n('prest-durata').value ? parseInt(n('prest-durata').value) : null;
+  const prezzo = n('prest-prezzo').value ? parseFloat(n('prest-prezzo').value) : null;
+  setBtn('btn-save-prest',true);
+  try {
+    await sbSavePrest({ nome, descrizione:val('prest-descr')||null, durata_minuti:durata,
+      prezzo, struttura_ids:strutIds }, S.user.id, editId);
+    toast(editId ? 'Prestazione aggiornata' : 'Prestazione salvata');
+    closeModal('modal-prestazione');
+    await loadPrestazioni();
+  } catch(e){ showAlert('prest-error','Errore: '+e.message); }
+  finally { setBtn('btn-save-prest',false); }
+};
+
+window.delPrestazione = async id => {
+  if (!confirm('Eliminare questa prestazione? Le visite associate perderanno il riferimento.')) return;
+  try { await deletePrestazione(id); toast('Prestazione eliminata'); await loadPrestazioni(); }
+  catch(e){ toast('Errore: '+e.message,'error'); }
+};
+
+// ─── ACCOUNT ─────────────────────────────────────────────
+window.changePassword = async () => {
+  hideAlert('pwd-error'); hideAlert('pwd-success');
+  const np = n('new-pwd').value, cp = n('confirm-pwd').value;
+  if (np.length < 8) { showAlert('pwd-error','La password deve essere di almeno 8 caratteri.'); return; }
+  if (np !== cp)     { showAlert('pwd-error','Le password non coincidono.'); return; }
+  setBtn('btn-change-pwd', true);
+  try {
+    const { error } = await sb.auth.updateUser({ password: np });
+    if (error) throw error;
+    n('new-pwd').value=''; n('confirm-pwd').value='';
+    showAlert('pwd-success','Password aggiornata con successo!');
+  } catch(e){ showAlert('pwd-error','Errore: '+e.message); }
+  finally { setBtn('btn-change-pwd',false); }
+};
+
+init();
+</script>
+</body>
+</html>

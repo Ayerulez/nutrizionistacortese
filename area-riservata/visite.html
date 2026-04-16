@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visite – Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span class="topbar__email" id="topbar-email"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <a href="index.html"        class="sidebar-link" data-page="dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html"     class="sidebar-link" data-page="pazienti">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html"       class="sidebar-link active" data-page="visite">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <a href="impostazioni.html" class="sidebar-link" data-page="impostazioni">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-head">
+        <div><h2>Visite</h2><p>Storico visite, filtrabili per struttura e prestazione</p></div>
+      </div>
+
+      <!-- FILTRI -->
+      <div class="filter-bar card mb-md">
+        <div class="filter-bar__inner">
+          <div class="form-group" style="margin:0;flex:1;">
+            <label>Struttura</label>
+            <select id="filter-struttura" onchange="applyFilters()">
+              <option value="">Tutte le strutture</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;flex:1;">
+            <label>Prestazione</label>
+            <select id="filter-prestazione" onchange="applyFilters()">
+              <option value="">Tutte le prestazioni</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="resetFilters()">✕ Reset</button>
+        </div>
+        <div id="filter-count" class="text-muted text-sm mt-sm"></div>
+      </div>
+
+      <!-- LISTA VISITE -->
+      <div id="visite-container"></div>
+
+      <!-- PAGINAZIONE -->
+      <div class="pagination mt-md" id="pagination"></div>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { sb, requireAuth, logout, getListaVisite, getStrutture, getPrestazioni } from './js/supabase.js';
+import { loading, toast, emptyState, fmtDate, n } from './js/ui.js';
+
+const PAGE_SIZE = 10;
+let currentPage = 0;
+let totalVisite = 0;
+
+async function init() {
+  loading(true);
+  const user = await requireAuth();
+  if (!user) return;
+  n('topbar-email').textContent = user.email;
+  n('app').style.display = 'block';
+  n('btn-logout').addEventListener('click', logout);
+  await Promise.all([populateFilters(), loadVisite()]);
+  loading(false);
+}
+
+async function populateFilters() {
+  const [strutture, prestazioni] = await Promise.all([getStrutture(), getPrestazioni()]);
+
+  const selStr = n('filter-struttura');
+  strutture.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = s.nome;
+    selStr.appendChild(o);
+  });
+
+  const selPr = n('filter-prestazione');
+  prestazioni.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id; o.textContent = p.nome;
+    selPr.appendChild(o);
+  });
+}
+
+async function loadVisite() {
+  loading(true, 'Caricamento visite…');
+  try {
+    const { visite, totale } = await getListaVisite({
+      struttura_id:    n('filter-struttura')?.value    || null,
+      prestazione_id:  n('filter-prestazione')?.value  || null,
+      limit:  PAGE_SIZE,
+      offset: currentPage * PAGE_SIZE,
+    });
+    totalVisite = totale;
+
+    const cont = n('visite-container');
+    n('filter-count').textContent = `${totale} visit${totale === 1 ? 'a' : 'e'} trovate`;
+
+    if (!visite?.length) {
+      cont.innerHTML = emptyState('📋', 'Nessuna visita', 'Prova a cambiare i filtri.');
+      n('pagination').innerHTML = '';
+      return;
+    }
+
+    cont.innerHTML = `<div class="visite-list">
+      <div class="visite-list-header">
+        <span>Paziente</span><span>Data</span><span>Struttura</span><span>Prestazione</span><span>Peso</span><span></span>
+      </div>
+      ${visite.map(v => `
+        <div class="visita-row" onclick="goToPaziente('${v.pazienti?.id}', '${v.id}')">
+          <span class="visita-paziente">
+            <strong>${v.pazienti?.cognome ?? ''} ${v.pazienti?.nome ?? ''}</strong>
+          </span>
+          <span>${fmtDate(v.data_visita, {day:'2-digit',month:'2-digit',year:'numeric'})}</span>
+          <span>${v.strutture?.nome ?? '—'}</span>
+          <span>${v.prestazioni?.nome ?? '—'}</span>
+          <span>${v.peso_kg ? v.peso_kg + ' kg' : '—'}</span>
+          <span style="color:var(--text-muted);">›</span>
+        </div>`).join('')}
+    </div>`;
+
+    renderPagination();
+  } catch(e) { toast('Errore caricamento visite', 'error'); console.error(e); }
+  finally { loading(false); }
+}
+
+function renderPagination() {
+  const pages = Math.ceil(totalVisite / PAGE_SIZE);
+  if (pages <= 1) { n('pagination').innerHTML = ''; return; }
+  let html = '';
+  for (let i = 0; i < pages; i++) {
+    html += `<button class="page-btn${i === currentPage ? ' active' : ''}" onclick="goPage(${i})">${i + 1}</button>`;
+  }
+  n('pagination').innerHTML = html;
+}
+
+window.applyFilters = () => { currentPage = 0; loadVisite(); };
+window.resetFilters = () => {
+  n('filter-struttura').value = ''; n('filter-prestazione').value = '';
+  currentPage = 0; loadVisite();
+};
+window.goPage = i => { currentPage = i; loadVisite(); };
+window.goToPaziente = (pazienteId, visitaId) => {
+  if (pazienteId) window.location.href = `pazienti.html?id=${pazienteId}&visita=${visitaId}`;
+};
+
+init();
+</script>
+</body>
+</html>

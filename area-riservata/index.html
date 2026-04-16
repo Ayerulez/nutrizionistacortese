@@ -1,410 +1,23 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Area Riservata – Dott.ssa Giulia Cortese</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Studio Cortese</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    :root {
-      --sage-50:#f6f9f6;--sage-100:#ecf3ec;--sage-200:#d8e8d8;
-      --sage-300:#b8cfb8;--sage-400:#94b894;--sage-500:#729e72;
-      --sage-600:#5a8260;--sage-700:#3e5e42;
-      --beige-50:#fdfbf7;--beige-100:#f8f4ec;--beige-200:#f0e9d8;
-      --gold-300:#d4a853;
-      --stone-600:#7a6a58;--stone-800:#3d3028;--stone-900:#251e16;
-      --white:#ffffff;--border:#e8e2d9;--border-sage:#d8e8d8;
-      --text-primary:#251e16;--text-body:#7a6a58;--text-muted:#a89880;
-      --font-display:'Playfair Display',Georgia,serif;
-      --font-body:'Jost',system-ui,sans-serif;
-      --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;--r-2xl:36px;
-      --shadow-sm:0 2px 8px rgba(37,30,22,.07);
-      --shadow-md:0 6px 24px rgba(37,30,22,.10);
-      --shadow-lg:0 16px 48px rgba(37,30,22,.13);
-      --ease-out:cubic-bezier(.22,1,.36,1);
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html{font-size:16px;-webkit-font-smoothing:antialiased;}
-    body{font-family:var(--font-body);background:var(--beige-50);color:var(--text-body);min-height:100vh;}
-    ::selection{background:var(--sage-200);}
-    h1,h2,h3,h4{font-family:var(--font-display);color:var(--text-primary);font-weight:600;line-height:1.2;}
-    p{line-height:1.7;}button{font-family:var(--font-body);cursor:pointer;}
-    input,select,textarea{font-family:var(--font-body);font-size:.9rem;}
-
-    .screen{display:none;min-height:100vh;}
-    .screen.active{display:flex;}
-
-    /* LOGIN */
-    #screen-login{align-items:center;justify-content:center;
-      background:linear-gradient(135deg,var(--stone-900) 0%,var(--sage-700) 60%,var(--sage-600) 100%);}
-    .login-card{background:var(--white);border-radius:var(--r-2xl);padding:3rem;
-      width:100%;max-width:420px;box-shadow:var(--shadow-lg);animation:fadeUp .5s var(--ease-out) both;}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
-    .login-logo{text-align:center;margin-bottom:2rem;}
-    .login-logo img{height:64px;margin:0 auto .75rem;}
-    .login-logo h1{font-size:1.4rem;}
-    .login-logo p{font-size:.8rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;}
-    .login-badge{display:flex;align-items:center;justify-content:center;gap:.5rem;
-      background:var(--sage-50);border:1px solid var(--sage-200);border-radius:9999px;
-      padding:.45rem 1rem;font-size:.72rem;font-weight:600;letter-spacing:.1em;
-      text-transform:uppercase;color:var(--sage-600);margin-bottom:1.75rem;}
-
-    /* FORM ELEMENTS */
-    .form-group{margin-bottom:1rem;}
-    .form-group label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;
-      text-transform:uppercase;color:var(--text-primary);margin-bottom:.4rem;}
-    .form-group input,.form-group select,.form-group textarea{
-      width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);
-      border-radius:var(--r-md);background:var(--beige-50);color:var(--text-primary);
-      outline:none;transition:border-color .2s,box-shadow .2s,background .2s;}
-    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
-      border-color:var(--sage-400);box-shadow:0 0 0 3px rgba(90,130,96,.12);background:var(--white);}
-    .form-group textarea{resize:vertical;min-height:80px;}
-    .form-group input[readonly]{background:var(--sage-50);color:var(--sage-600);font-weight:600;cursor:default;}
-
-    /* BUTTONS */
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-      padding:.85rem 2rem;border-radius:9999px;font-weight:600;font-size:.88rem;
-      letter-spacing:.04em;border:1.5px solid transparent;transition:all .3s var(--ease-out);}
-    .btn:hover:not(:disabled){transform:translateY(-2px);}
-    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important;}
-    .btn-primary{background:var(--sage-600);color:var(--white);border-color:var(--sage-600);box-shadow:0 4px 14px rgba(90,130,96,.3);}
-    .btn-primary:hover:not(:disabled){box-shadow:0 8px 24px rgba(90,130,96,.4);}
-    .btn-secondary{background:var(--white);color:var(--sage-600);border-color:var(--sage-300);}
-    .btn-secondary:hover:not(:disabled){background:var(--sage-50);}
-    .btn-danger{background:#fef2f2;color:#c53030;border-color:#fecaca;}
-    .btn-ghost{background:transparent;color:var(--text-body);border-color:var(--border);}
-    .btn-ghost:hover:not(:disabled){background:var(--sage-50);border-color:var(--sage-300);color:var(--sage-600);}
-    .btn-gold{background:linear-gradient(135deg,var(--gold-300),#b8923e);color:var(--white);border-color:transparent;box-shadow:0 4px 14px rgba(212,168,83,.3);}
-    .btn-sm{padding:.5rem 1.1rem;font-size:.8rem;}
-    .btn-full{width:100%;}
-
-    /* ALERTS */
-    .alert{padding:.8rem 1rem;border-radius:var(--r-md);font-size:.85rem;margin-bottom:1rem;display:none;}
-    .alert.show{display:block;}
-    .alert-error{background:#fef2f2;color:#c53030;border:1px solid #fecaca;}
-    .alert-success{background:var(--sage-50);color:var(--sage-700);border:1px solid var(--sage-200);}
-
-    /* LOADING */
-    .loading-overlay{position:fixed;inset:0;background:rgba(253,251,247,.88);
-      backdrop-filter:blur(4px);z-index:9999;display:none;
-      align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
-    .loading-overlay.show{display:flex;}
-    .spinner{width:40px;height:40px;border:3px solid var(--sage-200);
-      border-top-color:var(--sage-600);border-radius:50%;animation:spin .8s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    .loading-text{font-size:.88rem;color:var(--text-muted);font-weight:500;}
-
-    /* APP SHELL */
-    #screen-app{flex-direction:column;}
-    .topbar{height:64px;background:var(--white);border-bottom:1px solid var(--border);
-      display:flex;align-items:center;padding:0 1.5rem;gap:1rem;
-      position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
-    .topbar__logo{display:flex;align-items:center;gap:.75rem;}
-    .topbar__logo img{height:36px;}
-    .topbar__title{font-family:var(--font-display);font-size:1rem;font-weight:600;color:var(--text-primary);}
-    .topbar__badge{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-      color:var(--sage-600);background:var(--sage-50);border:1px solid var(--sage-200);
-      border-radius:9999px;padding:.2rem .6rem;}
-    .topbar__spacer{flex:1;}
-    .topbar__user{display:flex;align-items:center;gap:.6rem;font-size:.83rem;color:var(--text-muted);}
-    .topbar__email{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .topbar__avatar{width:32px;height:32px;border-radius:50%;background:var(--sage-100);
-      display:flex;align-items:center;justify-content:center;
-      font-size:.9rem;font-weight:700;color:var(--sage-600);font-family:var(--font-display);}
-
-    .app-body{display:grid;grid-template-columns:220px 1fr;flex:1;min-height:calc(100vh - 64px);}
-    .sidebar{background:var(--white);border-right:1px solid var(--border);padding:1.5rem 0;
-      position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;}
-    .sidebar-section{margin-bottom:.5rem;}
-    .sidebar-section-label{font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-      color:var(--text-muted);padding:0 1.25rem;margin-bottom:.35rem;}
-    .sidebar-link{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.25rem;
-      font-size:.87rem;font-weight:500;color:var(--text-body);cursor:pointer;
-      border:none;background:none;width:100%;text-align:left;transition:background .15s,color .15s;}
-    .sidebar-link:hover{background:var(--sage-50);color:var(--sage-600);}
-    .sidebar-link.active{background:var(--sage-50);color:var(--sage-600);
-      border-right:3px solid var(--sage-600);font-weight:600;}
-
-    .main{padding:2rem;overflow-y:auto;background:var(--beige-50);}
-    .page{display:none;}.page.active{display:block;}
-    .page-head{display:flex;align-items:flex-start;justify-content:space-between;
-      margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
-    .page-head h2{font-size:1.8rem;}
-    .page-head p{font-size:.88rem;color:var(--text-muted);margin-top:.2rem;}
-    .page-head-actions{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;}
-
-    /* CARDS */
-    .card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:1.5rem;box-shadow:var(--shadow-sm);}
-    .card-title{font-family:var(--font-display);font-size:1rem;font-weight:600;
-      color:var(--text-primary);margin-bottom:1rem;padding-bottom:.75rem;
-      border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-    .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
-    .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;}
-    .col-span-2{grid-column:span 2;}.col-span-3{grid-column:span 3;}.col-span-4{grid-column:span 4;}
-
-    /* STATS */
-    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
-    .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;}
-    .stat-card__label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem;}
-    .stat-card__value{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--text-primary);line-height:1;}
-    .stat-card__sub{font-size:.75rem;color:var(--text-muted);margin-top:.3rem;}
-
-    /* PATIENT LIST */
-    .patient-list{display:flex;flex-direction:column;gap:.6rem;}
-    .patient-item{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;
-      background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
-      cursor:pointer;transition:all .2s var(--ease-out);}
-    .patient-item:hover{border-color:var(--sage-300);box-shadow:var(--shadow-md);transform:translateX(3px);}
-    .patient-avatar{width:44px;height:44px;border-radius:50%;background:var(--sage-100);
-      display:flex;align-items:center;justify-content:center;
-      font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--sage-600);flex-shrink:0;}
-    .patient-name{font-weight:600;color:var(--text-primary);font-size:.95rem;}
-    .patient-meta{font-size:.78rem;color:var(--text-muted);margin-top:1px;}
-    .patient-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.35rem;}
-    .tag{font-size:.68rem;font-weight:600;letter-spacing:.06em;padding:.2rem .55rem;
-      border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);}
-
-    /* EMPTY STATE */
-    .empty-state{text-align:center;padding:3rem 2rem;color:var(--text-muted);}
-    .empty-state__icon{font-size:3rem;margin-bottom:1rem;opacity:.5;}
-    .empty-state h3{font-size:1.1rem;color:var(--text-primary);margin-bottom:.5rem;}
-    .empty-state p{font-size:.88rem;margin-bottom:1.5rem;}
-
-    /* FORM SECTIONS */
-    .form-section{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:1rem;}
-    .form-section-header{padding:.9rem 1.25rem;background:var(--sage-50);border-bottom:1px solid var(--border-sage);
-      font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);
-      display:flex;align-items:center;gap:.5rem;}
-    .form-section-body{padding:1.25rem;background:var(--white);}
-
-    /* CHECKBOX CHIPS */
-    .checkbox-group{display:flex;flex-wrap:wrap;gap:.5rem;}
-    .checkbox-chip input{display:none;}
-    .checkbox-chip label{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .85rem;
-      border-radius:9999px;border:1.5px solid var(--border);background:var(--beige-50);
-      font-size:.8rem;font-weight:500;color:var(--text-body);cursor:pointer;transition:all .15s;user-select:none;}
-    .checkbox-chip input:checked+label{background:var(--sage-600);color:var(--white);border-color:var(--sage-600);}
-
-    /* VISIT TIMELINE */
-    .visit-timeline{display:flex;flex-direction:column;gap:.75rem;}
-    .visit-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;
-      transition:box-shadow .2s;}
-    .visit-card:hover{box-shadow:var(--shadow-md);}
-    .visit-card-summary{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;cursor:pointer;
-      background:linear-gradient(135deg,var(--sage-50),var(--beige-50));}
-    .visit-card-summary:hover{background:var(--sage-100);}
-    .visit-date{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text-primary);}
-    .visit-num{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-      color:var(--sage-600);background:var(--sage-100);border:1px solid var(--sage-200);
-      border-radius:9999px;padding:.2rem .65rem;}
-    .visit-location{font-size:.78rem;color:var(--text-muted);}
-    .visit-metrics-mini{display:flex;gap:1.25rem;flex-wrap:wrap;}
-    .metric-mini{display:flex;flex-direction:column;}
-    .metric-mini__label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);}
-    .metric-mini__val{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--text-primary);}
-    .metric-mini__unit{font-size:.65rem;color:var(--text-muted);}
-    .visit-card-body{display:none;padding:1.25rem;border-top:1px solid var(--border);}
-    .visit-card-body.open{display:block;}
-    .visit-chevron{margin-left:auto;color:var(--text-muted);font-size:1.1rem;transition:transform .2s;}
-    .visit-chevron.open{transform:rotate(90deg);}
-
-    /* DETAIL TABLE */
-    .detail-table{width:100%;border-collapse:collapse;font-size:.87rem;}
-    .detail-table tr:not(:last-child) td{border-bottom:1px solid var(--border);}
-    .detail-table td:first-child{color:var(--text-muted);padding:.45rem 0;width:45%;vertical-align:top;}
-    .detail-table td:last-child{font-weight:500;color:var(--text-primary);padding:.45rem 0;}
-
-    /* TABS */
-    .tabs{display:flex;gap:.25rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);}
-    .tab-btn{padding:.65rem 1.25rem;font-size:.87rem;font-weight:500;border:none;background:none;
-      cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;
-      transition:color .15s,border-color .15s;}
-    .tab-btn.active{color:var(--sage-600);border-bottom-color:var(--sage-600);font-weight:600;}
-    .tab-panel{display:none;}.tab-panel.active{display:block;}
-
-    /* BREADCRUMB */
-    .breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.82rem;margin-bottom:1.5rem;color:var(--text-muted);}
-    .breadcrumb-link{cursor:pointer;color:var(--sage-600);}
-    .breadcrumb-link:hover{text-decoration:underline;}
-
-    /* MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(37,30,22,.55);backdrop-filter:blur(4px);
-      z-index:1000;display:none;align-items:center;justify-content:center;padding:1.5rem;}
-    .modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
-    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-    .modal{background:var(--white);border-radius:var(--r-xl);width:100%;max-width:760px;
-      max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .3s var(--ease-out) both;}
-    @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
-    .modal-header{padding:1.5rem;border-bottom:1px solid var(--border);
-      display:flex;align-items:center;justify-content:space-between;
-      position:sticky;top:0;background:var(--white);z-index:1;}
-    .modal-header h3{font-size:1.3rem;}
-    .modal-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
-      background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
-      color:var(--text-muted);font-size:1.1rem;transition:all .15s;}
-    .modal-close:hover{background:var(--sage-50);border-color:var(--sage-300);}
-    .modal-body{padding:1.5rem;}
-    .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
-      display:flex;justify-content:flex-end;gap:.75rem;position:sticky;bottom:0;background:var(--white);}
-
-    /* TOAST */
-    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:2000;
-      background:var(--stone-900);color:var(--white);padding:.85rem 1.25rem;
-      border-radius:var(--r-lg);font-size:.87rem;font-weight:500;
-      box-shadow:var(--shadow-lg);transform:translateY(80px);opacity:0;
-      transition:all .35s var(--ease-out);max-width:320px;}
-    .toast.show{transform:none;opacity:1;}
-    .toast.success{background:var(--sage-600);}
-    .toast.error{background:#c53030;}
-
-    /* SEARCH */
-    .search-wrap{position:relative;margin-bottom:1.25rem;}
-    .search-wrap input{width:100%;padding:.7rem 1rem .7rem 2.5rem;border:1.5px solid var(--border);
-      border-radius:var(--r-lg);background:var(--white);font-size:.88rem;color:var(--text-primary);outline:none;
-      transition:border-color .2s,box-shadow .2s;}
-    .search-wrap input:focus{border-color:var(--sage-400);box-shadow:0 0 0 3px rgba(90,130,96,.1);}
-    .search-wrap svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);
-      color:var(--text-muted);pointer-events:none;}
-
-    /* ═══════════════════════════════════════
-       PDF TEMPLATE (nascosto, solo per stampa)
-    ═══════════════════════════════════════ */
-    #pdf-template{display:none;}
-    .pdf-page{
-      font-family:'Helvetica Neue',Arial,sans-serif;
-      font-size:10pt;color:#251e16;
-      padding:0;margin:0;
-      background:white;
-    }
-    .pdf-header{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:20px 24px 14px;
-      border-bottom:3px solid #5a8260;
-      margin-bottom:16px;
-    }
-    .pdf-header-logo{display:flex;align-items:center;gap:12px;}
-    .pdf-header-logo img{height:52px;}
-    .pdf-header-text h1{font-size:13pt;font-weight:700;color:#251e16;margin:0;}
-    .pdf-header-text p{font-size:8pt;color:#7a6a58;margin:2px 0 0;letter-spacing:.06em;}
-    .pdf-header-info{text-align:right;font-size:8pt;color:#7a6a58;line-height:1.7;}
-    .pdf-header-info strong{color:#251e16;}
-    .pdf-title-bar{
-      background:#5a8260;color:white;
-      padding:10px 24px;margin-bottom:16px;
-      display:flex;align-items:center;justify-content:space-between;
-    }
-    .pdf-title-bar h2{font-size:12pt;font-weight:700;margin:0;}
-    .pdf-title-bar span{font-size:9pt;opacity:.8;}
-    .pdf-section{margin:0 24px 14px;border:1px solid #e8e2d9;border-radius:6px;overflow:hidden;}
-    .pdf-section-title{
-      background:#f6f9f6;border-bottom:1px solid #d8e8d8;
-      padding:7px 12px;font-size:8.5pt;font-weight:700;
-      letter-spacing:.08em;text-transform:uppercase;color:#5a8260;
-    }
-    .pdf-section-body{padding:10px 12px;}
-    .pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;}
-    .pdf-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 16px;}
-    .pdf-field{display:flex;gap:6px;padding:3px 0;font-size:9pt;border-bottom:1px dotted #f0e9d8;}
-    .pdf-field:last-child{border-bottom:none;}
-    .pdf-field-label{color:#7a6a58;min-width:120px;flex-shrink:0;font-size:8.5pt;}
-    .pdf-field-value{font-weight:600;color:#251e16;}
-    .pdf-metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 12px;}
-    .pdf-metric-box{background:#f6f9f6;border:1px solid #d8e8d8;border-radius:4px;
-      padding:8px;text-align:center;}
-    .pdf-metric-box .label{font-size:7pt;font-weight:700;letter-spacing:.06em;
-      text-transform:uppercase;color:#7a6a58;margin-bottom:3px;}
-    .pdf-metric-box .value{font-size:14pt;font-weight:700;color:#5a8260;line-height:1;}
-    .pdf-metric-box .unit{font-size:7pt;color:#a89880;}
-    .pdf-note-block{background:#fdfbf7;border-left:3px solid #5a8260;
-      padding:8px 10px;margin:4px 0;font-size:9pt;line-height:1.6;border-radius:0 4px 4px 0;}
-    .pdf-footer{
-      margin-top:20px;padding:10px 24px;
-      border-top:1px solid #e8e2d9;
-      display:flex;justify-content:space-between;align-items:center;
-      font-size:7.5pt;color:#a89880;
-    }
-    .pdf-footer-badge{
-      background:#ecf3ec;color:#5a8260;border:1px solid #d8e8d8;
-      border-radius:9999px;padding:3px 10px;font-size:7pt;font-weight:600;
-    }
-    .pdf-table{width:100%;border-collapse:collapse;font-size:8.5pt;}
-    .pdf-table th{background:#f6f9f6;padding:5px 8px;text-align:left;
-      font-size:7.5pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-      color:#5a8260;border-bottom:1px solid #d8e8d8;}
-    .pdf-table td{padding:5px 8px;border-bottom:1px solid #f0e9d8;vertical-align:top;}
-    .pdf-table tr:last-child td{border-bottom:none;}
-
-    /* UTILITY */
-    .flex{display:flex;}.gap-sm{gap:.5rem;}.gap-md{gap:1rem;}
-    .mt-sm{margin-top:.5rem;}.mt-md{margin-top:1rem;}.mt-lg{margin-top:1.5rem;}.mb-md{margin-bottom:1rem;}
-    .text-muted{color:var(--text-muted);font-size:.85rem;}.text-sm{font-size:.82rem;}
-    .items-center{align-items:center;}.justify-between{justify-content:space-between;}
-
-    /* RESPONSIVE */
-    @media(max-width:900px){
-      .app-body{grid-template-columns:1fr;}.sidebar{display:none;}
-      .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
-      .col-span-2,.col-span-3,.col-span-4{grid-column:span 1;}
-      .stat-grid{grid-template-columns:1fr 1fr;}
-    }
-    @media(max-width:560px){
-      .main{padding:1rem;}.stat-grid{grid-template-columns:1fr;}
-      .login-card{padding:2rem 1.5rem;}.topbar__email{display:none;}
-    }
-  </style>
+  <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
-
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Caricamento…</div>
-</div>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
 <div class="toast" id="toast"></div>
 
-<!-- PDF TEMPLATE (hidden) -->
-<div id="pdf-template"></div>
+<div id="app" style="display:none;">
 
-<!-- ══════════════════════════════
-     LOGIN
-══════════════════════════════ -->
-<div id="screen-login" class="screen active">
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
-      <h1>Dott.ssa Giulia Cortese</h1>
-      <p>Biologa Nutrizionista &amp; Erborista</p>
-    </div>
-    <div class="login-badge">🔒 Area Riservata</div>
-    <div class="alert alert-error" id="login-error"></div>
-    <div class="form-group">
-      <label for="login-email">Email</label>
-      <input type="email" id="login-email" placeholder="La tua email" autocomplete="email" />
-    </div>
-    <div class="form-group">
-      <label for="login-pass">Password</label>
-      <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" />
-    </div>
-    <button class="btn btn-primary btn-full mt-md" id="btn-login">Accedi</button>
-    <p class="text-muted text-sm mt-md" style="text-align:center;">
-      <a href="../index.html" style="color:var(--sage-600);">← Torna al sito</a>
-    </p>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════
-     APP
-══════════════════════════════ -->
-<div id="screen-app" class="screen">
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -412,1132 +25,202 @@
     <div class="topbar__user">
       <div class="topbar__avatar">GC</div>
       <span class="topbar__email" id="topbar-email"></span>
-      <button class="btn btn-ghost btn-sm" id="btn-logout" style="margin-left:.5rem;">Esci</button>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
     </div>
   </header>
+
   <div class="app-body">
+    <!-- SIDEBAR -->
     <nav class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-section-label">Principale</div>
-        <button class="sidebar-link active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <a href="index.html" class="sidebar-link active" data-page="dashboard">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Dashboard
-        </button>
-        <button class="sidebar-link" onclick="showPage('pazienti')" id="nav-pazienti">
+        </a>
+        <a href="pazienti.html" class="sidebar-link" data-page="pazienti">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           Pazienti
-        </button>
+        </a>
+        <a href="visite.html" class="sidebar-link" data-page="visite">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Visite
+        </a>
       </div>
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
-        <button class="sidebar-link" onclick="showPage('studi')" id="nav-studi">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Strutture
-        </button>
+        <a href="impostazioni.html" class="sidebar-link" data-page="impostazioni">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Impostazioni
+        </a>
       </div>
     </nav>
+
+    <!-- MAIN -->
     <main class="main">
-
-      <!-- DASHBOARD -->
-      <div id="page-dashboard" class="page active">
-        <div class="page-head"><div><h2>Benvenuta 👋</h2><p>Panoramica dello studio</p></div></div>
-        <div class="stat-grid">
-          <div class="stat-card"><div class="stat-card__label">Pazienti</div><div class="stat-card__value" id="stat-pazienti">—</div><div class="stat-card__sub">in archivio</div></div>
-          <div class="stat-card"><div class="stat-card__label">Visite</div><div class="stat-card__value" id="stat-visite">—</div><div class="stat-card__sub">registrate</div></div>
-          <div class="stat-card"><div class="stat-card__label">Strutture</div><div class="stat-card__value" id="stat-strutture">—</div><div class="stat-card__sub">configurate</div></div>
-          <div class="stat-card"><div class="stat-card__label">Ultimo paziente</div><div class="stat-card__value" id="stat-ultimo" style="font-size:1rem;padding-top:.3rem;">—</div><div class="stat-card__sub">aggiunto</div></div>
-        </div>
-        <div class="card mt-md"><div class="card-title">👥 Ultimi pazienti</div><div id="dash-patients"></div></div>
-      </div>
-
-      <!-- PAZIENTI -->
-      <div id="page-pazienti" class="page">
-        <div id="view-list">
-          <div class="page-head">
-            <div><h2>Pazienti</h2><p>Archivio anagrafico completo</p></div>
-            <button class="btn btn-primary" onclick="openPatientModal()">+ Nuovo paziente</button>
-          </div>
-          <div class="search-wrap">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="search-input" placeholder="Cerca nome, cognome, codice fiscale…" oninput="handleSearch()" />
-          </div>
-          <div id="patient-list-container"></div>
-        </div>
-
-        <!-- DETTAGLIO PAZIENTE -->
-        <div id="view-patient" style="display:none;">
-          <div class="breadcrumb">
-            <span class="breadcrumb-link" onclick="backToList()">Pazienti</span>
-            <span style="opacity:.4;">›</span>
-            <span id="breadcrumb-name">—</span>
-          </div>
-          <div class="page-head">
-            <div style="display:flex;align-items:center;gap:1rem;">
-              <div class="patient-avatar" id="detail-avatar" style="width:56px;height:56px;font-size:1.4rem;"></div>
-              <div><h2 id="detail-name">—</h2><p id="detail-meta" class="text-muted text-sm mt-sm"></p></div>
-            </div>
-            <div class="page-head-actions">
-              <button class="btn btn-secondary" onclick="editCurrentPatient()">✏️ Modifica</button>
-              <button class="btn btn-primary" onclick="openVisitModal()">+ Nuova visita</button>
-            </div>
-          </div>
-          <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-visite',this)">Visite</button>
-            <button class="tab-btn" onclick="switchTab('tab-anagrafica',this)">Anagrafica</button>
-            <button class="tab-btn" onclick="switchTab('tab-grafici',this)">Grafici</button>
-          </div>
-          <div id="tab-visite" class="tab-panel active"><div id="visit-list-container"></div></div>
-          <div id="tab-anagrafica" class="tab-panel"><div id="anagrafica-container"></div></div>
-          <div id="tab-grafici" class="tab-panel">
-            <div class="grid-2">
-              <div class="card"><div class="card-title">⚖️ Peso (kg)</div><canvas id="chart-peso" height="200"></canvas></div>
-              <div class="card"><div class="card-title">📊 BMI</div><canvas id="chart-bmi" height="200"></canvas></div>
-              <div class="card"><div class="card-title">💧 Composizione corporea (%)</div><canvas id="chart-comp" height="200"></canvas></div>
-              <div class="card"><div class="card-title">📐 Circonferenze (cm)</div><canvas id="chart-circ" height="200"></canvas></div>
-            </div>
-          </div>
+      <div class="page-head">
+        <div>
+          <h2>Dashboard</h2>
+          <p id="dash-subtitle">Panoramica dello studio</p>
         </div>
       </div>
 
-      <!-- STRUTTURE -->
-      <div id="page-studi" class="page">
-        <div class="page-head">
-          <div><h2>Strutture</h2><p>Luoghi dove effettui le visite</p></div>
-          <button class="btn btn-primary" onclick="openStudioModal()">+ Aggiungi</button>
+      <!-- STAT CARDS -->
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="stat-card__label">Pazienti</div><div class="stat-card__value" id="stat-pazienti">—</div><div class="stat-card__sub">in archivio</div></div>
+        <div class="stat-card"><div class="stat-card__label">Visite totali</div><div class="stat-card__value" id="stat-visite">—</div><div class="stat-card__sub">registrate</div></div>
+        <div class="stat-card"><div class="stat-card__label">Strutture</div><div class="stat-card__value" id="stat-strutture">—</div><div class="stat-card__sub">configurate</div></div>
+        <div class="stat-card"><div class="stat-card__label">Prestazioni</div><div class="stat-card__value" id="stat-prestazioni">—</div><div class="stat-card__sub">configurate</div></div>
+      </div>
+
+      <!-- KPI MENSILI -->
+      <div class="grid-2 mt-md">
+
+        <!-- Mese corrente -->
+        <div class="card">
+          <div class="card-title">📅 Mese corrente — <span id="kpi-mese-corr-label">—</span></div>
+          <div id="kpi-mese-corr"></div>
         </div>
-        <div id="studi-list"></div>
+
+        <!-- Mese precedente -->
+        <div class="card">
+          <div class="card-title">📅 Mese precedente — <span id="kpi-mese-prec-label">—</span></div>
+          <div id="kpi-mese-prec"></div>
+        </div>
+
+      </div>
+
+      <!-- TREND GRAFICO -->
+      <div class="card mt-md">
+        <div class="card-title">📈 Confronto visite (ultimi 2 mesi per prestazione)</div>
+        <div id="kpi-chart-wrap" style="position:relative;height:260px;">
+          <canvas id="kpi-chart"></canvas>
+        </div>
       </div>
 
     </main>
   </div>
 </div>
 
-
-<!-- ══════════ MODAL PAZIENTE (ANAMNESI COMPLETA) ══════════ -->
-<div class="modal-overlay" id="modal-patient">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-patient-title">Nuovo paziente</h3>
-      <button class="modal-close" onclick="closeModal('modal-patient')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="alert alert-error" id="patient-error"></div>
-
-      <!-- ANAGRAFICA -->
-      <div class="form-section">
-        <div class="form-section-header">👤 Anagrafica</div>
-        <div class="form-section-body">
-          <div class="grid-2">
-            <div class="form-group"><label>Nome *</label><input type="text" id="p-nome" /></div>
-            <div class="form-group"><label>Cognome *</label><input type="text" id="p-cognome" /></div>
-            <div class="form-group"><label>Data di nascita</label><input type="date" id="p-nascita" /></div>
-            <div class="form-group"><label>Sesso</label>
-              <select id="p-sesso"><option value="">—</option><option>Femmina</option><option>Maschio</option><option>Altro</option></select>
-            </div>
-            <div class="form-group col-span-2"><label>Codice Fiscale</label><input type="text" id="p-cf" style="text-transform:uppercase;" /></div>
-            <div class="form-group col-span-2"><label>Indirizzo di residenza</label><input type="text" id="p-indirizzo" /></div>
-            <div class="form-group"><label>Città</label><input type="text" id="p-citta" /></div>
-            <div class="form-group"><label>Provincia</label><input type="text" id="p-provincia" maxlength="2" style="text-transform:uppercase;" /></div>
-            <div class="form-group"><label>Telefono / Cellulare</label><input type="tel" id="p-tel" /></div>
-            <div class="form-group"><label>Email</label><input type="email" id="p-email" /></div>
-            <div class="form-group col-span-2"><label>Canale di contatto</label>
-              <select id="p-canale">
-                <option value="">—</option>
-                <option>Instagram</option><option>Facebook</option><option>Passaparola</option>
-                <option>Google</option><option>MioDottore</option><option>Altro</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANAMNESI PONDERALE -->
-      <div class="form-section">
-        <div class="form-section-header">⚖️ Anamnesi ponderale</div>
-        <div class="form-section-body">
-          <div class="form-group"><label>Motivo visita / Aspettative</label><textarea id="p-motivo"></textarea></div>
-          <div class="form-group"><label>Storia ponderale</label><textarea id="p-storia-pond"></textarea></div>
-          <div class="form-group"><label>Ultime diete fatte e risultati</label><textarea id="p-ultime-diete"></textarea></div>
-          <div class="form-group"><label>Note</label><textarea id="p-note-pond" style="min-height:60px;"></textarea></div>
-        </div>
-      </div>
-
-      <!-- FISIOPATOLOGIA -->
-      <div class="form-section">
-        <div class="form-section-header">🏥 Fisiopatologia</div>
-        <div class="form-section-body">
-          <div class="grid-2">
-            <div class="form-group"><label>Lavoro</label><input type="text" id="p-lavoro" /></div>
-            <div class="form-group"><label>Sport e frequenza</label><input type="text" id="p-sport" /></div>
-            <div class="form-group"><label>Ciclo mestruale</label><input type="text" id="p-ciclo" /></div>
-            <div class="form-group"><label>Gravidanze e variazioni di peso</label><input type="text" id="p-gravidanze" /></div>
-            <div class="form-group"><label>Alvo</label>
-              <select id="p-alvo">
-                <option value="">—</option>
-                <option>Regolare</option><option>Stipsi</option><option>Diarrea alternata</option>
-                <option>Irregolare</option><option>Colon irritabile</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group"><label>Patologie attuali e pregresse</label><textarea id="p-patologie"></textarea></div>
-          <div class="form-group"><label>Allergie o intolleranze</label><textarea id="p-allergie" style="min-height:60px;"></textarea></div>
-          <div class="form-group"><label>Familiarità per patologie</label><textarea id="p-familiarita" style="min-height:60px;"></textarea></div>
-          <div class="form-group"><label>Farmaci e terapie attualmente assunti</label><textarea id="p-farmaci" style="min-height:60px;"></textarea></div>
-          <div class="form-group"><label>Note fisiopatologia</label><textarea id="p-note-fisio" style="min-height:60px;"></textarea></div>
-        </div>
-      </div>
-
-      <!-- ANAMNESI NUTRIZIONALE — PASTI -->
-      <div class="form-section">
-        <div class="form-section-header">🍽️ Anamnesi nutrizionale — Pasti abituali</div>
-        <div class="form-section-body">
-          <div class="grid-2">
-            <div class="form-group"><label>Colazione</label><textarea id="p-colazione" style="min-height:60px;"></textarea></div>
-            <div class="form-group"><label>Spuntini</label><textarea id="p-spuntini" style="min-height:60px;"></textarea></div>
-            <div class="form-group"><label>Pranzo</label><textarea id="p-pranzo" style="min-height:60px;"></textarea></div>
-            <div class="form-group"><label>Merenda</label><textarea id="p-merenda" style="min-height:60px;"></textarea></div>
-            <div class="form-group"><label>Cena</label><textarea id="p-cena" style="min-height:60px;"></textarea></div>
-            <div class="form-group"><label>Dopo cena</label><textarea id="p-dopo-cena" style="min-height:60px;"></textarea></div>
-            <div class="form-group col-span-2"><label>Extra settimanali</label><textarea id="p-extra" style="min-height:60px;"></textarea></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANAMNESI ALIMENTARE — STILE -->
-      <div class="form-section">
-        <div class="form-section-header">🥗 Anamnesi alimentare — Stile</div>
-        <div class="form-section-body">
-          <div class="grid-3">
-            <div class="form-group"><label>Cereali (pane, pasta, farro…)</label><input type="text" id="p-cereali" /></div>
-            <div class="form-group"><label>Pane</label><input type="text" id="p-pane" /></div>
-            <div class="form-group"><label>Sostituti del pane</label><input type="text" id="p-sost-pane" /></div>
-            <div class="form-group"><label>Carne bianca</label><input type="text" id="p-carne-b" /></div>
-            <div class="form-group"><label>Carne rossa</label><input type="text" id="p-carne-r" /></div>
-            <div class="form-group"><label>Affettati e salumi</label><input type="text" id="p-affettati" /></div>
-            <div class="form-group"><label>Pesce</label><input type="text" id="p-pesce" /></div>
-            <div class="form-group"><label>Legumi</label><input type="text" id="p-legumi" /></div>
-            <div class="form-group"><label>Uova</label><input type="text" id="p-uova" /></div>
-            <div class="form-group"><label>Formaggi</label><input type="text" id="p-formaggi" /></div>
-            <div class="form-group"><label>Latte di vacca</label><input type="text" id="p-latte-v" /></div>
-            <div class="form-group"><label>Latte vegetale</label><input type="text" id="p-latte-veg" /></div>
-            <div class="form-group"><label>Verdure</label><input type="text" id="p-verdure" /></div>
-            <div class="form-group"><label>Frutta</label><input type="text" id="p-frutta" /></div>
-            <div class="form-group"><label>Frutta secca</label><input type="text" id="p-frutta-s" /></div>
-            <div class="form-group"><label>Tuberi</label><input type="text" id="p-tuberi" /></div>
-            <div class="form-group"><label>Acqua (L/giorno)</label><input type="text" id="p-acqua" /></div>
-            <div class="form-group"><label>Alcolici</label><input type="text" id="p-alcolici" /></div>
-            <div class="form-group"><label>Bevande dolci/gasate</label><input type="text" id="p-bevande" /></div>
-            <div class="form-group"><label>Spuntino pre allenamento</label><input type="text" id="p-pre-wo" /></div>
-            <div class="form-group"><label>Spuntino post allenamento</label><input type="text" id="p-post-wo" /></div>
-          </div>
-          <div class="form-group mt-md"><label>Alimenti non graditi</label><textarea id="p-no-grad" style="min-height:60px;"></textarea></div>
-          <div class="form-group"><label>Cibi no (intolleranze soggettive)</label><textarea id="p-cibi-no" style="min-height:60px;"></textarea></div>
-          <div class="grid-2 mt-md">
-            <div class="form-group"><label>Soddisfazione fame ai pasti</label><input type="text" id="p-sodd-fame" placeholder="es: soddisfatto, sempre affamato…" /></div>
-            <div class="form-group"><label>Senso di colpa</label><input type="text" id="p-senso-colpa" /></div>
-            <div class="form-group"><label>Momento in cui ha più fame</label><input type="text" id="p-momento-fame" /></div>
-            <div class="form-group"><label>Ricerca dolce / salato</label><input type="text" id="p-dolce-salato" /></div>
-            <div class="form-group col-span-2"><label>Comfort food</label><input type="text" id="p-comfort" /></div>
-          </div>
-          <div class="form-group mt-md"><label>Vegetariano / Vegano</label>
-            <div class="checkbox-group">
-              <div class="checkbox-chip"><input type="radio" name="dieta" id="d1" value="Onnivora"><label for="d1">🥩 Onnivora</label></div>
-              <div class="checkbox-chip"><input type="radio" name="dieta" id="d2" value="Vegetariana"><label for="d2">🥦 Vegetariana</label></div>
-              <div class="checkbox-chip"><input type="radio" name="dieta" id="d3" value="Vegana"><label for="d3">🌱 Vegana</label></div>
-              <div class="checkbox-chip"><input type="radio" name="dieta" id="d4" value="Pescetariana"><label for="d4">🐟 Pescetariana</label></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-patient')">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-patient" onclick="savePatient()">💾 Salva paziente</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════ MODAL VISITA (COMPLETA) ══════════ -->
-<div class="modal-overlay" id="modal-visit">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-visit-title">Nuova visita</h3>
-      <button class="modal-close" onclick="closeModal('modal-visit')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="alert alert-error" id="visit-error"></div>
-
-      <div class="form-section">
-        <div class="form-section-header">📅 Dati visita</div>
-        <div class="form-section-body">
-          <div class="grid-2">
-            <div class="form-group"><label>Data *</label><input type="date" id="v-data" /></div>
-            <div class="form-group"><label>Struttura</label>
-              <select id="v-struttura"><option value="">— Seleziona —</option></select>
-            </div>
-            <div class="form-group"><label>Prossima visita</label><input type="date" id="v-prossima" /></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANALISI EMATOLOGICHE -->
-      <div class="form-section">
-        <div class="form-section-header">🩸 Analisi ematologiche</div>
-        <div class="form-section-body">
-          <div class="grid-4">
-            <div class="form-group"><label>Azotemia</label><input type="number" id="v-azotemia" step=".01" /></div>
-            <div class="form-group"><label>Creatinemia</label><input type="number" id="v-creatinemia" step=".01" /></div>
-            <div class="form-group"><label>Glicemia</label><input type="number" id="v-glicemia" step=".01" /></div>
-            <div class="form-group"><label>Insulinemia</label><input type="number" id="v-insulinemia" step=".01" /></div>
-            <div class="form-group"><label>Hb glicata</label><input type="number" id="v-hb-glicata" step=".01" /></div>
-            <div class="form-group"><label>AST</label><input type="number" id="v-ast" step=".01" /></div>
-            <div class="form-group"><label>ALT</label><input type="number" id="v-alt" step=".01" /></div>
-            <div class="form-group"><label>GGT</label><input type="number" id="v-ggt" step=".01" /></div>
-            <div class="form-group"><label>Bilirubina</label><input type="number" id="v-bilirubina" step=".01" /></div>
-            <div class="form-group"><label>Sideremia</label><input type="number" id="v-sideremia" step=".01" /></div>
-            <div class="form-group"><label>Ferritina</label><input type="number" id="v-ferritina" step=".01" /></div>
-            <div class="form-group"><label>Emoglobina</label><input type="number" id="v-emoglobina" step=".01" /></div>
-            <div class="form-group"><label>Transferrina</label><input type="number" id="v-transferrina" step=".01" /></div>
-            <div class="form-group"><label>Colesterolo TOT</label><input type="number" id="v-col-tot" step=".01" /></div>
-            <div class="form-group"><label>Colesterolo HDL</label><input type="number" id="v-col-hdl" step=".01" /></div>
-            <div class="form-group"><label>Colesterolo LDL</label><input type="number" id="v-col-ldl" step=".01" /></div>
-            <div class="form-group"><label>Trigliceridi</label><input type="number" id="v-tg" step=".01" /></div>
-            <div class="form-group"><label>Vitamina B12</label><input type="number" id="v-b12" step=".01" /></div>
-            <div class="form-group"><label>Acido Folico</label><input type="number" id="v-folico" step=".01" /></div>
-            <div class="form-group"><label>Vitamina D</label><input type="number" id="v-vit-d" step=".01" /></div>
-            <div class="form-group"><label>TSH</label><input type="number" id="v-tsh" step=".001" /></div>
-            <div class="form-group"><label>FT3</label><input type="number" id="v-ft3" step=".01" /></div>
-            <div class="form-group"><label>FT4</label><input type="number" id="v-ft4" step=".01" /></div>
-            <div class="form-group"><label>TPO</label><input type="number" id="v-tpo" step=".01" /></div>
-            <div class="form-group"><label>ATG</label><input type="number" id="v-atg" step=".01" /></div>
-          </div>
-          <div class="form-group"><label>Note analisi</label><textarea id="v-note-ema" style="min-height:60px;"></textarea></div>
-        </div>
-      </div>
-
-      <!-- VALORI ANTROPOMETRICI -->
-      <div class="form-section">
-        <div class="form-section-header">📏 Valori antropometrici</div>
-        <div class="form-section-body">
-          <div class="grid-4">
-            <div class="form-group"><label>Altezza (cm)</label><input type="number" id="v-altezza" step=".1" /></div>
-            <div class="form-group"><label>Peso (kg)</label><input type="number" id="v-peso" step=".1" /></div>
-            <div class="form-group"><label>Δ Peso (kg)</label><input type="number" id="v-delta-peso" step=".1" readonly /></div>
-            <div class="form-group"><label>BMI</label><input type="number" id="v-bmi" step=".1" readonly /></div>
-            <div class="form-group"><label>Vita (cm)</label><input type="number" id="v-vita" step=".1" /></div>
-            <div class="form-group"><label>Fianchi (cm)</label><input type="number" id="v-fianchi" step=".1" /></div>
-            <div class="form-group"><label>WHR</label><input type="number" id="v-whr" step=".01" readonly /></div>
-            <div class="form-group"><label>Braccio (cm)</label><input type="number" id="v-braccio" step=".1" /></div>
-            <div class="form-group"><label>Coscia pross. (cm)</label><input type="number" id="v-coscia" step=".1" /></div>
-            <div class="form-group"><label>Polso (cm)</label><input type="number" id="v-polso" step=".1" /></div>
-          </div>
-          <p class="text-muted text-sm mt-md mb-md" style="font-weight:600;">📡 BIA — Bioimpedenziometria</p>
-          <div class="grid-4">
-            <div class="form-group"><label>Resistenza (Ω)</label><input type="number" id="v-resist" step=".1" /></div>
-            <div class="form-group"><label>Reattanza (Ω)</label><input type="number" id="v-reatt" step=".1" /></div>
-            <div class="form-group"><label>Angolo di fase (°)</label><input type="number" id="v-ang-fase" step=".01" /></div>
-            <div class="form-group"><label>FFM kg (massa magra)</label><input type="number" id="v-ffm" step=".1" /></div>
-            <div class="form-group"><label>FM kg (massa grassa)</label><input type="number" id="v-fm" step=".1" /></div>
-            <div class="form-group"><label>ECW L (acqua extrac.)</label><input type="number" id="v-ecw" step=".1" /></div>
-            <div class="form-group"><label>TBW L (acqua tot.)</label><input type="number" id="v-tbw" step=".1" /></div>
-          </div>
-          <p class="text-muted text-sm mt-md mb-md" style="font-weight:600;">📊 Indici calcolati / piano</p>
-          <div class="grid-4">
-            <div class="form-group"><label>MB attuale (kcal)</label><input type="number" id="v-mb-att" step="1" /></div>
-            <div class="form-group"><label>MB ideale (kcal)</label><input type="number" id="v-mb-ide" step="1" /></div>
-            <div class="form-group"><label>FE attuale (%)</label><input type="number" id="v-fe-att" step=".1" /></div>
-            <div class="form-group"><label>FE ideale (%)</label><input type="number" id="v-fe-ide" step=".1" /></div>
-            <div class="form-group"><label>Piano kcal prescritto</label><input type="number" id="v-piano-kcal" step="1" /></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- NOTE VISITA -->
-      <div class="form-section">
-        <div class="form-section-header">💬 Note e indicazioni visita</div>
-        <div class="form-section-body">
-          <div class="form-group"><label>Andamento dal periodo precedente</label><textarea id="v-andamento"></textarea></div>
-          <div class="form-group"><label>Note visita</label><textarea id="v-note"></textarea></div>
-          <div class="form-group"><label>Variazioni al piano</label><textarea id="v-variazioni"></textarea></div>
-          <div class="form-group"><label>Indicazioni terapeutiche e considerazioni finali</label><textarea id="v-indicazioni"></textarea></div>
-          <div class="form-group"><label>Prossimi obiettivi</label><textarea id="v-obiettivi" style="min-height:70px;"></textarea></div>
-        </div>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-visit')">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-visit" onclick="saveVisit()">💾 Salva visita</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════ MODAL STUDIO ══════════ -->
-<div class="modal-overlay" id="modal-studio">
-  <div class="modal" style="max-width:460px;">
-    <div class="modal-header"><h3>Struttura / Studio</h3><button class="modal-close" onclick="closeModal('modal-studio')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label>Nome *</label><input type="text" id="s-nome" /></div>
-      <div class="form-group"><label>Indirizzo</label><input type="text" id="s-indirizzo" /></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-studio')">Annulla</button>
-      <button class="btn btn-primary" onclick="saveStudio()">Salva</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
-// ─── CONFIGURAZIONE — sostituire con valori reali da Supabase → Settings → API ───
-const SUPABASE_URL      = 'https://lzxkfknqzvmykuumorwy.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_7Y5FPJcg9sDS653DPBB3sg_oHipCyFT';
+import { sb, requireAuth, logout, getKpiMensili, getStatGlobali } from './js/supabase.js';
+import { loading, toast, n } from './js/ui.js';
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
-});
+let kpiChart = null;
 
-// ─── STATO ───────────────────────────────────────────────
-const S = { user:null, patientId:null, editingPatientId:null, editingVisitId:null,
-            strutture:[], charts:{} };
-
-// ─── UI HELPERS ──────────────────────────────────────────
-const n = id => document.getElementById(id);
-const val = id => n(id)?.value?.trim() ?? '';
-const flt = id => { const v = parseFloat(n(id)?.value); return isNaN(v) ? null : v; };
-const int = id => { const v = parseInt(n(id)?.value); return isNaN(v) ? null : v; };
-
-function loading(show, text='Caricamento…') {
-  n('loading-overlay').classList.toggle('show', show);
-  n('loading-text').textContent = text;
-}
-function toast(msg, type='success') {
-  const t = n('toast');
-  t.textContent = (type==='success'?'✓ ':'✕ ')+msg;
-  t.className = 'toast '+type+' show';
-  setTimeout(()=>t.classList.remove('show'), 3500);
-}
-function showAlert(id,msg){ const el=n(id); if(el){el.textContent=msg;el.classList.add('show');}}
-function hideAlert(id){ const el=n(id); if(el) el.classList.remove('show');}
-function setBtn(id,on){ const b=n(id); if(!b)return; b.disabled=on; b.dataset.orig=b.dataset.orig||b.textContent; b.textContent=on?'Attendere…':b.dataset.orig;}
-
-window.openModal  = id => n(id).classList.add('open');
-window.closeModal = id => n(id).classList.remove('open');
-document.querySelectorAll('.modal-overlay').forEach(o=>
-  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-
-// ─── AUTH ────────────────────────────────────────────────
 async function init() {
-  loading(true,'Verifica sessione…');
-  const { data:{session} } = await sb.auth.getSession();
-  if (session) { S.user=session.user; showApp(); }
-  else showLogin();
+  loading(true, 'Verifica sessione…');
+  const user = await requireAuth();
+  if (!user) return;
+  n('topbar-email').textContent = user.email;
+  n('app').style.display = 'block';
+  n('btn-logout').addEventListener('click', logout);
   loading(false);
+  await Promise.all([loadStats(), loadKpi()]);
 }
-function showLogin(){ n('screen-app').classList.remove('active'); n('screen-login').classList.add('active'); }
-function showApp(){
-  n('screen-login').classList.remove('active');
-  n('screen-app').classList.add('active');
-  n('topbar-email').textContent = S.user?.email ?? '';
-  showPage('dashboard');
-}
-n('btn-login').addEventListener('click', doLogin);
-n('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-async function doLogin(){
-  hideAlert('login-error');
-  const email=val('login-email'), pass=n('login-pass').value;
-  if(!email||!pass){ showAlert('login-error','Inserisci email e password.'); return; }
-  setBtn('btn-login',true);
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  setBtn('btn-login',false);
-  if(error){ showAlert('login-error', error.message.includes('Invalid')?'Email o password non validi.':error.message); return; }
-  S.user=data.user; showApp();
-}
-n('btn-logout').addEventListener('click',async()=>{ await sb.auth.signOut(); S.user=null; showLogin(); });
-sb.auth.onAuthStateChange((_,session)=>{
-  if(!session && n('screen-app').classList.contains('active')){
-    toast('Sessione scaduta.','error'); setTimeout(showLogin,1500);
-  }
-});
 
-// ─── NAVIGAZIONE ─────────────────────────────────────────
-window.showPage = function(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
-  n('page-'+page)?.classList.add('active');
-  n('nav-'+page)?.classList.add('active');
-  if(page==='dashboard') loadDashboard();
-  if(page==='pazienti')  { backToList(); loadPazienti(); }
-  if(page==='studi')     loadStrutture();
-};
-window.switchTab = function(tabId,btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  n(tabId)?.classList.add('active'); btn.classList.add('active');
-  if(tabId==='tab-grafici') renderCharts();
-};
-
-// ─── DASHBOARD ───────────────────────────────────────────
-async function loadDashboard(){
+async function loadStats() {
   try {
-    const [r1,r2,r3,r4] = await Promise.all([
-      sb.from('pazienti').select('*',{count:'exact',head:true}),
-      sb.from('visite').select('*',{count:'exact',head:true}),
-      sb.from('strutture').select('*',{count:'exact',head:true}),
-      sb.from('pazienti').select('id,nome,cognome,data_nascita,motivo_visita').order('created_at',{ascending:false}).limit(5),
-    ]);
-    n('stat-pazienti').textContent  = r1.count??0;
-    n('stat-visite').textContent    = r2.count??0;
-    n('stat-strutture').textContent = r3.count??0;
-    const ul = r4.data||[];
-    n('stat-ultimo').textContent = ul[0] ? ul[0].nome+' '+ul[0].cognome : '—';
-    n('dash-patients').innerHTML = ul.length
-      ? '<div class="patient-list">'+ul.map(patientItemHTML).join('')+'</div>'
-      : emptyState('👥','Nessun paziente','Vai su Pazienti per aggiungere la prima anagrafica.');
-  } catch(e){ toast('Errore dashboard','error'); }
+    const s = await getStatGlobali();
+    n('stat-pazienti').textContent   = s.pazienti;
+    n('stat-visite').textContent     = s.visite;
+    n('stat-strutture').textContent  = s.strutture;
+    n('stat-prestazioni').textContent = s.prestazioni;
+
+    // Sottotitolo con data
+    const oggi = new Date().toLocaleDateString('it-IT', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    n('dash-subtitle').textContent = oggi.charAt(0).toUpperCase() + oggi.slice(1);
+  } catch(e) { toast('Errore statistiche', 'error'); }
 }
 
-// ─── PAZIENTI ────────────────────────────────────────────
-function initials(p){ return ((p.nome?.[0]??'?')+(p.cognome?.[0]??'?')).toUpperCase(); }
-function emptyState(icon,title,text){
-  return `<div class="empty-state"><div class="empty-state__icon">${icon}</div><h3>${title}</h3><p>${text}</p></div>`;
-}
-function patientItemHTML(p){
-  return `<div class="patient-item" onclick="openPatient('${p.id}')">
-    <div class="patient-avatar">${initials(p)}</div>
-    <div style="flex:1;min-width:0;">
-      <div class="patient-name">${p.nome} ${p.cognome}</div>
-      <div class="patient-meta">${p.motivo_visita?p.motivo_visita.slice(0,60)+'…':''}</div>
-    </div>
-    <span style="color:var(--text-muted);">›</span>
-  </div>`;
-}
-
-async function loadPazienti(search=''){
-  loading(true);
+async function loadKpi() {
   try {
-    let q = sb.from('pazienti').select('id,nome,cognome,data_nascita,motivo_visita,canale_contatto').order('cognome');
-    if(search) q=q.or(`cognome.ilike.%${search}%,nome.ilike.%${search}%,codice_fiscale.ilike.%${search}%`);
-    const {data,error}=await q; if(error)throw error;
-    const cont = n('patient-list-container');
-    cont.innerHTML = (data&&data.length)
-      ? '<div class="patient-list">'+data.map(patientItemHTML).join('')+'</div>'
-      : emptyState('👥','Nessun paziente','Clicca "+ Nuovo paziente" per iniziare.');
-  } catch(e){ toast('Errore caricamento','error'); }
-  finally { loading(false); }
+    const kpi = await getKpiMensili();
+
+    // Label mesi
+    const labelMese = mese => mese.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    n('kpi-mese-corr-label').textContent = labelMese(kpi.corrente.mese);
+    n('kpi-mese-prec-label').textContent = labelMese(kpi.precedente.mese);
+
+    // Render KPI card
+    function renderKpiCard(containerId, kpiData) {
+      const cont = n(containerId);
+      if (kpiData.totale === 0) {
+        cont.innerHTML = '<p class="text-muted text-sm" style="padding:1rem 0;">Nessuna visita registrata</p>';
+        return;
+      }
+      const breakdown = Object.entries(kpiData.breakdown)
+        .sort((a, b) => b[1] - a[1])
+        .map(([nome, count]) => {
+          const pct = Math.round((count / kpiData.totale) * 100);
+          return `<div class="kpi-row">
+            <span class="kpi-row__nome">${nome}</span>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar" style="width:${pct}%"></div>
+            </div>
+            <span class="kpi-row__count">${count}</span>
+          </div>`;
+        }).join('');
+
+      cont.innerHTML = `
+        <div class="kpi-totale">
+          <span class="kpi-totale__num">${kpiData.totale}</span>
+          <span class="kpi-totale__label">visite totali</span>
+        </div>
+        <div class="kpi-breakdown">${breakdown}</div>`;
+    }
+
+    renderKpiCard('kpi-mese-corr', kpi.corrente);
+    renderKpiCard('kpi-mese-prec', kpi.precedente);
+
+    // Grafico comparativo
+    renderKpiChart(kpi);
+  } catch(e) { toast('Errore KPI', 'error'); console.error(e); }
 }
 
-let searchTimer;
-window.handleSearch = ()=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>loadPazienti(val('search-input')),300); };
+function renderKpiChart(kpi) {
+  // Raccoglie tutte le prestazioni uniche
+  const allPrestazioni = [...new Set([
+    ...Object.keys(kpi.corrente.breakdown),
+    ...Object.keys(kpi.precedente.breakdown),
+  ])];
 
-window.backToList = ()=>{
-  n('view-list').style.display='block'; n('view-patient').style.display='none'; S.patientId=null;
-};
-
-window.openPatient = async function(id){
-  loading(true,'Caricamento paziente…'); S.patientId=id;
-  try {
-    const {data:p,error}=await sb.from('pazienti').select('*').eq('id',id).single();
-    if(error)throw error;
-    n('view-list').style.display='none'; n('view-patient').style.display='block';
-    n('breadcrumb-name').textContent = p.nome+' '+p.cognome;
-    n('detail-avatar').textContent   = initials(p);
-    n('detail-name').textContent     = p.nome+' '+p.cognome;
-    const nascita = p.data_nascita ? new Date(p.data_nascita).toLocaleDateString('it-IT') : null;
-    n('detail-meta').textContent     = [nascita, p.codice_fiscale, p.citta].filter(Boolean).join(' · ');
-    // Reset tabs
-    document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
-    n('tab-visite').classList.add('active'); document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    renderAnagraficaDisplay(p);
-    await loadVisite(id);
-  } catch(e){ toast('Errore','error'); console.error(e); }
-  finally { loading(false); }
-};
-
-// ─── ANAGRAFICA DISPLAY ──────────────────────────────────
-function r(label,val){ return `<tr><td>${label}</td><td>${val||'—'}</td></tr>`; }
-function renderAnagraficaDisplay(p){
-  const blocks = [
-    { title:'👤 Anagrafica', html: `<table class="detail-table">
-      ${r('Nome e cognome',p.nome+' '+p.cognome)}
-      ${r('Data di nascita',p.data_nascita?new Date(p.data_nascita).toLocaleDateString('it-IT'):null)}
-      ${r('Codice Fiscale',p.codice_fiscale)}
-      ${r('Sesso',p.sesso)}
-      ${r('Indirizzo',[p.indirizzo,p.citta,p.provincia].filter(Boolean).join(', '))}
-      ${r('Telefono',p.telefono)}
-      ${r('Email',p.email)}
-      ${r('Canale contatto',p.canale_contatto)}
-    </table>` },
-    { title:'⚖️ Anamnesi ponderale', html:`<table class="detail-table">
-      ${r('Motivo visita',p.motivo_visita)}${r('Storia ponderale',p.storia_ponderale)}
-      ${r('Ultime diete',p.ultime_diete)}${r('Note',p.note_ponderali)}
-    </table>` },
-    { title:'🏥 Fisiopatologia', html:`<table class="detail-table">
-      ${r('Lavoro',p.lavoro)}${r('Sport e frequenza',p.sport_frequenza)}
-      ${r('Ciclo mestruale',p.ciclo_mestruale)}${r('Gravidanze',p.gravidanze_peso)}
-      ${r('Alvo',p.alvo)}${r('Patologie',p.patologie_attuali)}
-      ${r('Allergie',p.allergie_intolleranze)}${r('Familiarità',p.familiarita_patologie)}
-      ${r('Farmaci',p.farmaci_terapie)}
-    </table>` },
-    { title:'🍽️ Pasti abituali', html:`<table class="detail-table">
-      ${r('Colazione',p.colazione)}${r('Spuntini',p.spuntini)}${r('Pranzo',p.pranzo)}
-      ${r('Merenda',p.merenda)}${r('Cena',p.cena)}${r('Dopo cena',p.dopo_cena)}
-      ${r('Extra settimanali',p.extra_settimanali)}
-    </table>` },
-    { title:'🥗 Stile alimentare', html:`<table class="detail-table">
-      ${r('Dieta',p.vegetariano_vegano)}${r('Cereali',p.cereali)}${r('Carne bianca',p.carne_bianca)}
-      ${r('Carne rossa',p.carne_rossa)}${r('Pesce',p.pesce)}${r('Legumi',p.legumi)}
-      ${r('Formaggi',p.formaggi)}${r('Frutta',p.frutta)}${r('Verdure',p.verdure)}
-      ${r('Acqua',p.acqua)}${r('Alcolici',p.alcolici)}${r('Comfort food',p.comfort_food)}
-      ${r('Alimenti non graditi',p.alimenti_non_graditi)}${r('Cibi no',p.cibi_no)}
-    </table>` },
+  const colors = ['#5a8260','#94b894','#d4a853','#e87373','#729e72','#b8cfb8'];
+  const mesi = [
+    kpi.precedente.mese.toLocaleDateString('it-IT', { month: 'short', year: '2-digit' }),
+    kpi.corrente.mese.toLocaleDateString('it-IT',   { month: 'short', year: '2-digit' }),
   ];
-  n('anagrafica-container').innerHTML = blocks.map(b=>`
-    <div class="card mb-md">
-      <div class="card-title">${b.title}</div>
-      ${b.html}
-    </div>`).join('');
+
+  const datasets = allPrestazioni.map((nome, i) => ({
+    label: nome,
+    data: [
+      kpi.precedente.breakdown[nome] ?? 0,
+      kpi.corrente.breakdown[nome]   ?? 0,
+    ],
+    backgroundColor: colors[i % colors.length] + 'cc',
+    borderColor:     colors[i % colors.length],
+    borderWidth: 1.5,
+    borderRadius: 4,
+  }));
+
+  if (kpiChart) kpiChart.destroy();
+  kpiChart = new Chart(n('kpi-chart'), {
+    type: 'bar',
+    data: { labels: mesi, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Jost', size: 11 }, padding: 16 } },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Jost', size: 12 } } },
+        y: { grid: { color: '#f0e9d8' }, ticks: { font: { family: 'Jost', size: 11 }, stepSize: 1 }, beginAtZero: true },
+      },
+    },
+  });
 }
 
-// ─── MODAL PAZIENTE ──────────────────────────────────────
-const PATIENT_FIELDS = [
-  'p-nome','p-cognome','p-nascita','p-cf','p-indirizzo','p-citta','p-provincia',
-  'p-tel','p-email','p-motivo','p-storia-pond','p-ultime-diete','p-note-pond',
-  'p-lavoro','p-sport','p-ciclo','p-gravidanze','p-patologie','p-allergie',
-  'p-familiarita','p-farmaci','p-note-fisio',
-  'p-colazione','p-spuntini','p-pranzo','p-merenda','p-cena','p-dopo-cena','p-extra',
-  'p-cereali','p-pane','p-sost-pane','p-carne-b','p-carne-r','p-affettati',
-  'p-pesce','p-legumi','p-uova','p-formaggi','p-latte-v','p-latte-veg',
-  'p-verdure','p-frutta','p-frutta-s','p-tuberi','p-acqua','p-alcolici','p-bevande',
-  'p-pre-wo','p-post-wo','p-no-grad','p-cibi-no',
-  'p-sodd-fame','p-senso-colpa','p-momento-fame','p-dolce-salato','p-comfort',
-];
-
-window.openPatientModal = function(){
-  S.editingPatientId=null;
-  n('modal-patient-title').textContent='Nuovo paziente';
-  hideAlert('patient-error');
-  PATIENT_FIELDS.forEach(id=>{ const el=n(id); if(el) el.value=''; });
-  n('p-sesso').value=''; n('p-alvo').value=''; n('p-canale').value='';
-  document.querySelectorAll('[name=dieta]').forEach(r=>r.checked=false);
-  openModal('modal-patient');
-};
-
-window.editCurrentPatient = async function(){
-  if(!S.patientId) return;
-  const {data:p}=await sb.from('pazienti').select('*').eq('id',S.patientId).single();
-  if(!p) return;
-  S.editingPatientId=p.id;
-  n('modal-patient-title').textContent='Modifica anagrafica';
-  hideAlert('patient-error');
-  // Mappa campi DB → input
-  const map = {
-    'p-nome':p.nome,'p-cognome':p.cognome,'p-nascita':p.data_nascita||'',
-    'p-cf':p.codice_fiscale||'','p-indirizzo':p.indirizzo||'','p-citta':p.citta||'',
-    'p-provincia':p.provincia||'','p-tel':p.telefono||'','p-email':p.email||'',
-    'p-motivo':p.motivo_visita||'','p-storia-pond':p.storia_ponderale||'',
-    'p-ultime-diete':p.ultime_diete||'','p-note-pond':p.note_ponderali||'',
-    'p-lavoro':p.lavoro||'','p-sport':p.sport_frequenza||'','p-ciclo':p.ciclo_mestruale||'',
-    'p-gravidanze':p.gravidanze_peso||'','p-patologie':p.patologie_attuali||'',
-    'p-allergie':p.allergie_intolleranze||'','p-familiarita':p.familiarita_patologie||'',
-    'p-farmaci':p.farmaci_terapie||'','p-note-fisio':p.note_fisiopatologia||'',
-    'p-colazione':p.colazione||'','p-spuntini':p.spuntini||'','p-pranzo':p.pranzo||'',
-    'p-merenda':p.merenda||'','p-cena':p.cena||'','p-dopo-cena':p.dopo_cena||'',
-    'p-extra':p.extra_settimanali||'','p-cereali':p.cereali||'','p-pane':p.pane||'',
-    'p-sost-pane':p.sostituti_pane||'','p-carne-b':p.carne_bianca||'','p-carne-r':p.carne_rossa||'',
-    'p-affettati':p.affettati_salumi||'','p-pesce':p.pesce||'','p-legumi':p.legumi||'',
-    'p-uova':p.uova||'','p-formaggi':p.formaggi||'','p-latte-v':p.latte_vacca||'',
-    'p-latte-veg':p.latte_vegetale||'','p-verdure':p.verdure||'','p-frutta':p.frutta||'',
-    'p-frutta-s':p.frutta_secca||'','p-tuberi':p.tuberi||'','p-acqua':p.acqua||'',
-    'p-alcolici':p.alcolici||'','p-bevande':p.bevande_dolci_gasate||'',
-    'p-pre-wo':p.spuntino_pre_wo||'','p-post-wo':p.spuntino_post_wo||'',
-    'p-no-grad':p.alimenti_non_graditi||'','p-cibi-no':p.cibi_no||'',
-    'p-sodd-fame':p.soddisfazione_fame||'','p-senso-colpa':p.senso_colpa||'',
-    'p-momento-fame':p.momento_fame||'','p-dolce-salato':p.ricerca_dolce_salato||'',
-    'p-comfort':p.comfort_food||'',
-  };
-  Object.entries(map).forEach(([id,v])=>{ const el=n(id); if(el) el.value=v; });
-  n('p-sesso').value=p.sesso||''; n('p-alvo').value=p.alvo||''; n('p-canale').value=p.canale_contatto||'';
-  if(p.vegetariano_vegano){ const r=document.querySelector(`[name=dieta][value="${p.vegetariano_vegano}"]`); if(r) r.checked=true; }
-  openModal('modal-patient');
-};
-
-window.savePatient = async function(){
-  hideAlert('patient-error');
-  const nome=val('p-nome'), cognome=val('p-cognome');
-  if(!nome||!cognome){ showAlert('patient-error','Nome e cognome obbligatori.'); return; }
-  const dietaEl=document.querySelector('[name=dieta]:checked');
-  const payload = {
-    user_id:S.user.id, nome, cognome,
-    data_nascita:val('p-nascita')||null, codice_fiscale:val('p-cf').toUpperCase()||null,
-    sesso:n('p-sesso').value||null, indirizzo:val('p-indirizzo')||null,
-    citta:val('p-citta')||null, provincia:val('p-provincia').toUpperCase()||null,
-    telefono:val('p-tel')||null, email:val('p-email')||null,
-    canale_contatto:n('p-canale').value||null,
-    motivo_visita:val('p-motivo')||null, storia_ponderale:val('p-storia-pond')||null,
-    ultime_diete:val('p-ultime-diete')||null, note_ponderali:val('p-note-pond')||null,
-    lavoro:val('p-lavoro')||null, sport_frequenza:val('p-sport')||null,
-    ciclo_mestruale:val('p-ciclo')||null, gravidanze_peso:val('p-gravidanze')||null,
-    alvo:n('p-alvo').value||null, patologie_attuali:val('p-patologie')||null,
-    allergie_intolleranze:val('p-allergie')||null, familiarita_patologie:val('p-familiarita')||null,
-    farmaci_terapie:val('p-farmaci')||null, note_fisiopatologia:val('p-note-fisio')||null,
-    colazione:val('p-colazione')||null, spuntini:val('p-spuntini')||null,
-    pranzo:val('p-pranzo')||null, merenda:val('p-merenda')||null,
-    cena:val('p-cena')||null, dopo_cena:val('p-dopo-cena')||null,
-    extra_settimanali:val('p-extra')||null,
-    cereali:val('p-cereali')||null, pane:val('p-pane')||null,
-    sostituti_pane:val('p-sost-pane')||null, carne_bianca:val('p-carne-b')||null,
-    carne_rossa:val('p-carne-r')||null, affettati_salumi:val('p-affettati')||null,
-    pesce:val('p-pesce')||null, legumi:val('p-legumi')||null, uova:val('p-uova')||null,
-    formaggi:val('p-formaggi')||null, latte_vacca:val('p-latte-v')||null,
-    latte_vegetale:val('p-latte-veg')||null, verdure:val('p-verdure')||null,
-    frutta:val('p-frutta')||null, frutta_secca:val('p-frutta-s')||null,
-    tuberi:val('p-tuberi')||null, alimenti_non_graditi:val('p-no-grad')||null,
-    soddisfazione_fame:val('p-sodd-fame')||null, senso_colpa:val('p-senso-colpa')||null,
-    momento_fame:val('p-momento-fame')||null, ricerca_dolce_salato:val('p-dolce-salato')||null,
-    comfort_food:val('p-comfort')||null, acqua:val('p-acqua')||null,
-    alcolici:val('p-alcolici')||null, bevande_dolci_gasate:val('p-bevande')||null,
-    cibi_no:val('p-cibi-no')||null, spuntino_pre_wo:val('p-pre-wo')||null,
-    spuntino_post_wo:val('p-post-wo')||null,
-    vegetariano_vegano:dietaEl?.value||null,
-  };
-  setBtn('btn-save-patient',true);
-  try {
-    let error;
-    if(S.editingPatientId){
-      const {user_id,...upd}=payload;
-      ({error}=await sb.from('pazienti').update(upd).eq('id',S.editingPatientId));
-      if(!error) toast('Anagrafica aggiornata');
-    } else {
-      ({error}=await sb.from('pazienti').insert(payload));
-      if(!error) toast('Paziente salvato');
-    }
-    if(error)throw error;
-    closeModal('modal-patient');
-    if(S.patientId) openPatient(S.patientId); else loadPazienti();
-  } catch(e){ showAlert('patient-error','Errore: '+(e.message||'Sconosciuto')); }
-  finally { setBtn('btn-save-patient',false); }
-};
-
-// ─── VISITE ──────────────────────────────────────────────
-async function loadVisite(pazienteId){
-  const {data,error}=await sb.from('visite').select('*,strutture(nome)')
-    .eq('paziente_id',pazienteId).order('data_visita',{ascending:false});
-  if(error){ toast('Errore visite','error'); return; }
-  renderVisitList(data||[]);
-}
-
-function renderVisitList(visite){
-  const cont=n('visit-list-container');
-  if(!visite.length){ cont.innerHTML=emptyState('📋','Nessuna visita','Clicca "+ Nuova visita" per iniziare.'); return; }
-  cont.innerHTML='<div class="visit-timeline">'+visite.map((v,i)=>`
-    <div class="visit-card" id="vcard-${v.id}">
-      <div class="visit-card-summary" onclick="toggleVisit('${v.id}')">
-        <div>
-          <div class="visit-date">${new Date(v.data_visita).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
-          ${v.struttura_nome||v.strutture?.nome?`<div class="visit-location">📍 ${v.struttura_nome||v.strutture?.nome}</div>`:''}
-        </div>
-        <div class="visit-metrics-mini">
-          ${v.peso_kg?`<div class="metric-mini"><span class="metric-mini__label">Peso</span><span class="metric-mini__val">${v.peso_kg}<span class="metric-mini__unit"> kg</span></span></div>`:''}
-          ${v.bmi?`<div class="metric-mini"><span class="metric-mini__label">BMI</span><span class="metric-mini__val">${v.bmi}</span></div>`:''}
-          ${v.fm_kg?`<div class="metric-mini"><span class="metric-mini__label">FM</span><span class="metric-mini__val">${v.fm_kg}<span class="metric-mini__unit"> kg</span></span></div>`:''}
-          ${v.vita_cm?`<div class="metric-mini"><span class="metric-mini__label">Vita</span><span class="metric-mini__val">${v.vita_cm}<span class="metric-mini__unit"> cm</span></span></div>`:''}
-        </div>
-        <div style="display:flex;gap:.5rem;margin-left:auto;align-items:center;">
-          <button class="btn btn-gold btn-sm" onclick="event.stopPropagation();exportVisitPDF('${v.id}')">📄 PDF</button>
-          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editVisit('${v.id}')">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteVisit('${v.id}')">✕</button>
-          <span class="visit-chevron" id="chev-${v.id}">›</span>
-        </div>
-      </div>
-      <div class="visit-card-body" id="vbody-${v.id}">
-        ${renderVisitDetail(v)}
-      </div>
-    </div>`).join('')+'</div>';
-}
-
-function renderVisitDetail(v){
-  const blk=(title,rows)=>{
-    const filled=rows.filter(r=>r[1]);
-    if(!filled.length) return '';
-    return `<div style="margin-bottom:1rem;">
-      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">${title}</div>
-      <table class="detail-table">${filled.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
-    </div>`;
-  };
-  return `
-    ${blk('⚖️ Misurazioni principali',[
-      ['Peso',v.peso_kg?v.peso_kg+' kg':null],['BMI',v.bmi],['Δ Peso',v.delta_peso?v.delta_peso+' kg':null],
-      ['Vita',v.vita_cm?v.vita_cm+' cm':null],['Fianchi',v.fianchi_cm?v.fianchi_cm+' cm':null],
-      ['WHR',v.whr],['Braccio',v.braccio_cm?v.braccio_cm+' cm':null],
-      ['MB attuale',v.mb_attuale?v.mb_attuale+' kcal':null],['Piano kcal',v.piano_kcal?v.piano_kcal+' kcal':null],
-    ])}
-    ${blk('📡 BIA',[
-      ['FFM (massa magra)',v.ffm_kg?v.ffm_kg+' kg':null],['FM (massa grassa)',v.fm_kg?v.fm_kg+' kg':null],
-      ['ECW',v.ecw_l?v.ecw_l+' L':null],['TBW',v.tbw_l?v.tbw_l+' L':null],
-      ['Resistenza',v.bia_resistenza?v.bia_resistenza+' Ω':null],
-      ['Reattanza',v.bia_reattanza?v.bia_reattanza+' Ω':null],
-      ['Angolo di fase',v.bia_angolo_fase?v.bia_angolo_fase+'°':null],
-    ])}
-    ${blk('🩸 Analisi ematologiche',[
-      ['Glicemia',v.glicemia],['Insulinemia',v.insulinemia],['Hb glicata',v.hb_glicata],
-      ['Colest. TOT',v.colesterolo_tot],['HDL',v.colesterolo_hdl],['LDL',v.colesterolo_ldl],
-      ['Trigliceridi',v.trigliceridi],['TSH',v.tsh],['Vit D',v.vitamina_d],
-    ])}
-    ${v.andamento?`<div style="margin-bottom:.75rem;"><strong style="font-size:.8rem;color:var(--text-primary);">Andamento:</strong><p style="font-size:.88rem;margin-top:.25rem;">${v.andamento}</p></div>`:''}
-    ${v.note_visita?`<div style="margin-bottom:.75rem;"><strong style="font-size:.8rem;color:var(--text-primary);">Note visita:</strong><p style="font-size:.88rem;margin-top:.25rem;">${v.note_visita}</p></div>`:''}
-    ${v.variazioni_piano?`<div style="margin-bottom:.75rem;"><strong style="font-size:.8rem;color:var(--text-primary);">Variazioni piano:</strong><p style="font-size:.88rem;margin-top:.25rem;">${v.variazioni_piano}</p></div>`:''}
-    ${v.indicazioni_terapeutiche?`<div style="margin-bottom:.75rem;"><strong style="font-size:.8rem;color:var(--text-primary);">Indicazioni terapeutiche:</strong><p style="font-size:.88rem;margin-top:.25rem;">${v.indicazioni_terapeutiche}</p></div>`:''}
-    ${v.prossimi_obiettivi?`<div><strong style="font-size:.8rem;color:var(--text-primary);">Prossimi obiettivi:</strong><p style="font-size:.88rem;margin-top:.25rem;">${v.prossimi_obiettivi}</p></div>`:''}
-  `;
-}
-
-window.toggleVisit = function(id){
-  const body=n('vbody-'+id), chev=n('chev-'+id);
-  const open=body.classList.toggle('open');
-  if(chev) chev.classList.toggle('open',open);
-};
-
-// ─── MODAL VISITA ─────────────────────────────────────────
-const VISIT_NUM_FIELDS = [
-  'v-azotemia','v-creatinemia','v-glicemia','v-insulinemia','v-hb-glicata',
-  'v-ast','v-alt','v-ggt','v-bilirubina','v-sideremia','v-ferritina','v-emoglobina',
-  'v-transferrina','v-col-tot','v-col-hdl','v-col-ldl','v-tg','v-b12','v-folico',
-  'v-vit-d','v-tsh','v-ft3','v-ft4','v-tpo','v-atg',
-  'v-altezza','v-peso','v-delta-peso','v-bmi','v-vita','v-fianchi','v-whr',
-  'v-braccio','v-coscia','v-polso',
-  'v-resist','v-reatt','v-ang-fase','v-ffm','v-fm','v-ecw','v-tbw',
-  'v-mb-att','v-mb-ide','v-fe-att','v-fe-ide','v-piano-kcal',
-];
-const VISIT_TEXT_FIELDS = ['v-note-ema','v-andamento','v-note','v-variazioni','v-indicazioni','v-obiettivi'];
-
-window.openVisitModal = async function(){
-  S.editingVisitId = null;
-  n('modal-visit-title').textContent = 'Nuova visita';
-  n('v-data').value = new Date().toISOString().split('T')[0];
-  n('v-prossima').value = '';
-  VISIT_NUM_FIELDS.forEach(id=>{ const el=n(id); if(el) el.value=''; });
-  VISIT_TEXT_FIELDS.forEach(id=>{ const el=n(id); if(el) el.value=''; });
-  hideAlert('visit-error');
-  await populateStruttureSelect();
-  openModal('modal-visit');
-};
-
-window.editVisit = async function(id){
-  const {data:v,error}=await sb.from('visite').select('*').eq('id',id).single();
-  if(error||!v){ toast('Errore caricamento visita','error'); return; }
-  S.editingVisitId=id;
-  n('modal-visit-title').textContent='Modifica visita';
-  hideAlert('visit-error');
-  n('v-data').value=v.data_visita||'';
-  n('v-prossima').value=v.prossima_visita_data||'';
-  const numMap = {
-    'v-azotemia':v.azotemia,'v-creatinemia':v.creatinemia,'v-glicemia':v.glicemia,
-    'v-insulinemia':v.insulinemia,'v-hb-glicata':v.hb_glicata,'v-ast':v.ast,'v-alt':v.alt,
-    'v-ggt':v.ggt,'v-bilirubina':v.bilirubina,'v-sideremia':v.sideremia,'v-ferritina':v.ferritina,
-    'v-emoglobina':v.emoglobina,'v-transferrina':v.transferrina,'v-col-tot':v.colesterolo_tot,
-    'v-col-hdl':v.colesterolo_hdl,'v-col-ldl':v.colesterolo_ldl,'v-tg':v.trigliceridi,
-    'v-b12':v.vitamina_b12,'v-folico':v.acido_folico,'v-vit-d':v.vitamina_d,'v-tsh':v.tsh,
-    'v-ft3':v.ft3,'v-ft4':v.ft4,'v-tpo':v.tpo,'v-atg':v.atg,
-    'v-altezza':v.altezza_cm,'v-peso':v.peso_kg,'v-delta-peso':v.delta_peso,'v-bmi':v.bmi,
-    'v-vita':v.vita_cm,'v-fianchi':v.fianchi_cm,'v-whr':v.whr,'v-braccio':v.braccio_cm,
-    'v-coscia':v.coscia_prossimale_cm,'v-polso':v.polso_cm,
-    'v-resist':v.bia_resistenza,'v-reatt':v.bia_reattanza,'v-ang-fase':v.bia_angolo_fase,
-    'v-ffm':v.ffm_kg,'v-fm':v.fm_kg,'v-ecw':v.ecw_l,'v-tbw':v.tbw_l,
-    'v-mb-att':v.mb_attuale,'v-mb-ide':v.mb_ideale,'v-fe-att':v.fe_attuale,'v-fe-ide':v.fe_ideale,
-    'v-piano-kcal':v.piano_kcal,
-  };
-  Object.entries(numMap).forEach(([id,val])=>{ const el=n(id); if(el&&val!=null) el.value=val; });
-  n('v-note-ema').value=v.note_ematologiche||'';
-  n('v-andamento').value=v.andamento||'';
-  n('v-note').value=v.note_visita||'';
-  n('v-variazioni').value=v.variazioni_piano||'';
-  n('v-indicazioni').value=v.indicazioni_terapeutiche||'';
-  n('v-obiettivi').value=v.prossimi_obiettivi||'';
-  await populateStruttureSelect(v.struttura_id);
-  openModal('modal-visit');
-};
-
-async function populateStruttureSelect(selectedId=null){
-  const {data}=await sb.from('strutture').select('id,nome').order('nome');
-  const sel=n('v-struttura');
-  sel.innerHTML='<option value="">— Seleziona —</option>'+
-    (data||[]).map(s=>`<option value="${s.id}" data-nome="${s.nome}"${selectedId===s.id?' selected':''}>${s.nome}</option>`).join('');
-}
-
-// BMI + WHR auto-calc
-['v-peso','v-altezza'].forEach(id=>n(id).addEventListener('input', calcVisitIndici));
-['v-vita','v-fianchi'].forEach(id=>n(id).addEventListener('input', calcVisitIndici));
-async function calcVisitIndici(){
-  const h=flt('v-altezza')||null, w=flt('v-peso'), vita=flt('v-vita'), fianchi=flt('v-fianchi');
-  // Altezza: se non inserita prova a prenderla dall'anagrafica paziente
-  let altezza = h;
-  if(!altezza && S.patientId){
-    const {data}=await sb.from('visite').select('altezza_cm').eq('paziente_id',S.patientId)
-      .not('altezza_cm','is',null).order('data_visita',{ascending:false}).limit(1);
-    if(data?.[0]?.altezza_cm) altezza=data[0].altezza_cm;
-  }
-  if(altezza && w) n('v-bmi').value=(w/((altezza/100)**2)).toFixed(1);
-  if(vita && fianchi) n('v-whr').value=(vita/fianchi).toFixed(2);
-}
-
-window.saveVisit = async function(){
-  hideAlert('visit-error');
-  const data_visita=val('v-data');
-  if(!data_visita){ showAlert('visit-error','La data è obbligatoria.'); return; }
-  const selEl=n('v-struttura');
-  const payload = {
-    user_id:S.user.id, paziente_id:S.patientId,
-    data_visita, struttura_id:selEl.value||null,
-    struttura_nome:selEl.selectedOptions[0]?.dataset.nome||null,
-    prossima_visita_data:val('v-prossima')||null,
-    azotemia:flt('v-azotemia'),creatinemia:flt('v-creatinemia'),glicemia:flt('v-glicemia'),
-    insulinemia:flt('v-insulinemia'),hb_glicata:flt('v-hb-glicata'),
-    ast:flt('v-ast'),alt:flt('v-alt'),ggt:flt('v-ggt'),bilirubina:flt('v-bilirubina'),
-    sideremia:flt('v-sideremia'),ferritina:flt('v-ferritina'),emoglobina:flt('v-emoglobina'),
-    transferrina:flt('v-transferrina'),colesterolo_tot:flt('v-col-tot'),
-    colesterolo_hdl:flt('v-col-hdl'),colesterolo_ldl:flt('v-col-ldl'),trigliceridi:flt('v-tg'),
-    vitamina_b12:flt('v-b12'),acido_folico:flt('v-folico'),vitamina_d:flt('v-vit-d'),
-    tsh:flt('v-tsh'),ft3:flt('v-ft3'),ft4:flt('v-ft4'),tpo:flt('v-tpo'),atg:flt('v-atg'),
-    note_ematologiche:val('v-note-ema')||null,
-    altezza_cm:flt('v-altezza'),peso_kg:flt('v-peso'),delta_peso:flt('v-delta-peso'),
-    bmi:flt('v-bmi'),vita_cm:flt('v-vita'),fianchi_cm:flt('v-fianchi'),whr:flt('v-whr'),
-    braccio_cm:flt('v-braccio'),coscia_prossimale_cm:flt('v-coscia'),polso_cm:flt('v-polso'),
-    bia_resistenza:flt('v-resist'),bia_reattanza:flt('v-reatt'),bia_angolo_fase:flt('v-ang-fase'),
-    ffm_kg:flt('v-ffm'),fm_kg:flt('v-fm'),ecw_l:flt('v-ecw'),tbw_l:flt('v-tbw'),
-    mb_attuale:flt('v-mb-att'),mb_ideale:flt('v-mb-ide'),
-    fe_attuale:flt('v-fe-att'),fe_ideale:flt('v-fe-ide'),piano_kcal:flt('v-piano-kcal'),
-    andamento:val('v-andamento')||null,note_visita:val('v-note')||null,
-    variazioni_piano:val('v-variazioni')||null,indicazioni_terapeutiche:val('v-indicazioni')||null,
-    considerazioni_finali:null,prossimi_obiettivi:val('v-obiettivi')||null,
-  };
-  setBtn('btn-save-visit',true);
-  try {
-    let error;
-    if(S.editingVisitId){
-      const {user_id,paziente_id,...upd}=payload;
-      ({error}=await sb.from('visite').update(upd).eq('id',S.editingVisitId));
-      if(!error) toast('Visita aggiornata');
-    } else {
-      ({error}=await sb.from('visite').insert(payload));
-      if(!error) toast('Visita salvata');
-    }
-    if(error)throw error;
-    closeModal('modal-visit'); await loadVisite(S.patientId);
-  } catch(e){ showAlert('visit-error','Errore: '+(e.message||'Sconosciuto')); }
-  finally { setBtn('btn-save-visit',false); }
-};
-
-window.deleteVisit = async function(id){
-  if(!confirm('Eliminare questa visita?')) return;
-  loading(true);
-  const {error}=await sb.from('visite').delete().eq('id',id);
-  loading(false);
-  if(error){ toast('Errore','error'); return; }
-  toast('Visita eliminata'); await loadVisite(S.patientId);
-};
-
-// ─── EXPORT PDF VISITA ───────────────────────────────────
-window.exportVisitPDF = async function(visitId){
-  loading(true,'Generazione PDF…');
-  try {
-    const [{data:v},{data:p}] = await Promise.all([
-      sb.from('visite').select('*,strutture(nome)').eq('id',visitId).single(),
-      sb.from('pazienti').select('nome,cognome,data_nascita,codice_fiscale,sesso').eq('id',S.patientId).single(),
-    ]);
-    if(!v||!p){ toast('Dati non trovati','error'); return; }
-
-    const dataF = new Date(v.data_visita).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
-    const m = (val,unit='')=>val!=null?`${val}${unit}`:'—';
-    const row=(l,v)=>v&&v!='—'?`<div class="pdf-field"><span class="pdf-field-label">${l}</span><span class="pdf-field-value">${v}</span></div>`:'';
-
-    const html=`<div class="pdf-page">
-      <div class="pdf-header">
-        <div class="pdf-header-logo">
-          <img src="../images/logo.png" onerror="this.style.display='none'" />
-          <div class="pdf-header-text">
-            <h1>Dott.ssa Giulia Cortese</h1>
-            <p>Biologa Nutrizionista &amp; Erborista · Cantù (CO)</p>
-            <p style="font-size:7.5pt;color:#a89880;margin-top:2px;">Tel. 320 145 9853 · dottoressa@nutrizionistacortese.it</p>
-          </div>
-        </div>
-        <div class="pdf-header-info">
-          <strong>SCHEDA VISITA</strong><br>
-          Data: <strong>${dataF}</strong><br>
-          Struttura: ${v.struttura_nome||v.strutture?.nome||'—'}<br>
-          ${v.prossima_visita_data?'Prossima visita: <strong>'+new Date(v.prossima_visita_data).toLocaleDateString('it-IT')+'</strong>':''}
-        </div>
-      </div>
-
-      <div class="pdf-title-bar">
-        <h2>${p.nome} ${p.cognome}</h2>
-        <span>CF: ${p.codice_fiscale||'—'} · ${p.sesso||''}</span>
-      </div>
-
-      <!-- MISURAZIONI CHIAVE -->
-      <div class="pdf-section">
-        <div class="pdf-section-title">📏 Valori antropometrici principali</div>
-        <div class="pdf-metrics-grid">
-          <div class="pdf-metric-box"><div class="label">PESO</div><div class="value">${m(v.peso_kg)}</div><div class="unit">kg</div></div>
-          <div class="pdf-metric-box"><div class="label">BMI</div><div class="value">${m(v.bmi)}</div><div class="unit">kg/m²</div></div>
-          <div class="pdf-metric-box"><div class="label">Δ PESO</div><div class="value">${m(v.delta_peso)}</div><div class="unit">kg</div></div>
-          <div class="pdf-metric-box"><div class="label">VITA</div><div class="value">${m(v.vita_cm)}</div><div class="unit">cm</div></div>
-          <div class="pdf-metric-box"><div class="label">WHR</div><div class="value">${m(v.whr)}</div><div class="unit"></div></div>
-          <div class="pdf-metric-box"><div class="label">FFM</div><div class="value">${m(v.ffm_kg)}</div><div class="unit">kg</div></div>
-          <div class="pdf-metric-box"><div class="label">FM</div><div class="value">${m(v.fm_kg)}</div><div class="unit">kg</div></div>
-          <div class="pdf-metric-box"><div class="label">MB ATT.</div><div class="value">${m(v.mb_attuale)}</div><div class="unit">kcal</div></div>
-          <div class="pdf-metric-box"><div class="label">PIANO</div><div class="value">${m(v.piano_kcal)}</div><div class="unit">kcal</div></div>
-          <div class="pdf-metric-box"><div class="label">A.FASE</div><div class="value">${m(v.bia_angolo_fase)}</div><div class="unit">°</div></div>
-        </div>
-      </div>
-
-      <!-- ANTROPOMETRIA COMPLETA -->
-      <div class="pdf-section">
-        <div class="pdf-section-title">📐 Antropometria completa &amp; BIA</div>
-        <div class="pdf-section-body">
-          <div class="pdf-grid">
-            ${row('Altezza',m(v.altezza_cm,'cm'))}${row('Peso',m(v.peso_kg,' kg'))}
-            ${row('Fianchi',m(v.fianchi_cm,' cm'))}${row('Braccio',m(v.braccio_cm,' cm'))}
-            ${row('Coscia pross.',m(v.coscia_prossimale_cm,' cm'))}${row('Polso',m(v.polso_cm,' cm'))}
-            ${row('Resistenza BIA',m(v.bia_resistenza,' Ω'))}${row('Reattanza BIA',m(v.bia_reattanza,' Ω'))}
-            ${row('ECW',m(v.ecw_l,' L'))}${row('TBW',m(v.tbw_l,' L'))}
-            ${row('FE attuale',m(v.fe_attuale,'%'))}${row('FE ideale',m(v.fe_ideale,'%'))}
-            ${row('MB ideale',m(v.mb_ideale,' kcal'))}
-          </div>
-        </div>
-      </div>
-
-      <!-- ANALISI EMATOLOGICHE -->
-      ${(v.glicemia||v.tsh||v.colesterolo_tot||v.vitamina_d)?`
-      <div class="pdf-section">
-        <div class="pdf-section-title">🩸 Analisi ematologiche</div>
-        <div class="pdf-section-body">
-          <div class="pdf-grid-3">
-            ${row('Glicemia',m(v.glicemia))}${row('Insulinemia',m(v.insulinemia))}${row('Hb glicata',m(v.hb_glicata))}
-            ${row('Colest. TOT',m(v.colesterolo_tot))}${row('HDL',m(v.colesterolo_hdl))}${row('LDL',m(v.colesterolo_ldl))}
-            ${row('Trigliceridi',m(v.trigliceridi))}${row('TSH',m(v.tsh))}${row('FT3',m(v.ft3))}
-            ${row('FT4',m(v.ft4))}${row('Vitamina D',m(v.vitamina_d))}${row('Vit B12',m(v.vitamina_b12))}
-            ${row('Ferritina',m(v.ferritina))}${row('Emoglobina',m(v.emoglobina))}${row('Acido Folico',m(v.acido_folico))}
-          </div>
-          ${v.note_ematologiche?`<div style="margin-top:8px;">${row('Note',v.note_ematologiche)}</div>`:''}
-        </div>
-      </div>`:''}
-
-      <!-- NOTE CLINICHE -->
-      ${(v.andamento||v.note_visita||v.variazioni_piano||v.indicazioni_terapeutiche||v.prossimi_obiettivi)?`
-      <div class="pdf-section">
-        <div class="pdf-section-title">💬 Note e indicazioni cliniche</div>
-        <div class="pdf-section-body">
-          ${v.andamento?`<div style="margin-bottom:10px;"><div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">ANDAMENTO</div><div class="pdf-note-block">${v.andamento}</div></div>`:''}
-          ${v.note_visita?`<div style="margin-bottom:10px;"><div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">NOTE VISITA</div><div class="pdf-note-block">${v.note_visita}</div></div>`:''}
-          ${v.variazioni_piano?`<div style="margin-bottom:10px;"><div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">VARIAZIONI AL PIANO</div><div class="pdf-note-block">${v.variazioni_piano}</div></div>`:''}
-          ${v.indicazioni_terapeutiche?`<div style="margin-bottom:10px;"><div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">INDICAZIONI TERAPEUTICHE</div><div class="pdf-note-block">${v.indicazioni_terapeutiche}</div></div>`:''}
-          ${v.prossimi_obiettivi?`<div><div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">PROSSIMI OBIETTIVI</div><div class="pdf-note-block">${v.prossimi_obiettivi}</div></div>`:''}
-        </div>
-      </div>`:''}
-
-      <div class="pdf-footer">
-        <span>Generato il ${new Date().toLocaleDateString('it-IT')} · Uso interno</span>
-        <span class="pdf-footer-badge">🔒 Dati sanitari riservati</span>
-        <span>nutrizionistacortese.it</span>
-      </div>
-    </div>`;
-
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    // Applica stili PDF al wrapper
-    wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;font-family:Helvetica Neue,Arial,sans-serif;';
-    // Inietta stili PDF
-    const styleEl = document.createElement('style');
-    styleEl.textContent = document.querySelector('style').textContent.split('/* ═══════════════════════════════════════')[1].split('/* UTILITY')[0];
-    wrapper.appendChild(styleEl);
-    document.body.appendChild(wrapper);
-
-    const nomePaziente = `${p.cognome}_${p.nome}`.replace(/\s/g,'_');
-    const dataStr = v.data_visita.replace(/-/g,'');
-
-    await html2pdf().set({
-      margin: [8,8,8,8],
-      filename: `Visita_${nomePaziente}_${dataStr}.pdf`,
-      image: { type:'jpeg', quality:.95 },
-      html2canvas: { scale:2, useCORS:true, logging:false },
-      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-    }).from(wrapper.firstChild).save();
-
-    document.body.removeChild(wrapper);
-    toast('PDF generato!');
-  } catch(e){ console.error(e); toast('Errore generazione PDF','error'); }
-  finally { loading(false); }
-};
-
-// ─── GRAFICI ─────────────────────────────────────────────
-async function renderCharts(){
-  if(!S.patientId) return;
-  const {data:visite}=await sb.from('visite').select('data_visita,peso_kg,bmi,fm_kg,ffm_kg,vita_cm,fianchi_cm,braccio_cm')
-    .eq('paziente_id',S.patientId).order('data_visita');
-  const labels=(visite||[]).map(v=>new Date(v.data_visita).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}));
-  const opts={responsive:true,plugins:{legend:{display:false}},
-    scales:{x:{grid:{color:'#f0e9d8'},ticks:{font:{family:'Jost',size:11}}},
-            y:{grid:{color:'#f0e9d8'},ticks:{font:{family:'Jost',size:11}}}}};
-  const optsLegend={...opts,plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Jost',size:10}}}}};
-
-  ['peso','bmi','comp','circ'].forEach(k=>{ if(S.charts[k]) S.charts[k].destroy(); });
-
-  S.charts.peso=new Chart(n('chart-peso'),{type:'line',options:opts,
-    data:{labels,datasets:[{data:(visite||[]).map(v=>v.peso_kg),borderColor:'#5a8260',backgroundColor:'rgba(90,130,96,.08)',fill:true,tension:.35,pointBackgroundColor:'#5a8260'}]}});
-  S.charts.bmi=new Chart(n('chart-bmi'),{type:'line',options:opts,
-    data:{labels,datasets:[{data:(visite||[]).map(v=>v.bmi),borderColor:'#d4a853',backgroundColor:'rgba(212,168,83,.08)',fill:true,tension:.35,pointBackgroundColor:'#d4a853'}]}});
-  S.charts.comp=new Chart(n('chart-comp'),{type:'line',options:optsLegend,
-    data:{labels,datasets:[
-      {label:'Massa grassa (kg)',data:(visite||[]).map(v=>v.fm_kg),borderColor:'#e87373',backgroundColor:'rgba(232,115,115,.08)',fill:true,tension:.35},
-      {label:'Massa magra (kg)',data:(visite||[]).map(v=>v.ffm_kg),borderColor:'#5a8260',backgroundColor:'rgba(90,130,96,.08)',fill:true,tension:.35},
-    ]}});
-  S.charts.circ=new Chart(n('chart-circ'),{type:'line',options:optsLegend,
-    data:{labels,datasets:[
-      {label:'Vita',data:(visite||[]).map(v=>v.vita_cm),borderColor:'#729e72',tension:.35},
-      {label:'Fianchi',data:(visite||[]).map(v=>v.fianchi_cm),borderColor:'#d4a853',tension:.35},
-      {label:'Braccio',data:(visite||[]).map(v=>v.braccio_cm),borderColor:'#94b894',tension:.35},
-    ]}});
-}
-
-// ─── STRUTTURE ───────────────────────────────────────────
-async function loadStrutture(){
-  const {data}=await sb.from('strutture').select('*').order('nome');
-  S.strutture=data||[];
-  n('stat-strutture').textContent=S.strutture.length;
-  const cont=n('studi-list');
-  cont.innerHTML=S.strutture.length
-    ? '<div class="patient-list">'+S.strutture.map(s=>`
-        <div class="patient-item" style="cursor:default;">
-          <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);">🏥</div>
-          <div style="flex:1;"><div class="patient-name">${s.nome}</div>${s.indirizzo?`<div class="patient-meta">${s.indirizzo}</div>`:''}</div>
-          <button class="btn btn-danger btn-sm" onclick="deleteStudio('${s.id}')">Elimina</button>
-        </div>`).join('')+'</div>'
-    : emptyState('🏥','Nessuna struttura','Aggiungi i luoghi dove effettui le visite.');
-}
-window.openStudioModal=()=>{ n('s-nome').value=''; n('s-indirizzo').value=''; openModal('modal-studio'); };
-window.saveStudio=async()=>{
-  const nome=val('s-nome'); if(!nome){ toast('Nome obbligatorio','error'); return; }
-  const {error}=await sb.from('strutture').insert({user_id:S.user.id,nome,indirizzo:val('s-indirizzo')||null});
-  if(error){ toast('Errore: '+error.message,'error'); return; }
-  closeModal('modal-studio'); toast('Struttura salvata'); await loadStrutture();
-};
-window.deleteStudio=async(id)=>{
-  if(!confirm('Eliminare?')) return;
-  const {error}=await sb.from('strutture').delete().eq('id',id);
-  if(error){ toast('Errore','error'); return; }
-  toast('Eliminata'); await loadStrutture();
-};
-
-// ─── INIT ────────────────────────────────────────────────
 init();
 </script>
 </body>
