@@ -19,7 +19,10 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 /** Verifica sessione. Se non autenticato, redirect al login */
 export async function requireAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = './index.html'; return null; }
+  if (!session) {
+    window.location.href = '/area-riservata/login.html';
+    return null;
+  }
   return session.user;
 }
 
@@ -31,7 +34,15 @@ export async function login(email, password) {
 
 export async function logout() {
   await sb.auth.signOut();
-  window.location.href = './index.html';
+  window.location.href = '/area-riservata/login.html';
+}
+
+export async function redirectIfAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (session) {
+    window.location.href = '/area-riservata/index.html';
+  }
 }
 
 // ─── DASHBOARD KPI ────────────────────────────────────────────────────────
