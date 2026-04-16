@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accedi – Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sage-50:#f6f9f6;--sage-100:#ecf3ec;--sage-200:#d8e8d8;
+      --sage-300:#b8cfb8;--sage-400:#94b894;--sage-500:#729e72;
+      --sage-600:#5a8260;--sage-700:#3e5e42;
+      --beige-50:#fdfbf7;--beige-100:#f8f4ec;
+      --stone-900:#251e16;--text-muted:#a89880;--border:#e8e2d9;
+      --white:#ffffff;--text-primary:#251e16;--text-body:#7a6a58;
+      --font-display:'Playfair Display',Georgia,serif;
+      --font-body:'Jost',system-ui,sans-serif;
+      --r-md:10px;--r-xl:24px;--r-2xl:36px;
+      --shadow-lg:0 16px 48px rgba(37,30,22,.13);
+      --ease-out:cubic-bezier(.22,1,.36,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{font-size:16px;-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--font-body);background:linear-gradient(135deg,var(--stone-900) 0%,var(--sage-700) 60%,var(--sage-600) 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+    h1,h2,h3{font-family:var(--font-display);color:var(--text-primary);}
+    input,button{font-family:var(--font-body);}
+
+    .login-card {
+      background:var(--white);border-radius:var(--r-2xl);padding:3rem;
+      width:100%;max-width:420px;box-shadow:var(--shadow-lg);
+      animation:fadeUp .5s var(--ease-out) both;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+
+    .login-logo{text-align:center;margin-bottom:2rem;}
+    .login-logo img{height:64px;margin:0 auto .75rem;display:block;}
+    .login-logo h1{font-size:1.4rem;margin-bottom:.25rem;}
+    .login-logo p{font-size:.8rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;}
+
+    .login-badge{
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+      background:var(--sage-50);border:1px solid var(--sage-200);border-radius:9999px;
+      padding:.45rem 1rem;font-size:.72rem;font-weight:600;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--sage-600);margin-bottom:1.75rem;
+    }
+
+    .form-group{margin-bottom:1rem;}
+    .form-group label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--text-primary);margin-bottom:.4rem;}
+    .form-group input{
+      width:100%;padding:.85rem 1rem;border:1.5px solid var(--border);
+      border-radius:var(--r-md);background:var(--beige-50);color:var(--text-primary);
+      font-size:.95rem;outline:none;
+      transition:border-color .2s,box-shadow .2s,background .2s;
+    }
+    .form-group input:focus{
+      border-color:var(--sage-400);
+      box-shadow:0 0 0 3px rgba(90,130,96,.12);
+      background:var(--white);
+    }
+
+    .btn-login{
+      width:100%;padding:1rem;border:none;border-radius:9999px;
+      background:var(--sage-600);color:var(--white);
+      font-family:var(--font-body);font-size:.95rem;font-weight:600;
+      letter-spacing:.04em;cursor:pointer;margin-top:.5rem;
+      box-shadow:0 4px 14px rgba(90,130,96,.3);
+      transition:all .3s var(--ease-out);
+    }
+    .btn-login:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(90,130,96,.4);}
+    .btn-login:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+
+    .error-msg{
+      background:#fef2f2;color:#c53030;border:1px solid #fecaca;
+      border-radius:var(--r-md);padding:.75rem 1rem;
+      font-size:.85rem;margin-bottom:1rem;display:none;
+    }
+    .error-msg.show{display:block;}
+
+    .back-link{
+      display:block;text-align:center;margin-top:1.5rem;
+      font-size:.84rem;color:var(--text-muted);text-decoration:none;
+      transition:color .2s;
+    }
+    .back-link:hover{color:var(--sage-600);}
+
+    /* Spinner inline nel bottone */
+    .btn-spinner{
+      display:inline-block;width:14px;height:14px;
+      border:2px solid rgba(255,255,255,.4);border-top-color:white;
+      border-radius:50%;animation:spin .7s linear infinite;
+      vertical-align:middle;margin-right:.4rem;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="../images/logo.png" alt="Logo Studio Cortese" onerror="this.style.display='none'" />
+      <h1>Dott.ssa Giulia Cortese</h1>
+      <p>Biologa Nutrizionista &amp; Erborista</p>
+    </div>
+    <div class="login-badge">🔒 Area Riservata</div>
+
+    <div class="error-msg" id="error-msg" role="alert"></div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="La tua email" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" id="btn-login">Accedi</button>
+
+    <a href="../index.html" class="back-link">← Torna al sito</a>
+  </div>
+
+<script type="module">
+import { sb, redirectIfAuth, login } from './js/supabase.js';
+
+// Se già autenticato → vai alla dashboard
+await redirectIfAuth();
+
+const btnLogin = document.getElementById('btn-login');
+const emailEl  = document.getElementById('email');
+const passEl   = document.getElementById('password');
+const errEl    = document.getElementById('error-msg');
+
+function showError(msg) {
+  errEl.textContent = msg;
+  errEl.classList.add('show');
+}
+function hideError() { errEl.classList.remove('show'); }
+
+async function doLogin() {
+  hideError();
+  const email = emailEl.value.trim();
+  const pass  = passEl.value;
+
+  if (!email || !pass) { showError('Inserisci email e password.'); return; }
+
+  btnLogin.disabled = true;
+  btnLogin.innerHTML = '<span class="btn-spinner"></span>Accesso in corso…';
+
+  try {
+    await login(email, pass);
+    // login() su supabase.js imposta la sessione → redirect alla dashboard
+    window.location.replace('./index.html');
+  } catch (e) {
+    const msg = e.message?.includes('Invalid login')
+      ? 'Email o password non validi. Riprova.'
+      : (e.message || 'Errore durante il login.');
+    showError(msg);
+    btnLogin.disabled = false;
+    btnLogin.innerHTML = 'Accedi';
+    passEl.value = '';
+    passEl.focus();
+  }
+}
+
+btnLogin.addEventListener('click', doLogin);
+passEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
+</script>
+</body>
+</html>
