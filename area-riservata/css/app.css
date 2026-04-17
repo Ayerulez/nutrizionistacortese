@@ -294,3 +294,73 @@ a{text-decoration:none;color:inherit;}
 @media(max-width:560px){
   .main{padding:1rem;}.stat-grid{grid-template-columns:1fr;}.topbar__email{display:none;}
 }
+
+/* ── SCROLLBAR MINIMAL (modali e sidebar) ──────────────────────────────── */
+/* Nasconde la scrollbar visivamente ma mantiene la funzionalità */
+.modal {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage-200) transparent;
+}
+.modal::-webkit-scrollbar { width: 5px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb {
+  background: var(--sage-200);
+  border-radius: 9999px;
+}
+.modal::-webkit-scrollbar-thumb:hover { background: var(--sage-300); }
+
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage-100) transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--sage-200); border-radius: 9999px; }
+
+/* ── VALORI PRECEDENTI — hint sotto label ─────────────────────────────── */
+.prec-hint {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin: .2rem 0 .45rem;
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.prec-hint__date {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.prec-hint__sep {
+  color: var(--border);
+}
+.prec-hint__val {
+  color: var(--sage-600);
+  font-weight: 600;
+  background: var(--sage-50);
+  border: 1px solid var(--sage-200);
+  border-radius: 9999px;
+  padding: .1rem .5rem;
+}
+
+/* ── MODAL — body padding corretto per evitare content clipping ────────── */
+.modal-body {
+  padding: 1.5rem;
+  /* Rimuove doppia scrollbar: il .modal gestisce overflow-y */
+  overflow: visible;
+}
+
+/* ── FORM SECTION — rimuove overflow:hidden che taglia le scrollbar ────── */
+/* Sostituiamo con border-radius manuale sui figli */
+.form-section {
+  overflow: visible;
+  border-radius: var(--r-lg);
+}
+.form-section-header {
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.form-section-body {
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
