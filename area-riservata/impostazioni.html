@@ -7,6 +7,46 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
+  <style>
+    /* Toggle switch */
+    .toggle-wrap{display:flex;align-items:center;gap:.5rem;}
+    .toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:9999px;
+      cursor:pointer;transition:background .2s;}
+    .toggle-slider::before{content:'';position:absolute;left:3px;top:3px;
+      width:16px;height:16px;background:white;border-radius:50%;transition:transform .2s;}
+    .toggle input:checked + .toggle-slider{background:var(--sage-600);}
+    .toggle input:checked + .toggle-slider::before{transform:translateX(18px);}
+    .disabled-row{opacity:.45;}
+    .disabled-badge{font-size:.68rem;font-weight:600;padding:.15rem .5rem;
+      border-radius:9999px;background:#fef2f2;color:#c53030;border:1px solid #fecaca;}
+    /* Row card */
+    .item-card{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;
+      background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
+      margin-bottom:.5rem;transition:box-shadow .15s;}
+    .item-card:hover{box-shadow:var(--shadow-sm);}
+    .item-icon{width:40px;height:40px;border-radius:50%;background:var(--beige-200);
+      display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .item-info{flex:1;min-width:0;}
+    .item-name{font-weight:600;color:var(--text-primary);font-size:.92rem;}
+    .item-meta{font-size:.78rem;color:var(--text-muted);margin-top:1px;}
+    .item-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:auto;}
+    /* Override price input */
+    .override-input{width:88px;padding:.35rem .6rem;border:1.5px solid var(--border);
+      border-radius:var(--r-sm);font-size:.82rem;font-family:var(--font-body);
+      background:var(--white);color:var(--text-primary);}
+    .override-input:focus{border-color:var(--sage-400);outline:none;}
+    .struttura-row{display:flex;align-items:center;gap:.75rem;padding:.65rem .75rem;
+      background:var(--beige-50);border:1px solid var(--border);border-radius:var(--r-md);
+      margin-bottom:.4rem;}
+    .struttura-row-label{flex:1;font-size:.88rem;font-weight:500;cursor:pointer;}
+    .price-label{font-size:.73rem;color:var(--text-muted);white-space:nowrap;}
+    /* Filter toggle */
+    .filter-toggle{display:flex;align-items:center;gap:.5rem;font-size:.82rem;
+      color:var(--text-muted);cursor:pointer;user-select:none;}
+    .filter-toggle input{accent-color:var(--sage-600);}
+  </style>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -56,18 +96,30 @@
 
       <!-- TAB STRUTTURE -->
       <div id="tab-strutture" class="tab-panel active">
-        <div class="page-head" style="margin-bottom:1rem;">
-          <p class="text-muted text-sm">I luoghi dove effettui le visite. Selezionabili durante la creazione di ogni visita.</p>
-          <button class="btn btn-primary btn-sm" id="btn-nuova-struttura">+ Aggiungi struttura</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+          <p class="text-muted text-sm">Luoghi dove effettui le visite. Le strutture disabilitate non appaiono nella scelta durante la visita.</p>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <label class="filter-toggle">
+              <input type="checkbox" id="show-disabled-str" />
+              Mostra disabilitate
+            </label>
+            <button class="btn btn-primary btn-sm" id="btn-nuova-struttura">+ Aggiungi</button>
+          </div>
         </div>
         <div id="strutture-list"></div>
       </div>
 
       <!-- TAB PRESTAZIONI -->
       <div id="tab-prestazioni" class="tab-panel">
-        <div class="page-head" style="margin-bottom:1rem;">
-          <p class="text-muted text-sm">Le tipologie di visita. Per ogni struttura puoi impostare un prezzo diverso da quello base.</p>
-          <button class="btn btn-primary btn-sm" id="btn-nuova-prestazione">+ Aggiungi prestazione</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+          <p class="text-muted text-sm">Tipologie di visita. Per ogni struttura puoi impostare un prezzo diverso dal prezzo base.</p>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <label class="filter-toggle">
+              <input type="checkbox" id="show-disabled-prest" />
+              Mostra disabilitate
+            </label>
+            <button class="btn btn-primary btn-sm" id="btn-nuova-prestazione">+ Aggiungi</button>
+          </div>
         </div>
         <div id="prestazioni-list"></div>
       </div>
@@ -90,16 +142,15 @@
           </div>
           <div class="form-group">
             <label>Conferma nuova password</label>
-            <input type="password" id="confirm-pwd" placeholder="Ripeti la password" />
+            <input type="password" id="confirm-pwd" />
           </div>
           <button class="btn btn-primary" id="btn-change-pwd">Aggiorna password</button>
           <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0;" />
           <div class="card-title" style="border:none;padding:0;margin-bottom:.75rem;font-size:.95rem;">ℹ️ Note GDPR</div>
           <p class="text-sm" style="color:var(--text-muted);line-height:1.7;">
             I dati dei pazienti sono <strong>dati sulla salute</strong> (art. 9 GDPR),
-            conservati su Supabase (server EU) con Row Level Security.
-            Conservare min. 10 anni per normativa italiana.
-            Per cancellazioni: Pazienti → Elimina.
+            conservati su Supabase (EU) con Row Level Security. Conservare min. 10 anni.
+            Per cancellazioni su richiesta del paziente, contattare il supporto tecnico.
           </p>
         </div>
       </div>
@@ -128,7 +179,7 @@
 
 <!-- ══ MODAL PRESTAZIONE ══ -->
 <div class="modal-overlay" id="modal-prestazione">
-  <div class="modal" style="max-width:600px;">
+  <div class="modal" style="max-width:620px;">
     <div class="modal-header">
       <h3 id="modal-prest-title">Nuova prestazione</h3>
       <button class="modal-close" data-modal-close="modal-prestazione" aria-label="Chiudi">✕</button>
@@ -143,7 +194,7 @@
         </div>
         <div class="form-group col-span-2">
           <label>Descrizione</label>
-          <textarea id="prest-descr" style="min-height:60px;" placeholder="Breve descrizione…"></textarea>
+          <textarea id="prest-descr" style="min-height:60px;"></textarea>
         </div>
         <div class="form-group">
           <label>Durata (minuti)</label>
@@ -154,14 +205,13 @@
           <input type="number" id="prest-prezzo" placeholder="80.00" step=".01" min="0" />
         </div>
       </div>
-
-      <div class="form-group" style="margin-top:.75rem;">
-        <label>Strutture associate e prezzi
+      <div class="form-group" style="margin-top:.5rem;">
+        <label>Strutture associate
           <span class="text-muted text-sm" style="font-weight:400;letter-spacing:0;text-transform:none;">
-            — lascia il prezzo override vuoto per usare il prezzo base
+            — imposta prezzo override per struttura (vuoto = usa prezzo base)
           </span>
         </label>
-        <div id="prest-strutture-rows" style="margin-top:.6rem;display:flex;flex-direction:column;gap:.5rem;"></div>
+        <div id="prest-strutture-rows" style="margin-top:.6rem;"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -173,19 +223,18 @@
 
 <script type="module">
 import { sb, requireAuth, logout,
-         getStrutture, saveStruttura, deleteStruttura,
-         getPrestazioni, savePrestazione, deletePrestazione } from './js/supabase.js';
+         getStrutture, saveStruttura, toggleStruttura,
+         getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI,
-         n, val, emptyState } from './js/ui.js';
+         ModalManager, initUI, n, val, emptyState } from './js/ui.js';
 
 const S = { user: null, strutture: [], prestazioni: [] };
 
-// ─── INIT ───────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────
 async function init() {
   loading(true);
-  initUI(); // installa event delegation + window.closeModal
+  initUI();
 
   S.user = await requireAuth();
   if (!S.user) return;
@@ -194,18 +243,18 @@ async function init() {
   n('account-email').value      = S.user.email;
   n('app').style.display = 'block';
 
-  // Event listeners — nessun onclick inline
   n('btn-logout').addEventListener('click', logout);
   n('btn-change-pwd').addEventListener('click', changePassword);
   n('btn-save-str').addEventListener('click', saveStrutturaHandler);
   n('btn-save-prest').addEventListener('click', savePrestazioneHandler);
   n('btn-nuova-struttura').addEventListener('click', openNuovaStruttura);
   n('btn-nuova-prestazione').addEventListener('click', openNuovaPrestazione);
+  n('show-disabled-str').addEventListener('change', loadStrutture);
+  n('show-disabled-prest').addEventListener('change', loadPrestazioni);
 
-  // Tab switching
-  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn));
-  });
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn))
+  );
 
   loading(false);
   await Promise.all([loadStrutture(), loadPrestazioni()]);
@@ -220,31 +269,56 @@ function switchTab(tabId, btn) {
 
 // ─── STRUTTURE ───────────────────────────────────────────
 async function loadStrutture() {
-  S.strutture = await getStrutture();
+  const showDis = n('show-disabled-str')?.checked;
+  // Se "Mostra disabilitate" è on → carica tutto (null), altrimenti solo abilitate
+  S.strutture = await getStrutture(showDis ? null : true);
   const cont = n('strutture-list');
+
   if (!S.strutture.length) {
-    cont.innerHTML = emptyState('🏥', 'Nessuna struttura', 'Aggiungi i luoghi dove effettui le visite.');
+    cont.innerHTML = emptyState('🏥', 'Nessuna struttura', showDis
+      ? 'Non esistono strutture disabilitate.'
+      : 'Aggiungi i luoghi dove effettui le visite.');
     return;
   }
-  cont.innerHTML = '<div class="patient-list">' + S.strutture.map(s => `
-    <div class="patient-item" style="cursor:default;">
-      <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);font-size:1.2rem;">🏥</div>
-      <div style="flex:1;">
-        <div class="patient-name">${s.nome}</div>
-        ${s.indirizzo ? `<div class="patient-meta">${s.indirizzo}</div>` : ''}
-      </div>
-      <div style="display:flex;gap:.5rem;">
-        <button class="btn btn-secondary btn-sm" data-edit-str="${s.id}">✏️ Modifica</button>
-        <button class="btn btn-danger btn-sm"    data-del-str="${s.id}">Elimina</button>
-      </div>
-    </div>`).join('') + '</div>';
 
-  // Event delegation lista strutture
+  cont.innerHTML = S.strutture.map(s => `
+    <div class="item-card${s.abilitato ? '' : ' disabled-row'}" data-str-id="${s.id}">
+      <div class="item-icon">🏥</div>
+      <div class="item-info">
+        <div class="item-name">
+          ${s.nome}
+          ${!s.abilitato ? '<span class="disabled-badge">Disabilitata</span>' : ''}
+        </div>
+        ${s.indirizzo ? `<div class="item-meta">${s.indirizzo}</div>` : ''}
+      </div>
+      <div class="item-actions">
+        <label class="toggle-wrap" title="${s.abilitato ? 'Disabilita' : 'Riabilita'}">
+          <span class="toggle">
+            <input type="checkbox" ${s.abilitato ? 'checked' : ''}
+              data-toggle-str="${s.id}" />
+            <span class="toggle-slider"></span>
+          </span>
+        </label>
+        <button class="btn btn-secondary btn-sm" data-edit-str="${s.id}">✏️</button>
+      </div>
+    </div>`).join('');
+
   cont.addEventListener('click', e => {
     const editBtn = e.target.closest('[data-edit-str]');
     if (editBtn) { openEditStruttura(editBtn.dataset.editStr); return; }
-    const delBtn = e.target.closest('[data-del-str]');
-    if (delBtn)  { delStruttura(delBtn.dataset.delStr); }
+  });
+  cont.addEventListener('change', async e => {
+    const toggle = e.target.closest('[data-toggle-str]');
+    if (toggle) {
+      const id        = toggle.dataset.toggleStr;
+      const abilitato = toggle.checked;
+      try {
+        await toggleStruttura(id, abilitato);
+        toast(abilitato ? 'Struttura riabilitata' : 'Struttura disabilitata');
+        await loadStrutture();
+        await loadPrestazioni(); // aggiorna check strutture nel modal
+      } catch (err) { toast('Errore: ' + err.message, 'error'); }
+    }
   });
 }
 
@@ -284,99 +358,114 @@ async function saveStrutturaHandler() {
     }
     ModalManager.close('modal-struttura');
     await loadStrutture();
-    // Ricarica anche le prestazioni perché i check strutture cambiano
     await loadPrestazioni();
   } catch (e) { toast('Errore: ' + e.message, 'error'); }
   finally { setBtn('btn-save-str', false); }
 }
 
-async function delStruttura(id) {
-  if (!confirm('Eliminare questa struttura? Le visite associate perderanno il riferimento.')) return;
-  try {
-    await deleteStruttura(id);
-    toast('Struttura eliminata');
-    await loadStrutture();
-  } catch (e) { toast('Errore: ' + e.message, 'error'); }
-}
-
 // ─── PRESTAZIONI ─────────────────────────────────────────
 async function loadPrestazioni() {
-  S.prestazioni = await getPrestazioni();
+  // Ricarichiamo le strutture abilitate per avere la lista aggiornata nel modal
+  const tutteStrutture = await getStrutture(null); // tutte, per i check
+  S.strutture = tutteStrutture;
+
+  const showDis = n('show-disabled-prest')?.checked;
+  S.prestazioni = await getPrestazioni(showDis ? null : true);
   const cont = n('prestazioni-list');
+
   if (!S.prestazioni.length) {
-    cont.innerHTML = emptyState('💊', 'Nessuna prestazione',
-      'Aggiungi le tipologie di visita che eroghi (es: Prima visita, Controllo mensile…).');
+    cont.innerHTML = emptyState('💊', 'Nessuna prestazione', showDis
+      ? 'Non esistono prestazioni disabilitate.'
+      : 'Aggiungi le tipologie di visita che eroghi.');
     return;
   }
-  cont.innerHTML = '<div class="patient-list">' + S.prestazioni.map(p => {
-    const assoc = (p.prestazioni_strutture || []);
-    const strutturePills = assoc.map(ps => {
-      const s = S.strutture.find(x => x.id === ps.struttura_id);
+
+  cont.innerHTML = S.prestazioni.map(p => {
+    const assoc = p.prestazioni_strutture || [];
+    const strNomi = assoc.map(ps => {
+      const s = tutteStrutture.find(x => x.id === ps.struttura_id);
       if (!s) return '';
-      const prezzo = ps.prezzo_override != null
-        ? `€ ${parseFloat(ps.prezzo_override).toFixed(2)}`
+      const pz = ps.prezzo_override != null
+        ? `€ ${parseFloat(ps.prezzo_override).toFixed(2)} <em style="opacity:.6;">(override)</em>`
         : (p.prezzo ? `€ ${parseFloat(p.prezzo).toFixed(2)}` : '');
       return `<span style="font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:9999px;
         background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);">
-        📍 ${s.nome}${prezzo ? ' · ' + prezzo : ''}
-        ${ps.prezzo_override != null ? '<em style="opacity:.6;font-style:normal;"> (override)</em>' : ''}
-      </span>`;
-    }).join('');
+        📍 ${s.nome}${pz ? ' · ' + pz : ''}</span>`;
+    }).join(' ');
 
-    return `<div class="patient-item" style="cursor:default;">
-      <div class="patient-avatar" style="background:var(--beige-200);color:var(--stone-600);font-size:1.1rem;">💊</div>
-      <div style="flex:1;">
-        <div class="patient-name">${p.nome}</div>
-        <div class="patient-meta">
+    return `<div class="item-card${p.abilitato ? '' : ' disabled-row'}" data-prest-id="${p.id}">
+      <div class="item-icon">💊</div>
+      <div class="item-info">
+        <div class="item-name">
+          ${p.nome}
+          ${!p.abilitato ? '<span class="disabled-badge">Disabilitata</span>' : ''}
+        </div>
+        <div class="item-meta">
           ${p.durata_minuti ? p.durata_minuti + ' min' : ''}
           ${p.durata_minuti && p.prezzo ? ' · ' : ''}
           ${p.prezzo ? '€ ' + parseFloat(p.prezzo).toFixed(2) + ' (base)' : ''}
         </div>
-        ${p.descrizione ? `<div class="patient-meta">${p.descrizione}</div>` : ''}
-        ${strutturePills ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.35rem;">${strutturePills}</div>` : ''}
+        ${p.descrizione ? `<div class="item-meta">${p.descrizione}</div>` : ''}
+        ${strNomi ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.35rem;">${strNomi}</div>` : ''}
       </div>
-      <div style="display:flex;gap:.5rem;">
-        <button class="btn btn-secondary btn-sm" data-edit-prest="${p.id}">✏️ Modifica</button>
-        <button class="btn btn-danger btn-sm"    data-del-prest="${p.id}">Elimina</button>
+      <div class="item-actions">
+        <label class="toggle-wrap" title="${p.abilitato ? 'Disabilita' : 'Riabilita'}">
+          <span class="toggle">
+            <input type="checkbox" ${p.abilitato ? 'checked' : ''}
+              data-toggle-prest="${p.id}" />
+            <span class="toggle-slider"></span>
+          </span>
+        </label>
+        <button class="btn btn-secondary btn-sm" data-edit-prest="${p.id}">✏️</button>
       </div>
     </div>`;
-  }).join('') + '</div>';
+  }).join('');
 
-  // Event delegation lista prestazioni
   cont.addEventListener('click', e => {
     const editBtn = e.target.closest('[data-edit-prest]');
-    if (editBtn) { openEditPrestazione(editBtn.dataset.editPrest); return; }
-    const delBtn = e.target.closest('[data-del-prest]');
-    if (delBtn)  { delPrestazione(delBtn.dataset.delPrest); }
+    if (editBtn) { openEditPrestazione(editBtn.dataset.editPrest); }
+  });
+  cont.addEventListener('change', async e => {
+    const toggle = e.target.closest('[data-toggle-prest]');
+    if (toggle) {
+      const id        = toggle.dataset.togglePrest;
+      const abilitato = toggle.checked;
+      try {
+        await togglePrestazione(id, abilitato);
+        toast(abilitato ? 'Prestazione riabilitata' : 'Prestazione disabilitata');
+        await loadPrestazioni();
+      } catch (err) { toast('Errore: ' + err.message, 'error'); }
+    }
   });
 }
 
 /**
- * Costruisce la sezione strutture nel modal prestazione.
- * Per ogni struttura: checkbox + campo prezzo override.
+ * Costruisce le righe struttura + prezzo override nel modal.
+ * strutture abilitate + quelle già associate anche se disabilitate.
  */
 function buildStruttureRows(assocEsistenti = []) {
   const wrap = n('prest-strutture-rows');
-  if (!S.strutture.length) {
-    wrap.innerHTML = '<span class="text-muted text-sm">Nessuna struttura configurata — aggiungila prima.</span>';
+  // Mostra le strutture abilitate + quelle già associate (anche se disabilitate)
+  const visibili = S.strutture.filter(s =>
+    s.abilitato || assocEsistenti.some(a => a.struttura_id === s.id)
+  );
+  if (!visibili.length) {
+    wrap.innerHTML = '<span class="text-muted text-sm">Nessuna struttura configurata.</span>';
     return;
   }
-  wrap.innerHTML = S.strutture.map(s => {
-    const assoc = assocEsistenti.find(a => a.struttura_id === s.id);
-    const checked = assoc ? 'checked' : '';
+  wrap.innerHTML = visibili.map(s => {
+    const assoc    = assocEsistenti.find(a => a.struttura_id === s.id);
+    const checked  = assoc ? 'checked' : '';
     const override = assoc?.prezzo_override != null ? assoc.prezzo_override : '';
-    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;
-      background:var(--beige-50);border:1px solid var(--border);border-radius:var(--r-md);">
-      <input type="checkbox" id="ps-${s.id}" value="${s.id}" ${checked}
-        style="width:16px;height:16px;accent-color:var(--sage-600);flex-shrink:0;" />
-      <label for="ps-${s.id}" style="flex:1;font-size:.88rem;font-weight:500;cursor:pointer;">📍 ${s.nome}</label>
-      <div style="display:flex;align-items:center;gap:.4rem;">
-        <span style="font-size:.75rem;color:var(--text-muted);">€ override</span>
-        <input type="number" id="ps-price-${s.id}"
-          placeholder="— base —" step=".01" min="0" value="${override}"
-          style="width:90px;padding:.35rem .6rem;border:1.5px solid var(--border);
-            border-radius:var(--r-sm);font-size:.82rem;background:var(--white);" />
-      </div>
+    return `<div class="struttura-row">
+      <input type="checkbox" id="ps-${s.id}" data-str-uuid="${s.id}" ${checked}
+        style="width:16px;height:16px;accent-color:var(--sage-600);flex-shrink:0;cursor:pointer;" />
+      <label for="ps-${s.id}" class="struttura-row-label">
+        📍 ${s.nome}${!s.abilitato ? ' <span class="disabled-badge">Disab.</span>' : ''}
+      </label>
+      <span class="price-label">Override €</span>
+      <input type="number" class="override-input" id="ps-price-${s.id}"
+        placeholder="— base —" step=".01" min="0" value="${override}" />
     </div>`;
   }).join('');
 }
@@ -412,25 +501,33 @@ async function savePrestazioneHandler() {
   const nome = val('prest-nome');
   if (!nome) { showAlert('prest-error', 'Il nome è obbligatorio.'); return; }
 
-  const editId = n('prest-editing-id').value || null;
-  const durata  = n('prest-durata').value  ? parseInt(n('prest-durata').value)      : null;
-  const prezzo  = n('prest-prezzo').value  ? parseFloat(n('prest-prezzo').value)    : null;
+  const editId  = n('prest-editing-id').value || null;
+  const durata  = n('prest-durata').value  ? parseInt(n('prest-durata').value)   : null;
+  const prezzo  = n('prest-prezzo').value  ? parseFloat(n('prest-prezzo').value) : null;
 
-  // Raccoglie strutture selezionate + eventuali prezzi override
-  const struttura_ids = S.strutture
-    .filter(s => document.getElementById('ps-' + s.id)?.checked)
-    .map(s => {
-      const overrideEl = document.getElementById('ps-price-' + s.id);
-      const override = overrideEl?.value ? parseFloat(overrideEl.value) : null;
-      return { id: s.id, prezzo_override: override };
-    });
+  // Raccoglie strutture selezionate con UUID esplicito (fix bug "invalid input for uuid")
+  const struttura_ids = [];
+  document.querySelectorAll('[data-str-uuid]').forEach(checkbox => {
+    if (!checkbox.checked) return;
+    const strutturaId  = checkbox.dataset.strUuid;            // stringa UUID pura
+    const overrideEl   = document.getElementById('ps-price-' + strutturaId);
+    const overrideVal  = overrideEl?.value.trim()
+      ? parseFloat(overrideEl.value)
+      : null;
+    struttura_ids.push({ id: strutturaId, prezzo_override: overrideVal });
+  });
 
   setBtn('btn-save-prest', true);
   try {
     await savePrestazione(
-      { nome, descrizione: val('prest-descr') || null, durata_minuti: durata,
-        prezzo, struttura_ids },
-      S.user.id, editId
+      { nome,
+        descrizione:    val('prest-descr') || null,
+        durata_minuti:  durata,
+        prezzo,
+        struttura_ids,
+      },
+      S.user.id,
+      editId
     );
     toast(editId ? 'Prestazione aggiornata' : 'Prestazione salvata');
     ModalManager.close('modal-prestazione');
@@ -439,27 +536,18 @@ async function savePrestazioneHandler() {
   finally { setBtn('btn-save-prest', false); }
 }
 
-async function delPrestazione(id) {
-  if (!confirm('Eliminare questa prestazione? Le visite associate perderanno il riferimento.')) return;
-  try {
-    await deletePrestazione(id);
-    toast('Prestazione eliminata');
-    await loadPrestazioni();
-  } catch (e) { toast('Errore: ' + e.message, 'error'); }
-}
-
 // ─── ACCOUNT ─────────────────────────────────────────────
 async function changePassword() {
   hideAlert('pwd-error'); hideAlert('pwd-success');
   const np = n('new-pwd').value, cp = n('confirm-pwd').value;
-  if (np.length < 8) { showAlert('pwd-error', 'La password deve essere di almeno 8 caratteri.'); return; }
+  if (np.length < 8) { showAlert('pwd-error', 'Password minimo 8 caratteri.'); return; }
   if (np !== cp)     { showAlert('pwd-error', 'Le password non coincidono.'); return; }
   setBtn('btn-change-pwd', true);
   try {
     const { error } = await sb.auth.updateUser({ password: np });
     if (error) throw error;
     n('new-pwd').value = ''; n('confirm-pwd').value = '';
-    showAlert('pwd-success', 'Password aggiornata con successo!');
+    showAlert('pwd-success', 'Password aggiornata!');
   } catch (e) { showAlert('pwd-error', 'Errore: ' + e.message); }
   finally { setBtn('btn-change-pwd', false); }
 }
