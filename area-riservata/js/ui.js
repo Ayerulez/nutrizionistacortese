@@ -1,5 +1,13 @@
 /**
  * ui.js — Helper UI condivisi tra tutte le pagine
+ *
+ * ARCHITETTURA MODALE:
+ * I moduli ES hanno scope isolato — funzioni come closeModal non finiscono
+ * su window automaticamente. Soluzione adottata:
+ *   1. ModalManager gestisce tutto via event delegation (data-modal-open/close)
+ *   2. Ogni pagina chiama initUI() una volta all'avvio
+ *   3. initUI() espone window.closeModal/openModal come safety net globale
+ *   4. Zero onclick inline nei template HTML
  */
 
 // ─── LOADING ──────────────────────────────────────────────────────────────
@@ -7,7 +15,7 @@ export function loading(show, text = 'Caricamento…') {
   const el = document.getElementById('loading-overlay');
   const tx = document.getElementById('loading-text');
   if (el) el.classList.toggle('show', show);
-  if (tx) tx.textContent = text;
+  if (tx && text) tx.textContent = text;
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────
@@ -26,10 +34,10 @@ export function showAlert(id, msg) {
   if (!el) return;
   el.textContent = msg;
   el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 export function hideAlert(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.remove('show');
+  document.getElementById(id)?.classList.remove('show');
 }
 
 // ─── BUTTON LOADING ───────────────────────────────────────────────────────
@@ -37,30 +45,106 @@ export function setBtn(id, on) {
   const b = document.getElementById(id);
   if (!b) return;
   b.disabled = on;
-  b.dataset.orig = b.dataset.orig || b.textContent;
-  b.textContent = on ? 'Attendere…' : b.dataset.orig;
+  if (on) { b.dataset.orig = b.textContent; b.textContent = 'Attendere…'; }
+  else if (b.dataset.orig) b.textContent = b.dataset.orig;
 }
 
-// ─── MODAL ────────────────────────────────────────────────────────────────
-export function openModal(id) {
-  document.getElementById(id)?.classList.add('open');
-}
-export function closeModal(id) {
-  document.getElementById(id)?.classList.remove('open');
+// ─── MODAL MANAGER ────────────────────────────────────────────────────────
+/**
+ * API programmatica:
+ *   ModalManager.open('id')
+ *   ModalManager.close('id')   ← id opzionale, senza chiude l'ultima aperta
+ *   ModalManager.closeAll()
+ *
+ * API markup (NESSUN onclick inline):
+ *   data-modal-open="id"    su qualsiasi elemento cliccabile
+ *   data-modal-close        su bottoni X / Annulla (chiude la corrente)
+ *   data-modal-close="id"   chiude modale specifica
+ */
+export const ModalManager = {
+  open(id) {
+    const el = document.getElementById(id);
+    if (!el) { console.warn(`ModalManager.open: #${id} non trovato`); return; }
+    el.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+      const first = el.querySelector(
+        'input:not([readonly]):not([disabled]), select, textarea'
+      );
+      first?.focus();
+    });
+  },
+
+  close(id) {
+    if (id) {
+      document.getElementById(id)?.classList.remove('open');
+    } else {
+      document.querySelector('.modal-overlay.open')?.classList.remove('open');
+    }
+    if (!document.querySelector('.modal-overlay.open')) {
+      document.body.style.overflow = '';
+    }
+  },
+
+  closeAll() {
+    document.querySelectorAll('.modal-overlay.open')
+      .forEach(m => m.classList.remove('open'));
+    document.body.style.overflow = '';
+  },
+};
+
+// Alias esportati per uso programmatico nei moduli JS
+export const openModal  = id => ModalManager.open(id);
+export const closeModal = id => ModalManager.close(id);
+
+/**
+ * initUI() — chiamare UNA VOLTA all'avvio di ogni pagina.
+ * - Installa event delegation globale per data-modal-open/close
+ * - Chiusura con ESC
+ * - Espone window.closeModal/openModal come safety net assoluto
+ */
+export function initUI() {
+  // Safety net: previene ReferenceError da qualsiasi onclick residuo
+  window.closeModal = id => ModalManager.close(id);
+  window.openModal  = id => ModalManager.open(id);
+
+  document.addEventListener('click', e => {
+    // Apri modale
+    const opener = e.target.closest('[data-modal-open]');
+    if (opener) {
+      e.preventDefault();
+      ModalManager.open(opener.dataset.modalOpen);
+      return;
+    }
+    // Chiudi modale (bottone X, Annulla, o qualsiasi data-modal-close)
+    const closer = e.target.closest('[data-modal-close], .modal-close');
+    if (closer) {
+      e.preventDefault();
+      ModalManager.close(closer.dataset.modalClose || undefined);
+      return;
+    }
+    // Click diretto sull'overlay (fuori dal .modal)
+    if (e.target.classList.contains('modal-overlay')) {
+      ModalManager.close(e.target.id || undefined);
+    }
+  });
+
+  // ESC chiude tutto
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') ModalManager.closeAll();
+  });
 }
 
-/** Chiudi modal cliccando overlay */
-export function initModals() {
-  document.querySelectorAll('.modal-overlay').forEach(o =>
-    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
-  );
-}
+// Retrocompatibilità con vecchio nome
+export const initModals = initUI;
 
-// ─── FORM ─────────────────────────────────────────────────────────────────
+// ─── FORM HELPERS ─────────────────────────────────────────────────────────
 export const n   = id => document.getElementById(id);
 export const val = id => document.getElementById(id)?.value?.trim() ?? '';
-export const flt = id => { const v = parseFloat(document.getElementById(id)?.value); return isNaN(v) ? null : v; };
-
+export const flt = id => {
+  const v = parseFloat(document.getElementById(id)?.value);
+  return isNaN(v) ? null : v;
+};
 export function resetFields(ids) {
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 }
@@ -73,8 +157,6 @@ export function fmtDate(iso, opts = { day: '2-digit', month: 'long', year: 'nume
 export function fmtDateShort(iso) {
   return fmtDate(iso, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-
-/** Calcola età da data_nascita */
 export function calcEta(dataNascita) {
   if (!dataNascita) return null;
   return Math.floor((Date.now() - new Date(dataNascita)) / (365.25 * 24 * 3600 * 1000));
@@ -89,56 +171,63 @@ export function emptyState(icon, title, text = '') {
   </div>`;
 }
 
-// ─── NAVIGATION (sidebar active) ──────────────────────────────────────────
-export function setActiveNav(page) {
-  document.querySelectorAll('.sidebar-link').forEach(l => {
-    l.classList.toggle('active', l.dataset.page === page);
-  });
-}
-
-// ─── VALORE PRECEDENTE (UX visita) ────────────────────────────────────────
+// ─── VALORI PRECEDENTI ────────────────────────────────────────────────────
 /**
- * Mostra i valori della visita precedente come placeholder grigio
- * nei campi numerici del form visita.
- * @param {Object} ultimaVisita - dati ultima visita dal DB
+ * Mostra sotto ogni label numerico antropometrico:
+ *   "01/02/2026 — 78.2 kg"
+ * come .prec-hint, inserito tra <label> e <input>.
+ * NON tocca mai campi testuali (note, andamento, indicazioni, ecc.).
+ *
+ * @param {Object|null} ultimaVisita - riga completa dal DB (getUltimaVisita)
  */
 export function showValoriPrecedenti(ultimaVisita) {
+  clearValoriPrecedenti();
   if (!ultimaVisita) return;
 
-  const mappaCampi = {
-    'v-peso':    ultimaVisita.peso_kg,
-    'v-bmi':     ultimaVisita.bmi,
-    'v-vita':    ultimaVisita.vita_cm,
-    'v-fianchi': ultimaVisita.fianchi_cm,
-    'v-braccio': ultimaVisita.braccio_cm,
-    'v-ffm':     ultimaVisita.ffm_kg,
-    'v-fm':      ultimaVisita.fm_kg,
-    'v-ecw':     ultimaVisita.ecw_l,
-    'v-tbw':     ultimaVisita.tbw_l,
-    'v-ang-fase':ultimaVisita.bia_angolo_fase,
+  const dataPrec = ultimaVisita.data_visita
+    ? fmtDateShort(ultimaVisita.data_visita)
+    : null;
+
+  const campi = {
+    'v-peso':     { v: ultimaVisita.peso_kg,         u: 'kg'   },
+    'v-bmi':      { v: ultimaVisita.bmi,             u: ''     },
+    'v-vita':     { v: ultimaVisita.vita_cm,         u: 'cm'   },
+    'v-fianchi':  { v: ultimaVisita.fianchi_cm,      u: 'cm'   },
+    'v-braccio':  { v: ultimaVisita.braccio_cm,      u: 'cm'   },
+    'v-ffm':      { v: ultimaVisita.ffm_kg,          u: 'kg'   },
+    'v-fm':       { v: ultimaVisita.fm_kg,           u: 'kg'   },
+    'v-ecw':      { v: ultimaVisita.ecw_l,           u: 'L'    },
+    'v-tbw':      { v: ultimaVisita.tbw_l,           u: 'L'    },
+    'v-ang-fase': { v: ultimaVisita.bia_angolo_fase, u: '°'    },
+    'v-mb-att':   { v: ultimaVisita.mb_attuale,      u: 'kcal' },
+    'v-fe-att':   { v: ultimaVisita.fe_attuale,      u: '%'    },
   };
 
-  Object.entries(mappaCampi).forEach(([id, valore]) => {
-    const el = document.getElementById(id);
-    if (!el || valore == null) return;
-    // Mostra come placeholder + badge grigio
-    el.placeholder = `↩ Prec.: ${valore}`;
-    el.dataset.precedente = valore;
-    // Aggiunge badge visivo accanto al campo
-    const badge = el.nextElementSibling;
-    if (badge?.classList.contains('prec-badge')) badge.remove();
-    const b = document.createElement('span');
-    b.className = 'prec-badge';
-    b.textContent = `Prec. ${valore}`;
-    el.insertAdjacentElement('afterend', b);
+  Object.entries(campi).forEach(([inputId, { v, u }]) => {
+    if (v == null) return;
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const formGroup = input.closest('.form-group');
+    if (!formGroup) return;
+    const label = formGroup.querySelector('label');
+    if (!label) return;
+
+    const hint = document.createElement('div');
+    hint.className = 'prec-hint';
+    hint.innerHTML = dataPrec
+      ? `<span class="prec-hint__date">${dataPrec}</span><span class="prec-hint__sep">—</span><span class="prec-hint__val">${v}${u ? '\u00a0' + u : ''}</span>`
+      : `<span class="prec-hint__val">Prec: ${v}${u ? '\u00a0' + u : ''}</span>`;
+
+    label.insertAdjacentElement('afterend', hint);
+    input.placeholder = `Es: ${v}`;
+    input.dataset.precVal = String(v);
   });
 }
 
-/** Rimuovi tutti i badge "precedente" */
 export function clearValoriPrecedenti() {
-  document.querySelectorAll('.prec-badge').forEach(b => b.remove());
-  document.querySelectorAll('[data-precedente]').forEach(el => {
-    el.placeholder = '';
-    delete el.dataset.precedente;
+  document.querySelectorAll('.prec-hint').forEach(h => h.remove());
+  document.querySelectorAll('[data-prec-val]').forEach(el => {
+    el.removeAttribute('placeholder');
+    delete el.dataset.precVal;
   });
 }
