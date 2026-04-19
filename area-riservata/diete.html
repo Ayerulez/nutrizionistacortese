@@ -8,112 +8,116 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <style>
-    /* ── Piano settimanale ── */
-    .piano-header{display:grid;grid-template-columns:90px repeat(7,1fr);gap:2px;margin-bottom:2px;}
-    .piano-day-label{text-align:center;font-size:.72rem;font-weight:700;letter-spacing:.08em;
-      text-transform:uppercase;color:var(--sage-600);padding:.4rem;
-      background:var(--sage-50);border-radius:var(--r-sm);}
-
-    .piano-grid{display:grid;grid-template-columns:90px repeat(7,1fr);gap:2px;}
-    .momento-label{display:flex;align-items:center;justify-content:center;
-      background:var(--beige-100);border-radius:var(--r-sm);padding:.4rem .2rem;
-      font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-      color:var(--stone-600);text-align:center;line-height:1.3;}
-
+    /* ── Piano ── */
+    .piano-header{display:grid;grid-template-columns:88px repeat(7,1fr);gap:2px;margin-bottom:2px;}
+    .piano-day-label{text-align:center;font-size:.7rem;font-weight:700;letter-spacing:.06em;
+      text-transform:uppercase;color:var(--sage-600);padding:.35rem;background:var(--sage-50);border-radius:var(--r-sm);}
+    .piano-grid{display:grid;grid-template-columns:88px repeat(7,1fr);gap:2px;}
+    .momento-label{display:flex;align-items:center;justify-content:center;background:var(--beige-100);
+      border-radius:var(--r-sm);padding:.3rem .15rem;font-size:.6rem;font-weight:700;
+      letter-spacing:.04em;text-transform:uppercase;color:var(--stone-600);text-align:center;line-height:1.3;}
     .pasto-cell{background:var(--white);border:1px solid var(--border);border-radius:var(--r-sm);
-      padding:.5rem;min-height:80px;cursor:pointer;transition:all .15s;position:relative;}
+      padding:.4rem;min-height:78px;cursor:pointer;transition:all .15s;position:relative;}
     .pasto-cell:hover{border-color:var(--sage-300);background:var(--sage-50);}
     .pasto-cell.has-food{border-color:var(--sage-200);}
-    .pasto-cell.over-target{border-color:#fecaca;background:#fef9f9;}
-
-    .pasto-nome{font-size:.73rem;font-weight:600;color:var(--text-primary);
-      line-height:1.3;margin-bottom:.25rem;}
-    .pasto-kcal{font-size:.65rem;font-weight:700;color:var(--sage-600);}
-    .pasto-macro{font-size:.6rem;color:var(--text-muted);margin-top:1px;}
-    .pasto-add{display:flex;align-items:center;justify-content:center;height:100%;
-      min-height:60px;color:var(--text-muted);font-size:1.3rem;opacity:.4;}
-
-    /* ── Totale giorno ── */
-    .day-total-row{display:grid;grid-template-columns:90px repeat(7,1fr);gap:2px;margin-top:2px;}
-    .day-total-cell{background:var(--beige-100);border-radius:var(--r-sm);padding:.4rem .5rem;
-      text-align:center;font-size:.7rem;}
-    .day-total-kcal{font-family:var(--font-display);font-size:1rem;font-weight:700;
-      color:var(--text-primary);}
-    .day-total-kcal.ok{color:var(--sage-600);}
-    .day-total-kcal.warn{color:#b45309;}
-    .day-total-kcal.over{color:#c53030;}
-    .day-total-bar{height:4px;border-radius:9999px;background:var(--border);margin-top:3px;overflow:hidden;}
-    .day-total-bar-fill{height:100%;border-radius:9999px;background:var(--sage-600);transition:width .3s;}
-    .day-total-bar-fill.warn{background:#d97706;}
-    .day-total-bar-fill.over{background:#c53030;}
-
-    /* ── Alert calorie ── */
+    .pasto-cell.over-target{border-color:#fca5a5;background:#fff5f5;}
+    .pasto-cell.warn-food{border-color:#fcd34d;}
+    .pasto-nome{font-size:.7rem;font-weight:600;color:var(--text-primary);line-height:1.3;margin-bottom:.2rem;}
+    .pasto-kcal{font-size:.63rem;font-weight:700;color:var(--sage-600);}
+    .pasto-macro{font-size:.58rem;color:var(--text-muted);margin-top:1px;}
+    .pasto-add{display:flex;align-items:center;justify-content:center;height:100%;min-height:56px;color:var(--text-muted);font-size:1.4rem;opacity:.35;}
+    .day-total-row{display:grid;grid-template-columns:88px repeat(7,1fr);gap:2px;margin-top:2px;}
+    .day-total-cell{background:var(--beige-100);border-radius:var(--r-sm);padding:.35rem .4rem;text-align:center;}
+    .day-total-kcal{font-family:var(--font-display);font-size:.92rem;font-weight:700;color:var(--text-primary);}
+    .day-total-kcal.ok{color:var(--sage-600);}.day-total-kcal.warn{color:#b45309;}.day-total-kcal.over{color:#c53030;}
+    .dtb{height:4px;border-radius:9999px;background:var(--border);margin-top:2px;overflow:hidden;}
+    .dtbf{height:100%;border-radius:9999px;background:var(--sage-600);transition:width .3s;}
+    .dtbf.warn{background:#d97706;}.dtbf.over{background:#c53030;}
     .kcal-alert{display:none;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-md);
-      padding:.6rem 1rem;font-size:.82rem;color:#92400e;margin-bottom:1rem;}
+      padding:.6rem 1rem;font-size:.82rem;color:#92400e;margin-bottom:.75rem;}
     .kcal-alert.show{display:flex;align-items:center;gap:.5rem;}
-
-    /* ── Food picker (dropdown) ── */
-    .food-picker{position:fixed;z-index:2000;background:var(--white);
-      border:1px solid var(--border);border-radius:var(--r-xl);
-      box-shadow:var(--shadow-lg);width:360px;max-height:480px;overflow:hidden;
-      display:flex;flex-direction:column;}
-    .food-picker-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);}
-    .food-picker-header h4{font-size:.95rem;margin-bottom:.5rem;}
-    .food-picker-search{width:100%;padding:.5rem .75rem;border:1.5px solid var(--border);
-      border-radius:var(--r-md);font-size:.85rem;font-family:var(--font-body);outline:none;}
-    .food-picker-search:focus{border-color:var(--sage-400);}
-    .food-picker-list{overflow-y:auto;flex:1;}
-    .food-picker-cat{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-      color:var(--text-muted);padding:.5rem 1rem .2rem;background:var(--beige-50);}
-    .food-picker-item{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;
-      cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border);}
-    .food-picker-item:hover{background:var(--sage-50);}
-    .food-picker-item:last-child{border-bottom:none;}
-    .fpi-nome{font-size:.83rem;font-weight:500;color:var(--text-primary);flex:1;}
-    .fpi-kcal{font-size:.75rem;font-weight:700;color:var(--sage-600);flex-shrink:0;}
-    .fpi-macro{font-size:.65rem;color:var(--text-muted);}
-    .food-picker-footer{padding:.6rem 1rem;border-top:1px solid var(--border);
-      display:flex;align-items:center;gap:.5rem;}
-    .food-picker-qty{display:flex;align-items:center;gap:.4rem;font-size:.82rem;}
-    .qty-input{width:65px;padding:.35rem .5rem;border:1.5px solid var(--border);
-      border-radius:var(--r-sm);font-size:.85rem;font-family:var(--font-body);text-align:center;}
-    .qty-input:focus{border-color:var(--sage-400);outline:none;}
-
-    /* ── Dieta list ── */
+    .diet-alert{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r-md);
+      padding:.6rem 1rem;font-size:.82rem;color:#c53030;margin-bottom:.75rem;}
+    .diet-alert.show{display:flex;align-items:center;gap:.5rem;}
+    /* ── Food picker ── */
+    .food-picker{position:fixed;z-index:2000;background:var(--white);border:1px solid var(--border);
+      border-radius:var(--r-xl);box-shadow:var(--shadow-lg);width:400px;max-height:520px;
+      overflow:hidden;display:flex;flex-direction:column;top:50%;left:50%;transform:translate(-50%,-50%);}
+    .fp-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);}
+    .fp-header h4{font-size:.9rem;margin-bottom:.45rem;}
+    .fp-search-row{display:flex;gap:.4rem;}
+    .fp-search{flex:1;padding:.45rem .7rem;border:1.5px solid var(--border);border-radius:var(--r-md);
+      font-size:.83rem;font-family:var(--font-body);outline:none;}
+    .fp-search:focus{border-color:var(--sage-400);}
+    .fp-list{overflow-y:auto;flex:1;}
+    .fp-cat{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--text-muted);padding:.4rem 1rem .15rem;background:var(--beige-50);}
+    .fp-item{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;cursor:pointer;
+      transition:background .1s;border-bottom:1px solid var(--border);}
+    .fp-item:hover{background:var(--sage-50);}
+    .fp-item.warn-item{background:#fffbeb;}.fp-item.warn-item:hover{background:#fef3c7;}
+    .fp-item.viet-item{background:#fff5f5;}.fp-item.viet-item:hover{background:#fee2e2;}
+    .fp-item.veg-alert{background:#fef9ec;}
+    .fp-item .fpi-nome{font-size:.82rem;font-weight:500;color:var(--text-primary);flex:1;}
+    .fp-item .fpi-kcal{font-size:.73rem;font-weight:700;color:var(--sage-600);flex-shrink:0;}
+    .fp-item .fpi-warn{font-size:.65rem;font-weight:700;padding:.1rem .35rem;border-radius:9999px;flex-shrink:0;}
+    .fp-footer{padding:.6rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+    .qty-row{display:flex;align-items:center;gap:.4rem;font-size:.82rem;}
+    .qty-in{width:65px;padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:var(--r-sm);
+      font-size:.85rem;font-family:var(--font-body);text-align:center;}
+    .qty-in:focus{border-color:var(--sage-400);outline:none;}
+    .kcal-in{width:70px;padding:.35rem .5rem;border:1.5px solid var(--sage-200);border-radius:var(--r-sm);
+      font-size:.85rem;font-family:var(--font-body);text-align:center;background:var(--sage-50);}
+    .kcal-in:focus{border-color:var(--sage-400);outline:none;}
+    /* ── Schema macro chips ── */
+    .schema-chip{display:inline-flex;flex-direction:column;align-items:center;padding:.5rem .9rem;
+      border-radius:var(--r-md);border:2px solid var(--border);background:var(--white);
+      cursor:pointer;transition:all .15s;min-width:110px;user-select:none;}
+    .schema-chip:hover{border-color:var(--sage-300);}
+    .schema-chip.selected{border-color:var(--sage-600);background:var(--sage-50);}
+    .schema-chip__nome{font-size:.78rem;font-weight:700;color:var(--text-primary);}
+    .schema-chip__ratio{font-size:.65rem;color:var(--text-muted);margin-top:1px;}
+    /* ── Dieta card ── */
     .dieta-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
-      padding:1.25rem;margin-bottom:.6rem;display:flex;align-items:center;gap:1rem;
-      cursor:pointer;transition:all .2s;}
+      padding:1.1rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;cursor:pointer;transition:all .2s;}
     .dieta-card:hover{border-color:var(--sage-300);box-shadow:var(--shadow-md);}
-    .dieta-card.active-diet{border-color:var(--sage-400);background:var(--sage-50);}
-
-    /* ── Settimane tabs ── */
-    .week-tabs{display:flex;gap:.4rem;margin-bottom:1rem;}
-    .week-tab{padding:.45rem 1.25rem;border-radius:9999px;font-size:.82rem;font-weight:600;
-      border:1.5px solid var(--border);background:var(--white);cursor:pointer;
-      color:var(--text-body);transition:all .15s;}
+    .week-tab{padding:.4rem 1.1rem;border-radius:9999px;font-size:.82rem;font-weight:600;
+      border:1.5px solid var(--border);background:var(--white);cursor:pointer;color:var(--text-body);transition:all .15s;}
     .week-tab.active{background:var(--sage-600);color:var(--white);border-color:var(--sage-600);}
-
-    /* ── Pasto modal detail ── */
-    .sostituto-item{display:flex;align-items:center;gap:.5rem;padding:.4rem 0;
-      border-bottom:1px dotted var(--border);}
-    .sostituto-item:last-child{border-bottom:none;}
+    /* Alimenti consigliati/sconsigliati */
+    .alim-tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:500;
+      padding:.2rem .6rem;border-radius:9999px;margin:.2rem;}
+    .alim-tag-ok{background:var(--sage-100);color:var(--sage-700);border:1px solid var(--sage-300);}
+    .alim-tag-no{background:#fef2f2;color:#c53030;border:1px solid #fecaca;}
+    /* Editor tabs */
+    .editor-tab-btn{padding:.55rem 1.1rem;font-size:.84rem;font-weight:500;border:none;background:none;
+      cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;
+      transition:color .15s,border-color .15s;}
+    .editor-tab-btn.active{color:var(--sage-600);border-bottom-color:var(--sage-600);font-weight:600;}
   </style>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
 <div class="toast" id="toast"></div>
-<!-- Food picker globale -->
+
+<!-- ══ FOOD PICKER ══ -->
 <div class="food-picker" id="food-picker" style="display:none;">
-  <div class="food-picker-header">
+  <div class="fp-header">
     <h4 id="fp-title">Seleziona alimento</h4>
-    <input type="text" class="food-picker-search" id="fp-search" placeholder="Cerca alimento…" />
+    <div class="fp-search-row">
+      <input type="text" class="fp-search" id="fp-search" placeholder="Cerca alimento…" />
+      <button class="btn btn-secondary btn-sm" id="fp-btn-nuovo">+ Nuovo</button>
+    </div>
   </div>
-  <div class="food-picker-list" id="fp-list"></div>
-  <div class="food-picker-footer">
-    <div class="food-picker-qty">
-      <label style="font-size:.78rem;color:var(--text-muted);">Quantità</label>
-      <input type="number" class="qty-input" id="fp-qty" value="100" min="1" step="5" />
-      <span style="font-size:.78rem;color:var(--text-muted);">g</span>
+  <div class="fp-list" id="fp-list"></div>
+  <div class="fp-footer">
+    <div class="qty-row">
+      <label style="color:var(--text-muted);font-size:.75rem;">Grammi</label>
+      <input type="number" class="qty-in" id="fp-qty" value="100" min="1" step="5" />
+      <span style="font-size:.75rem;color:var(--text-muted);">g</span>
+      <span style="font-size:.75rem;color:var(--text-muted);margin:0 4px;">oppure</span>
+      <label style="color:var(--text-muted);font-size:.75rem;">Kcal</label>
+      <input type="number" class="kcal-in" id="fp-kcal" placeholder="—" min="1" step="5" />
     </div>
     <div style="flex:1;"></div>
     <button class="btn btn-ghost btn-sm" id="fp-cancel">Annulla</button>
@@ -140,137 +144,224 @@
     <nav class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-section-label">Principale</div>
-        <a href="index.html"    class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
-        <a href="pazienti.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
-        <a href="visite.html"   class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
-        <a href="alimenti.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
+        <a href="index.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html" class="sidebar-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
       </div>
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
-        <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+        <a href="impostazioni.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
       </div>
     </nav>
 
     <main class="main">
-      <!-- ══ LISTA DIETE PAZIENTE ══ -->
-      <div id="view-diete-list">
+
+      <!-- ══ LISTA DIETE ══ -->
+      <div id="view-list">
         <div class="page-head">
           <div>
             <h2 id="diete-title">Diete</h2>
-            <p id="diete-subtitle">Seleziona un paziente per gestire le diete</p>
+            <p id="diete-subtitle">Seleziona un paziente</p>
           </div>
           <div class="page-head-actions">
-            <button class="btn btn-ghost btn-sm" id="btn-scegli-paziente">👤 Cambia paziente</button>
+            <button class="btn btn-ghost btn-sm" id="btn-scegli-pz">👤 Cambia paziente</button>
             <button class="btn btn-primary" id="btn-nuova-dieta" style="display:none;">+ Nuova dieta</button>
           </div>
         </div>
-        <div id="diete-list-container"></div>
+        <div id="diete-list-cont"></div>
       </div>
 
-      <!-- ══ EDITOR DIETA ══ -->
+      <!-- ══ EDITOR ══ -->
       <div id="view-editor" style="display:none;">
         <div class="breadcrumb">
-          <span class="breadcrumb-link" id="btn-back-diete">Diete</span>
+          <span class="breadcrumb-link" id="btn-back">Diete</span>
           <span style="opacity:.4;">›</span>
-          <span id="editor-breadcrumb">—</span>
+          <span id="editor-bc">—</span>
         </div>
-
-        <!-- Header dieta -->
+        <!-- Info dieta -->
         <div class="card mb-md">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
             <div>
-              <h3 id="editor-nome" style="font-size:1.3rem;"></h3>
-              <div style="display:flex;gap:1rem;margin-top:.5rem;flex-wrap:wrap;">
-                <div style="display:flex;flex-direction:column;">
-                  <span style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Target giornaliero</span>
-                  <span id="editor-target" style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--sage-600);"></span>
-                </div>
-                <div id="editor-settimane-info" style="display:flex;flex-direction:column;">
-                  <span style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Settimane</span>
-                  <span style="font-size:1rem;font-weight:600;color:var(--text-primary);"></span>
-                </div>
+              <h3 id="ed-nome" style="font-size:1.2rem;"></h3>
+              <div style="display:flex;gap:1.25rem;margin-top:.4rem;flex-wrap:wrap;align-items:center;">
+                <div><span style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Target</span><br>
+                  <span id="ed-target" style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--sage-600);"></span></div>
+                <div><span style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Schema</span><br>
+                  <span id="ed-schema" style="font-size:.85rem;font-weight:600;color:var(--text-primary);"></span></div>
+                <div id="ed-macro-wrap" style="font-size:.78rem;color:var(--text-muted);"></div>
               </div>
             </div>
             <div class="page-head-actions">
-              <button class="btn btn-secondary btn-sm" id="btn-edit-dieta-meta">✏️ Modifica info</button>
-              <button class="btn btn-primary btn-sm" id="btn-salva-dieta">💾 Salva piano</button>
+              <button class="btn btn-secondary btn-sm" id="btn-edit-meta">✏️ Info dieta</button>
+              <button class="btn btn-primary btn-sm" id="btn-salva">💾 Salva piano</button>
             </div>
           </div>
         </div>
 
-        <!-- Alert calorie -->
-        <div class="kcal-alert" id="kcal-alert">
-          ⚠️ <span id="kcal-alert-text"></span>
+        <div class="kcal-alert" id="kcal-alert">⚠️ <span id="kcal-alert-txt"></span></div>
+        <div class="diet-alert" id="diet-alert">🚫 <span id="diet-alert-txt"></span></div>
+
+        <!-- Tab editor -->
+        <div class="tabs">
+          <button class="editor-tab-btn active" data-etab="piano">📅 Piano pasti</button>
+          <button class="editor-tab-btn" data-etab="testi">📝 Testi e note</button>
+          <button class="editor-tab-btn" data-etab="alim-consig">🥗 Alimenti consigliati/sconsigliati</button>
         </div>
 
-        <!-- Tab settimane -->
-        <div class="week-tabs" id="week-tabs"></div>
+        <!-- TAB PIANO -->
+        <div id="etab-piano" class="tab-panel active">
+          <div style="display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap;" id="week-tabs"></div>
+          <div style="overflow-x:auto;" id="piano-cont"></div>
+        </div>
 
-        <!-- Piano settimanale -->
-        <div id="piano-container" style="overflow-x:auto;"></div>
+        <!-- TAB TESTI -->
+        <div id="etab-testi" class="tab-panel">
+          <div class="card">
+            <div class="card-title">📝 Testi liberi della dieta</div>
+            <div class="form-group"><label>Intestazione / Introduzione al piano</label>
+              <textarea id="txt-intestazione" style="min-height:100px;" placeholder="Es: Gentile paziente, di seguito il suo piano alimentare personalizzato…"></textarea>
+            </div>
+            <div class="form-group"><label>Linee guida generali</label>
+              <textarea id="txt-linee-guida" style="min-height:130px;" placeholder="Es: Bere almeno 2L di acqua al giorno. Preferire cotture al vapore o al forno…"></textarea>
+            </div>
+            <div class="form-group"><label>Conclusioni</label>
+              <textarea id="txt-conclusioni" style="min-height:100px;" placeholder="Es: Si raccomanda di seguire il piano con costanza. Alla prossima visita verificheremo i progressi…"></textarea>
+            </div>
+            <button class="btn btn-primary" id="btn-salva-testi">💾 Salva testi</button>
+          </div>
+        </div>
 
-        <!-- Totali settimanali -->
-        <div class="card mt-md" id="week-summary">
+        <!-- TAB ALIMENTI CONSIGLIATI/SCONSIGLIATI -->
+        <div id="etab-alim-consig" class="tab-panel">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title" style="color:var(--sage-600);">✅ Alimenti consigliati</div>
+              <p class="text-muted text-sm" style="margin-bottom:.75rem;">Alimenti da privilegiare nel piano.</p>
+              <div id="consigliati-list" style="margin-bottom:.75rem;min-height:40px;"></div>
+              <button class="btn btn-secondary btn-sm" id="btn-add-consigliato">+ Aggiungi</button>
+            </div>
+            <div class="card">
+              <div class="card-title" style="color:#c53030;">❌ Alimenti sconsigliati</div>
+              <p class="text-muted text-sm" style="margin-bottom:.75rem;">Alimenti da evitare o limitare.</p>
+              <div id="sconsigliati-list" style="margin-bottom:.75rem;min-height:40px;"></div>
+              <button class="btn btn-danger btn-sm" id="btn-add-sconsigliato">+ Aggiungi</button>
+            </div>
+          </div>
+          <div class="mt-md" style="text-align:right;">
+            <button class="btn btn-primary" id="btn-salva-alim-consig">💾 Salva lista</button>
+          </div>
+        </div>
+
+        <!-- Riepilogo settimana -->
+        <div class="card mt-md" id="week-summary" style="display:none;">
           <div class="card-title">📊 Riepilogo settimana</div>
           <div id="week-summary-body"></div>
         </div>
       </div>
+
     </main>
   </div>
 </div>
 
-<!-- ══ MODAL SCEGLI PAZIENTE ══ -->
-<div class="modal-overlay" id="modal-paziente">
-  <div class="modal" style="max-width:500px;">
+<!-- ══ MODAL PAZIENTE ══ -->
+<div class="modal-overlay" id="modal-pz">
+  <div class="modal" style="max-width:540px;">
     <div class="modal-header">
       <h3>Seleziona paziente</h3>
-      <button class="modal-close" data-modal-close="modal-paziente" aria-label="Chiudi">✕</button>
+      <button class="modal-close" data-modal-close="modal-pz" aria-label="Chiudi">✕</button>
     </div>
     <div class="modal-body">
-      <div class="search-wrap">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-pz" placeholder="Cerca paziente…" />
+      <!-- FILTRI -->
+      <div class="grid-3" style="margin-bottom:.75rem;gap:.6rem;">
+        <div class="form-group" style="margin:0;"><label>Sesso</label>
+          <select id="pz-sesso"><option value="">Tutti</option><option>Femmina</option><option>Maschio</option></select>
+        </div>
+        <div class="form-group" style="margin:0;"><label>Età min</label>
+          <input type="number" id="pz-eta-min" placeholder="18" min="0" max="120" /></div>
+        <div class="form-group" style="margin:0;"><label>Età max</label>
+          <input type="number" id="pz-eta-max" placeholder="80" min="0" max="120" /></div>
+        <div class="form-group col-span-3" style="margin:0;"><label>Patologia</label>
+          <select id="pz-patologia"><option value="">Tutte le patologie</option></select>
+        </div>
       </div>
-      <div id="pz-list" style="max-height:350px;overflow-y:auto;"></div>
+      <div class="search-wrap" style="margin-bottom:.6rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="pz-search" placeholder="Nome paziente…" />
+      </div>
+      <div id="pz-list" style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-lg);"></div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL NUOVA/MODIFICA DIETA ══ -->
+<!-- ══ MODAL DIETA ══ -->
 <div class="modal-overlay" id="modal-dieta">
-  <div class="modal" style="max-width:500px;">
+  <div class="modal" style="max-width:580px;">
     <div class="modal-header">
       <h3 id="modal-dieta-title">Nuova dieta</h3>
       <button class="modal-close" data-modal-close="modal-dieta" aria-label="Chiudi">✕</button>
     </div>
     <div class="modal-body">
       <div class="alert alert-error" id="dieta-error"></div>
-      <input type="hidden" id="d-editing-id" />
+      <input type="hidden" id="d-id" />
       <div class="form-group"><label>Nome dieta *</label><input type="text" id="d-nome" placeholder="Es: Piano ipocalorico estate 2026" /></div>
       <div class="grid-2">
         <div class="form-group">
-          <label>Target calorie / giorno *</label>
-          <input type="number" id="d-kcal" placeholder="1800" min="500" max="5000" step="50" />
+          <label>Target kcal/giorno *</label>
+          <input type="number" id="d-kcal" placeholder="1800" min="500" max="6000" step="50" />
         </div>
-        <div class="form-group">
-          <label>Numero di settimane</label>
-          <div class="checkbox-group" style="margin-top:.4rem;">
-            <div class="checkbox-chip"><input type="radio" name="settimane" id="s1" value="1" checked><label for="s1">1 settimana</label></div>
-            <div class="checkbox-chip"><input type="radio" name="settimane" id="s2" value="2"><label for="s2">2 settimane</label></div>
+        <div class="form-group"><label>Settimane</label>
+          <div class="checkbox-group" style="margin-top:.35rem;">
+            <div class="checkbox-chip"><input type="radio" name="sett" id="s1" value="1" checked><label for="s1">1 settimana</label></div>
+            <div class="checkbox-chip"><input type="radio" name="sett" id="s2" value="2"><label for="s2">2 settimane</label></div>
           </div>
         </div>
       </div>
-      <div class="form-group"><label>Note / indicazioni generali</label><textarea id="d-note" style="min-height:70px;"></textarea></div>
-
-      <!-- Preview ripartizione macro consigliata -->
-      <div id="macro-target-preview" style="display:none;margin-top:.5rem;background:var(--sage-50);border:1px solid var(--sage-200);border-radius:var(--r-md);padding:.75rem;">
-        <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">Ripartizione macro consigliata (40/30/30)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;text-align:center;">
-          <div><div style="font-size:.65rem;color:var(--text-muted);">Carboidrati</div><div style="font-weight:700;color:var(--text-primary);" id="prev-carb">—</div></div>
-          <div><div style="font-size:.65rem;color:var(--text-muted);">Proteine</div><div style="font-weight:700;color:var(--text-primary);" id="prev-prot">—</div></div>
-          <div><div style="font-size:.65rem;color:var(--text-muted);">Grassi</div><div style="font-weight:700;color:var(--text-primary);" id="prev-lip">—</div></div>
+      <!-- Schema macro -->
+      <div class="form-group">
+        <label>Schema macro</label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem;">
+          <div class="schema-chip selected" data-schema="low_carb_leggera">
+            <span class="schema-chip__nome">Low Carb Leggera</span>
+            <span class="schema-chip__ratio">Carb 40% · Prot 30% · Lip 30%</span>
+          </div>
+          <div class="schema-chip" data-schema="low_carb">
+            <span class="schema-chip__nome">Low Carb</span>
+            <span class="schema-chip__ratio">Carb 20% · Prot 40% · Lip 40%</span>
+          </div>
+          <div class="schema-chip" data-schema="mediterranea">
+            <span class="schema-chip__nome">Mediterranea</span>
+            <span class="schema-chip__ratio">Carb 55% · Prot 15% · Lip 30%</span>
+          </div>
+          <div class="schema-chip" data-schema="libera">
+            <span class="schema-chip__nome">Libera</span>
+            <span class="schema-chip__ratio">Imposto io le %</span>
+          </div>
         </div>
       </div>
+      <!-- Percentuali custom (solo per "libera") -->
+      <div id="custom-macro-wrap" style="display:none;" class="grid-3">
+        <div class="form-group"><label>% Carboidrati</label><input type="number" id="d-pct-carb" value="40" min="10" max="70" /></div>
+        <div class="form-group"><label>% Proteine</label><input type="number" id="d-pct-prot" value="30" min="10" max="60" /></div>
+        <div class="form-group"><label>% Grassi</label><input type="number" id="d-pct-lip" value="30" min="10" max="60" /></div>
+      </div>
+      <!-- Preview macro -->
+      <div id="macro-preview" style="display:none;background:var(--sage-50);border:1px solid var(--sage-200);border-radius:var(--r-md);padding:.75rem;margin-top:.5rem;">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">Ripartizione giornaliera stimata</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;text-align:center;">
+          <div><div style="font-size:.65rem;color:var(--text-muted);">Carboidrati</div><div style="font-weight:700;font-size:1.1rem;" id="prev-carb">—</div></div>
+          <div><div style="font-size:.65rem;color:var(--text-muted);">Proteine</div><div style="font-weight:700;font-size:1.1rem;" id="prev-prot">—</div></div>
+          <div><div style="font-size:.65rem;color:var(--text-muted);">Grassi</div><div style="font-weight:700;font-size:1.1rem;" id="prev-lip">—</div></div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:.75rem;"><label>Note</label><textarea id="d-note" style="min-height:65px;"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-dieta">Annulla</button>
@@ -279,663 +370,748 @@
   </div>
 </div>
 
-<!-- ══ MODAL PASTO (dettaglio / sostituti) ══ -->
+<!-- ══ MODAL PASTO DETTAGLIO ══ -->
 <div class="modal-overlay" id="modal-pasto">
-  <div class="modal" style="max-width:500px;">
+  <div class="modal" style="max-width:480px;">
     <div class="modal-header">
-      <h3 id="modal-pasto-title">Pasto</h3>
+      <h3 id="mp-title">Pasto</h3>
       <button class="modal-close" data-modal-close="modal-pasto" aria-label="Chiudi">✕</button>
     </div>
-    <div class="modal-body">
-      <div id="pasto-detail-body"></div>
-    </div>
-    <div class="modal-footer" id="pasto-footer"></div>
+    <div class="modal-body" id="mp-body"></div>
+    <div class="modal-footer" id="mp-footer"></div>
   </div>
 </div>
 
 <script type="module">
 import { sb, requireAuth, logout } from './js/supabase.js';
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, flt, emptyState, fmtDateShort } from './js/ui.js';
+         ModalManager, initUI, n, val, flt, emptyState, fmtDateShort, calcEta } from './js/ui.js';
 
-const GIORNI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
-const MOMENTI = [
-  { id:'colazione',          label:'Colazione',      icon:'☕' },
-  { id:'spuntino_mattina',   label:'Spuntino mat.',  icon:'🍎' },
-  { id:'pranzo',             label:'Pranzo',         icon:'🍽️' },
-  { id:'spuntino_pomeriggio',label:'Spuntino pom.',  icon:'🥜' },
-  { id:'cena',               label:'Cena',           icon:'🌙' },
+const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MOMENTI=[
+  {id:'colazione',label:'Colazione',icon:'☕'},
+  {id:'spuntino_mattina',label:'Spunt. mat.',icon:'🍎'},
+  {id:'pranzo',label:'Pranzo',icon:'🍽️'},
+  {id:'spuntino_pomeriggio',label:'Spunt. pom.',icon:'🥜'},
+  {id:'cena',label:'Cena',icon:'🌙'},
 ];
+const SCHEMI={
+  low_carb_leggera:{label:'Low Carb Leggera',carb:40,prot:30,lip:30},
+  low_carb:        {label:'Low Carb',         carb:20,prot:40,lip:40},
+  mediterranea:    {label:'Mediterranea',      carb:55,prot:15,lip:30},
+  libera:          {label:'Libera',            carb:null,prot:null,lip:null},
+};
+// Categorie carnee per alert vegetariani/vegani
+const CAT_ANIMALI=['CARNE','CARNI TRASFORMATE','FRATTAGLIE','PESCE','LATTE E YOGURT','FORMAGGI','UOVA'];
+const CAT_PESCE=['PESCE'];
 
-const S = {
-  user: null,
-  paziente: null,
-  dieta: null,
-  settimanaAttiva: 1,
-  // piano[settimana][giorno][momento] = { alimento_id, alimento_nome, quantita_g, kcal, prot, carb, lip, sostituti_ids }
-  piano: {},
-  alimenti: [],
-  alimentiIdx: {},  // id → alimento
-  // food picker state
-  fp: { settimana:1, giorno:1, momento:'colazione', resolve:null, sostitutoTarget:null },
+const S={
+  user:null, paziente:null, dieta:null, settimana:1,
+  piano:{}, alimenti:[], alimentiIdx:{},
+  patologiePaziente:[],  // [{patologia_id, patologie_catalogo:{nome}}]
+  controindicazioniIdx:{}, // alimento_id → [{patologia_id, livello}]
+  alimConsigliatiBuf:[],   // uuid[]
+  alimSconsigliatiB:[],    // uuid[]
+  fp:{ s:1, g:1, m:'colazione', sostituto:false, alimentoId:null },
+  _tuttiPz:[],
+  _tuttiPat:[],
+  schemaSelezionato:'low_carb_leggera',
 };
 
-async function init() {
-  loading(true);
-  initUI();
-  S.user = await requireAuth();
-  if (!S.user) return;
-  n('topbar-email').textContent = S.user.email;
-  n('app').style.display = 'block';
-  n('btn-logout').addEventListener('click', logout);
-  n('btn-scegli-paziente').addEventListener('click', openSceglipaziente);
-  n('btn-nuova-dieta').addEventListener('click', openNuovaDieta);
-  n('btn-back-diete').addEventListener('click', backToDieteList);
-  n('btn-salva-dieta').addEventListener('click', salvaPiano);
-  n('btn-edit-dieta-meta').addEventListener('click', editDietaMeta);
-  n('btn-save-dieta').addEventListener('click', saveDieta);
-  n('d-kcal').addEventListener('input', aggiornaMacroPreview);
-  n('fp-search').addEventListener('input', renderFoodPickerList);
-  n('fp-cancel').addEventListener('click', closeFoodPicker);
-  n('fp-confirm').addEventListener('click', confirmFoodPicker);
-  n('search-pz').addEventListener('input', renderPazienteList);
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeFoodPicker(); });
+async function init(){
+  loading(true); initUI();
+  S.user=await requireAuth(); if(!S.user)return;
+  n('topbar-email').textContent=S.user.email;
+  n('app').style.display='block';
+  n('btn-logout').addEventListener('click',logout);
+  n('btn-scegli-pz').addEventListener('click',openModalPz);
+  n('btn-nuova-dieta').addEventListener('click',openNuovaDieta);
+  n('btn-back').addEventListener('click',backToList);
+  n('btn-salva').addEventListener('click',salvaPiano);
+  n('btn-edit-meta').addEventListener('click',editMeta);
+  n('btn-save-dieta').addEventListener('click',saveDieta);
+  n('btn-salva-testi').addEventListener('click',salvaTestiDieta);
+  n('btn-salva-alim-consig').addEventListener('click',salvaAlimConsig);
+  n('btn-add-consigliato').addEventListener('click',()=>openFpForList('consigliati'));
+  n('btn-add-sconsigliato').addEventListener('click',()=>openFpForList('sconsigliati'));
+  // Food picker
+  n('fp-search').addEventListener('input',renderFpList);
+  n('fp-cancel').addEventListener('click',closeFp);
+  n('fp-confirm').addEventListener('click',confirmFp);
+  n('fp-btn-nuovo').addEventListener('click',openNuovoAlimentoInline);
+  n('fp-qty').addEventListener('input',()=>{ if(S.fp.alimentoId) syncKcalFromG(); });
+  n('fp-kcal').addEventListener('input',()=>{ if(S.fp.alimentoId) syncGFromKcal(); });
+  // Schema macro
+  document.querySelectorAll('.schema-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>selectSchema(chip.dataset.schema));
+  });
+  ['d-kcal','d-pct-carb','d-pct-prot','d-pct-lip'].forEach(id=>
+    n(id).addEventListener('input',aggiornaMacroPreview)
+  );
+  // Filtri paziente
+  ['pz-sesso','pz-eta-min','pz-eta-max','pz-patologia'].forEach(id=>
+    n(id).addEventListener('change',renderPzList)
+  );
+  n('pz-search').addEventListener('input',renderPzList);
+  // Editor tabs
+  document.querySelectorAll('.editor-tab-btn').forEach(btn=>
+    btn.addEventListener('click',()=>switchEditorTab(btn.dataset.etab,btn))
+  );
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFp();});
 
-  // Carica alimenti in background
-  loadAlimenti();
-
+  await loadAlimenti();
   // Deep link ?paziente=id
-  const params = new URLSearchParams(location.search);
-  if (params.get('paziente')) {
-    const {data:pz} = await sb.from('pazienti').select('id,nome,cognome').eq('id',params.get('paziente')).single();
-    if (pz) await selectPaziente(pz);
+  const p=new URLSearchParams(location.search);
+  if(p.get('paziente')){
+    const{data:pz}=await sb.from('pazienti').select('id,nome,cognome').eq('id',p.get('paziente')).single();
+    if(pz) await selectPz(pz);
   }
-
   loading(false);
 }
 
-async function loadAlimenti() {
-  const {data} = await sb.from('alimenti')
-    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,porzione_default_g')
-    .eq('abilitato', true).order('categoria').order('nome');
-  S.alimenti = data || [];
-  S.alimentiIdx = {};
-  S.alimenti.forEach(a => S.alimentiIdx[a.id] = a);
+async function loadAlimenti(){
+  const[{data:al},{data:ci}]=await Promise.all([
+    sb.from('alimenti').select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,porzione_default_g').eq('abilitato',true).order('categoria').order('nome'),
+    sb.from('alimenti_patologie').select('alimento_id,patologia_id,livello'),
+  ]);
+  S.alimenti=al||[]; S.alimentiIdx={};
+  S.alimenti.forEach(a=>S.alimentiIdx[a.id]=a);
+  S.controindicazioniIdx={};
+  (ci||[]).forEach(r=>{if(!S.controindicazioniIdx[r.alimento_id])S.controindicazioniIdx[r.alimento_id]=[];S.controindicazioniIdx[r.alimento_id].push(r);});
 }
 
-// ─── PAZIENTE ───────────────────────────────────────────
-async function openSceglipaziente() {
-  const {data} = await sb.from('pazienti').select('id,nome,cognome').order('cognome');
-  S._tuttiPazienti = data || [];
-  renderPazienteList();
-  ModalManager.open('modal-paziente');
+// ─── PAZIENTE SELECTOR ─────────────────────────────────
+async function openModalPz(){
+  loading(true);
+  const[{data:pz},{data:pat}]=await Promise.all([
+    sb.from('pazienti').select('id,nome,cognome,sesso,data_nascita').order('cognome'),
+    sb.from('patologie_catalogo').select('id,nome').order('nome'),
+  ]);
+  S._tuttiPz=pz||[]; S._tuttiPat=pat||[];
+  n('pz-patologia').innerHTML='<option value="">Tutte le patologie</option>'+
+    (pat||[]).map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  renderPzList();
+  loading(false);
+  ModalManager.open('modal-pz');
 }
 
-function renderPazienteList() {
-  const q = val('search-pz').toLowerCase();
-  const lista = S._tuttiPazienti.filter(p =>
-    !q || (p.nome+' '+p.cognome).toLowerCase().includes(q)
-  );
-  n('pz-list').innerHTML = lista.length
-    ? lista.map(p => `<div class="food-picker-item" data-pz-id="${p.id}" data-pz-nome="${p.cognome} ${p.nome}">
+async function renderPzList(){
+  const q=val('pz-search').toLowerCase();
+  const sesso=n('pz-sesso').value;
+  const etaMin=n('pz-eta-min').value?+n('pz-eta-min').value:null;
+  const etaMax=n('pz-eta-max').value?+n('pz-eta-max').value:null;
+  const patId=n('pz-patologia').value;
+
+  let lista=S._tuttiPz.filter(p=>{
+    if(q&&!(p.cognome+' '+p.nome).toLowerCase().includes(q))return false;
+    if(sesso&&p.sesso!==sesso)return false;
+    const eta=calcEta(p.data_nascita);
+    if(etaMin!=null&&(eta||0)<etaMin)return false;
+    if(etaMax!=null&&(eta||0)>etaMax)return false;
+    return true;
+  });
+
+  // Filtro per patologia: carica i pazienti che hanno quella patologia
+  if(patId){
+    const{data:pp}=await sb.from('pazienti_patologie').select('paziente_id').eq('patologia_id',patId);
+    const ids=new Set((pp||[]).map(x=>x.paziente_id));
+    lista=lista.filter(p=>ids.has(p.id));
+  }
+
+  const el=n('pz-list');
+  el.innerHTML=lista.length
+    ?lista.map(p=>{
+      const eta=calcEta(p.data_nascita);
+      return`<div class="fp-item" data-pz-id="${p.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--sage-400);flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span class="fpi-nome">${p.cognome} ${p.nome}</span>
-      </div>`).join('')
-    : '<div style="padding:1rem;text-align:center;color:var(--text-muted);">Nessun paziente trovato</div>';
+        <div style="flex:1;">
+          <div class="fpi-nome">${p.cognome} ${p.nome}</div>
+          <div style="font-size:.7rem;color:var(--text-muted);">${p.sesso||''}${eta?' · '+eta+' anni':''}</div>
+        </div>
+      </div>`;
+    }).join('')
+    :'<div style="padding:1rem;text-align:center;color:var(--text-muted);">Nessun paziente trovato</div>';
 
-  n('pz-list').addEventListener('click', async e => {
-    const item = e.target.closest('[data-pz-id]');
-    if (!item) return;
-    const pz = { id: item.dataset.pzId, nome: item.dataset.pzNome };
-    ModalManager.close('modal-paziente');
-    await selectPaziente(pz);
+  el.addEventListener('click',async e=>{
+    const item=e.target.closest('[data-pz-id]'); if(!item)return;
+    const pz=S._tuttiPz.find(p=>p.id===item.dataset.pzId);
+    if(pz){ModalManager.close('modal-pz');await selectPz(pz);}
   });
 }
 
-async function selectPaziente(pz) {
-  S.paziente = pz;
-  n('diete-title').textContent = `Diete — ${pz.nome||pz.cognome+' '+pz.nome}`;
-  n('diete-subtitle').textContent = 'Piani alimentari del paziente';
-  n('btn-nuova-dieta').style.display = 'inline-flex';
+async function selectPz(pz){
+  S.paziente=pz;
+  n('diete-title').textContent=`Diete — ${pz.cognome} ${pz.nome}`;
+  n('diete-subtitle').textContent='Piani alimentari del paziente';
+  n('btn-nuova-dieta').style.display='inline-flex';
+  // Carica patologie paziente
+  const{data:pp}=await sb.from('pazienti_patologie')
+    .select('patologia_id,patologie_catalogo(nome)').eq('paziente_id',pz.id);
+  S.patologiePaziente=pp||[];
+  // Carica anche tipo dieta paziente
+  const{data:pzFull}=await sb.from('pazienti').select('vegetariano_vegano').eq('id',pz.id).single();
+  S.paziente.vegetariano_vegano=pzFull?.vegetariano_vegano||null;
   await loadDiete();
 }
 
-async function loadDiete() {
-  if (!S.paziente) return;
-  const {data,error} = await sb.from('diete')
-    .select('*').eq('paziente_id', S.paziente.id)
-    .order('created_at',{ascending:false});
-  if (error) { toast('Errore', 'error'); return; }
-
-  const cont = n('diete-list-container');
-  if (!data?.length) {
-    cont.innerHTML = emptyState('🥗','Nessuna dieta','Clicca "+ Nuova dieta" per creare il primo piano alimentare.');
-    return;
-  }
-  cont.innerHTML = data.map(d => `
-    <div class="dieta-card${d.attiva?' active-diet':''}" data-dieta-id="${d.id}">
+async function loadDiete(){
+  if(!S.paziente)return;
+  const{data}=await sb.from('diete').select('*').eq('paziente_id',S.paziente.id).order('created_at',{ascending:false});
+  const cont=n('diete-list-cont');
+  if(!data?.length){cont.innerHTML=emptyState('🥗','Nessuna dieta','Clicca "+ Nuova dieta" per creare il primo piano.');return;}
+  cont.innerHTML=data.map(d=>`
+    <div class="dieta-card" data-did="${d.id}">
       <div style="flex:1;">
-        <div style="font-weight:600;color:var(--text-primary);font-size:.95rem;">${d.nome}</div>
+        <div style="font-weight:600;color:var(--text-primary);font-size:.92rem;">${d.nome}
+          ${d.attiva?'<span style="font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.4rem;">✓ Attiva</span>':''}</div>
         <div style="font-size:.78rem;color:var(--text-muted);margin-top:.2rem;">
-          🎯 ${Math.round(d.target_kcal)} kcal/giorno · ${d.numero_settimane} settiman${d.numero_settimane===1?'a':'e'}
+          🎯 ${Math.round(d.target_kcal)} kcal/g · ${SCHEMI[d.schema_macro||'libera']?.label||'—'} · ${d.numero_settimane} sett.
         </div>
-        ${d.note ? `<div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem;font-style:italic;">${d.note}</div>` : ''}
       </div>
-      <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;">
-        ${d.attiva ? '<span style="font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);">✓ Attiva</span>' : ''}
-        <button class="btn btn-secondary btn-sm" data-open-dieta="${d.id}">Apri piano</button>
-        <button class="btn btn-ghost btn-sm" data-toggle-attiva="${d.id}" data-attiva="${d.attiva}">
-          ${d.attiva ? '⏸ Disattiva' : '▶ Attiva'}
+      <div class="item-actions" style="margin-left:auto;">
+        <button class="btn btn-secondary btn-sm" data-open="${d.id}">Apri piano →</button>
+        <button class="btn btn-ghost btn-sm" data-tog="${d.id}" data-att="${d.attiva}">
+          ${d.attiva?'⏸':'▶'}
         </button>
       </div>
     </div>`).join('');
-
-  cont.addEventListener('click', async e => {
-    const openBtn = e.target.closest('[data-open-dieta]');
-    if (openBtn) { await openEditor(openBtn.dataset.openDieta); return; }
-    const toggleBtn = e.target.closest('[data-toggle-attiva]');
-    if (toggleBtn) {
-      const nuovaAttiva = toggleBtn.dataset.attiva !== 'true';
-      await sb.from('diete').update({attiva:nuovaAttiva}).eq('id',toggleBtn.dataset.toggleAttiva);
+  cont.addEventListener('click',async e=>{
+    const ob=e.target.closest('[data-open]'); if(ob){await openEditor(ob.dataset.open);return;}
+    const tb=e.target.closest('[data-tog]'); if(tb){
+      await sb.from('diete').update({attiva:tb.dataset.att!=='true'}).eq('id',tb.dataset.tog);
       await loadDiete();
     }
   });
 }
 
-// ─── NUOVA / MODIFICA DIETA ──────────────────────────────
-function openNuovaDieta() {
-  n('d-editing-id').value = '';
-  n('modal-dieta-title').textContent = 'Nuova dieta';
-  n('d-nome').value = '';
-  n('d-kcal').value = '';
-  n('d-note').value = '';
-  n('btn-save-dieta').textContent = 'Crea dieta';
-  document.querySelector('[name=settimane][value="1"]').checked = true;
-  n('macro-target-preview').style.display = 'none';
-  hideAlert('dieta-error');
-  ModalManager.open('modal-dieta');
-}
-
-function editDietaMeta() {
-  if (!S.dieta) return;
-  n('d-editing-id').value = S.dieta.id;
-  n('modal-dieta-title').textContent = 'Modifica dieta';
-  n('d-nome').value  = S.dieta.nome;
-  n('d-kcal').value  = S.dieta.target_kcal;
-  n('d-note').value  = S.dieta.note||'';
-  n('btn-save-dieta').textContent = 'Salva modifiche';
-  document.querySelector(`[name=settimane][value="${S.dieta.numero_settimane}"]`).checked = true;
+// ─── NUOVA / MODIFICA DIETA ────────────────────────────
+function selectSchema(s){
+  document.querySelectorAll('.schema-chip').forEach(c=>c.classList.remove('selected'));
+  document.querySelector(`[data-schema="${s}"]`)?.classList.add('selected');
+  S.schemaSelezionato=s;
+  n('custom-macro-wrap').style.display=s==='libera'?'grid':'none';
   aggiornaMacroPreview();
+}
+function aggiornaMacroPreview(){
+  const kcal=parseFloat(n('d-kcal').value); const prev=n('macro-preview');
+  if(!kcal||kcal<500){prev.style.display='none';return;}
+  prev.style.display='block';
+  const schema=SCHEMI[S.schemaSelezionato];
+  const pc=S.schemaSelezionato==='libera'?parseFloat(n('d-pct-carb').value)||40:schema.carb;
+  const pp=S.schemaSelezionato==='libera'?parseFloat(n('d-pct-prot').value)||30:schema.prot;
+  const pl=S.schemaSelezionato==='libera'?parseFloat(n('d-pct-lip').value)||30:schema.lip;
+  n('prev-carb').textContent=Math.round(kcal*pc/100/4)+'g';
+  n('prev-prot').textContent=Math.round(kcal*pp/100/4)+'g';
+  n('prev-lip').textContent= Math.round(kcal*pl/100/9)+'g';
+}
+
+function openNuovaDieta(){
+  n('d-id').value=''; n('modal-dieta-title').textContent='Nuova dieta';
+  ['d-nome','d-kcal','d-note'].forEach(id=>{const el=n(id);if(el)el.value='';});
+  n('btn-save-dieta').textContent='Crea dieta';
+  document.querySelector('[name=sett][value="1"]').checked=true;
+  selectSchema('low_carb_leggera');
+  n('macro-preview').style.display='none';
   hideAlert('dieta-error');
   ModalManager.open('modal-dieta');
 }
-
-function aggiornaMacroPreview() {
-  const kcal = parseFloat(n('d-kcal').value);
-  const prev = n('macro-target-preview');
-  if (!kcal || kcal < 500) { prev.style.display='none'; return; }
-  prev.style.display='block';
-  n('prev-carb').textContent = Math.round(kcal*0.40/4) + ' g';
-  n('prev-prot').textContent = Math.round(kcal*0.30/4) + ' g';
-  n('prev-lip').textContent  = Math.round(kcal*0.30/9) + ' g';
+function editMeta(){
+  if(!S.dieta)return;
+  n('d-id').value=S.dieta.id; n('modal-dieta-title').textContent='Modifica dieta';
+  n('d-nome').value=S.dieta.nome; n('d-kcal').value=S.dieta.target_kcal;
+  n('d-note').value=S.dieta.note||''; n('btn-save-dieta').textContent='Salva modifiche';
+  document.querySelector(`[name=sett][value="${S.dieta.numero_settimane}"]`).checked=true;
+  selectSchema(S.dieta.schema_macro||'low_carb_leggera');
+  if(S.dieta.pct_carboidrati){n('d-pct-carb').value=S.dieta.pct_carboidrati;}
+  if(S.dieta.pct_proteine)   {n('d-pct-prot').value=S.dieta.pct_proteine;}
+  if(S.dieta.pct_grassi)     {n('d-pct-lip').value=S.dieta.pct_grassi;}
+  aggiornaMacroPreview(); hideAlert('dieta-error');
+  ModalManager.open('modal-dieta');
 }
 
-async function saveDieta() {
+async function saveDieta(){
   hideAlert('dieta-error');
-  const nome = val('d-nome');
-  const kcal = parseFloat(n('d-kcal').value);
-  const sett = parseInt(document.querySelector('[name=settimane]:checked')?.value||'1');
-  if (!nome) { showAlert('dieta-error','Il nome è obbligatorio.'); return; }
-  if (!kcal || kcal < 500) { showAlert('dieta-error','Inserisci un target calorico valido (min 500 kcal).'); return; }
-
-  const editId = n('d-editing-id').value || null;
-  const payload = {
-    user_id: S.user.id,
-    paziente_id: S.paziente.id,
-    nome, target_kcal: kcal,
-    numero_settimane: sett,
-    note: val('d-note')||null,
+  const nome=val('d-nome'), kcal=parseFloat(n('d-kcal').value);
+  const sett=parseInt(document.querySelector('[name=sett]:checked')?.value||'1');
+  if(!nome){showAlert('dieta-error','Il nome è obbligatorio.');return;}
+  if(!kcal||kcal<500){showAlert('dieta-error','Inserisci un target calorico valido.');return;}
+  const schema=S.schemaSelezionato;
+  const pc=schema==='libera'?parseFloat(n('d-pct-carb').value)||40:null;
+  const pp=schema==='libera'?parseFloat(n('d-pct-prot').value)||30:null;
+  const pl=schema==='libera'?parseFloat(n('d-pct-lip').value)||30:null;
+  const editId=n('d-id').value||null;
+  const payload={
+    user_id:S.user.id, paziente_id:S.paziente.id, nome,
+    target_kcal:kcal, numero_settimane:sett,
+    schema_macro:schema, pct_carboidrati:pc, pct_proteine:pp, pct_grassi:pl,
+    note:val('d-note')||null,
   };
-
-  setBtn('btn-save-dieta', true);
-  try {
-    if (editId) {
-      const {error} = await sb.from('diete').update({nome,target_kcal:kcal,numero_settimane:sett,note:val('d-note')||null}).eq('id',editId);
-      if(error) throw error;
-      S.dieta = {...S.dieta, ...payload};
+  setBtn('btn-save-dieta',true);
+  try{
+    if(editId){
+      const{error}=await sb.from('diete').update(payload).eq('id',editId);
+      if(error)throw error; S.dieta={...S.dieta,...payload}; renderEditorHeader();
       toast('Dieta aggiornata');
-      ModalManager.close('modal-dieta');
-      renderEditorHeader();
     } else {
-      const {data,error} = await sb.from('diete').insert(payload).select().single();
-      if(error) throw error;
-      toast('Dieta creata!');
-      ModalManager.close('modal-dieta');
-      await openEditor(data.id);
+      const{data,error}=await sb.from('diete').insert(payload).select().single();
+      if(error)throw error; toast('Dieta creata!');
+      ModalManager.close('modal-dieta'); await openEditor(data.id); return;
     }
-    await loadDiete();
-  } catch(e){ showAlert('dieta-error','Errore: '+e.message); }
-  finally { setBtn('btn-save-dieta',false); }
+    ModalManager.close('modal-dieta'); await loadDiete();
+  }catch(e){showAlert('dieta-error','Errore: '+e.message);}
+  finally{setBtn('btn-save-dieta',false);}
 }
 
-// ─── EDITOR PIANO ───────────────────────────────────────
-async function openEditor(dietaId) {
-  loading(true, 'Caricamento piano…');
-  const {data:d,error} = await sb.from('diete').select('*').eq('id',dietaId).single();
-  if (error||!d) { toast('Errore','error'); loading(false); return; }
-  S.dieta = d;
-  S.settimanaAttiva = 1;
-
-  // Inizializza piano vuoto
-  S.piano = {};
-  for (let s=1; s<=d.numero_settimane; s++) {
-    S.piano[s] = {};
-    for (let g=1; g<=7; g++) {
-      S.piano[s][g] = {};
-      MOMENTI.forEach(m => S.piano[s][g][m.id] = null);
-    }
+// ─── EDITOR ────────────────────────────────────────────
+async function openEditor(dietaId){
+  loading(true,'Caricamento piano…');
+  const{data:d}=await sb.from('diete').select('*').eq('id',dietaId).single();
+  if(!d){toast('Errore','error');loading(false);return;}
+  S.dieta=d; S.settimana=1;
+  // Init piano vuoto
+  S.piano={};
+  for(let s=1;s<=d.numero_settimane;s++){
+    S.piano[s]={};
+    for(let g=1;g<=7;g++){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=null);}
   }
-
-  // Carica pasti salvati
-  const {data:pasti} = await sb.from('pasti_dieta')
-    .select('*').eq('dieta_id',dietaId);
-  (pasti||[]).forEach(p => {
-    if (S.piano[p.settimana]?.[p.giorno] !== undefined) {
-      S.piano[p.settimana][p.giorno][p.momento] = {
-        id: p.id,
-        alimento_id: p.alimento_id,
-        alimento_nome: p.alimento_nome,
-        quantita_g: p.quantita_g,
-        kcal: p.kcal_calcolate,
-        prot: p.proteine_calcolate,
-        carb: p.carboidrati_calcolati,
-        lip:  p.lipidi_calcolati,
-        sostituti_ids: p.sostituti_ids||[],
-        note: p.note,
+  // Carica pasti
+  const{data:pasti}=await sb.from('pasti_dieta').select('*').eq('dieta_id',dietaId);
+  (pasti||[]).forEach(p=>{
+    if(S.piano[p.settimana]?.[p.giorno]!==undefined)
+      S.piano[p.settimana][p.giorno][p.momento]={
+        id:p.id,alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,
+        quantita_g:p.quantita_g,kcal:p.kcal_calcolate,
+        prot:p.proteine_calcolate,carb:p.carboidrati_calcolati,lip:p.lipidi_calcolati,
+        sostituti_ids:p.sostituti_ids||[],note:p.note,
       };
-    }
   });
+  // Testi
+  n('txt-intestazione').value=d.intestazione||'';
+  n('txt-linee-guida').value=d.linee_guida||'';
+  n('txt-conclusioni').value=d.conclusioni||'';
+  // Alim consigliati/sconsigliati
+  S.alimConsigliatiBuf=[...(d.alimenti_consigliati||[])];
+  S.alimSconsigliatiB=[...(d.alimenti_sconsigliati||[])];
+  renderAlimConsig();
 
-  n('view-diete-list').style.display='none';
+  n('view-list').style.display='none';
   n('view-editor').style.display='block';
-  n('editor-breadcrumb').textContent = d.nome;
-  renderEditorHeader();
-  renderWeekTabs();
-  renderPiano();
+  n('editor-bc').textContent=d.nome;
+  // Tab piano attivo di default
+  switchEditorTab('piano',document.querySelector('.editor-tab-btn'));
+  renderEditorHeader(); renderWeekTabs(); renderPiano();
   loading(false);
 }
 
-function backToDieteList() {
-  n('view-editor').style.display='none';
-  n('view-diete-list').style.display='block';
-  S.dieta = null; S.piano = {};
+function backToList(){
+  n('view-editor').style.display='none'; n('view-list').style.display='block';
+  S.dieta=null; S.piano={};
 }
 
-function renderEditorHeader() {
-  n('editor-nome').textContent = S.dieta.nome;
-  n('editor-target').textContent = Math.round(S.dieta.target_kcal) + ' kcal/giorno';
-  n('editor-settimane-info').querySelector('span:last-child').textContent =
-    S.dieta.numero_settimane + (S.dieta.numero_settimane===1?' settimana':' settimane');
+function switchEditorTab(tabId,btn){
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.editor-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('etab-'+tabId)?.classList.add('active');
+  if(btn)btn.classList.add('active');
+  n('week-summary').style.display=tabId==='piano'?'block':'none';
 }
 
-function renderWeekTabs() {
-  const wrap = n('week-tabs');
-  wrap.innerHTML = '';
-  for (let s=1; s<=S.dieta.numero_settimane; s++) {
-    const btn = document.createElement('button');
-    btn.className = 'week-tab' + (s===S.settimanaAttiva?' active':'');
-    btn.textContent = `Settimana ${s}`;
-    btn.addEventListener('click',()=>{ S.settimanaAttiva=s; renderWeekTabs(); renderPiano(); });
+function renderEditorHeader(){
+  n('ed-nome').textContent=S.dieta.nome;
+  n('ed-target').textContent=Math.round(S.dieta.target_kcal)+' kcal/giorno';
+  const schema=SCHEMI[S.dieta.schema_macro||'libera'];
+  n('ed-schema').textContent=schema?.label||'—';
+  const kcal=S.dieta.target_kcal;
+  const pc=S.dieta.schema_macro==='libera'?(S.dieta.pct_carboidrati||40):schema.carb;
+  const pp=S.dieta.schema_macro==='libera'?(S.dieta.pct_proteine||30):schema.prot;
+  const pl=S.dieta.schema_macro==='libera'?(S.dieta.pct_grassi||30):schema.lip;
+  n('ed-macro-wrap').innerHTML=`C ${Math.round(kcal*pc/100/4)}g · P ${Math.round(kcal*pp/100/4)}g · L ${Math.round(kcal*pl/100/9)}g`;
+}
+
+function renderWeekTabs(){
+  const wrap=n('week-tabs'); wrap.innerHTML='';
+  for(let s=1;s<=S.dieta.numero_settimane;s++){
+    const btn=document.createElement('button');
+    btn.className='week-tab'+(s===S.settimana?' active':'');
+    btn.textContent='Settimana '+s;
+    btn.addEventListener('click',()=>{S.settimana=s;renderWeekTabs();renderPiano();});
     wrap.appendChild(btn);
   }
 }
 
-function calcKcal(a, qg) {
-  if (!a||!qg) return null;
-  return {
-    kcal: Math.round((a.energia_kcal||0)*qg/100),
-    prot: Math.round((a.proteine_g||0)*qg/100*10)/10,
-    carb: Math.round((a.carboidrati_g||0)*qg/100*10)/10,
-    lip:  Math.round((a.lipidi_g||0)*qg/100*10)/10,
+function calcKcal(a,qg){
+  if(!a||!qg)return{kcal:0,prot:0,carb:0,lip:0};
+  return{
+    kcal:Math.round((a.energia_kcal||0)*qg/100),
+    prot:Math.round((a.proteine_g||0)*qg/100*10)/10,
+    carb:Math.round((a.carboidrati_g||0)*qg/100*10)/10,
+    lip: Math.round((a.lipidi_g||0)*qg/100*10)/10,
   };
 }
 
-function renderPiano() {
-  const sett = S.settimanaAttiva;
-  const target = S.dieta.target_kcal;
+// Controlla se alimento è controindicato per il paziente
+function checkControindicazioni(alimentoId){
+  const ci=S.controindicazioniIdx[alimentoId]||[];
+  const patPaz=new Set(S.patologiePaziente.map(pp=>pp.patologia_id));
+  const hits=ci.filter(c=>patPaz.has(c.patologia_id));
+  return hits; // [] se nessuna, altrimenti array di {patologia_id,livello}
+}
 
-  // Calcola totali per giorno
-  const totaliGiorno = {};
-  for (let g=1; g<=7; g++) {
-    let kcal=0, prot=0, carb=0, lip=0;
-    MOMENTI.forEach(m => {
-      const p = S.piano[sett]?.[g]?.[m.id];
-      if (p) { kcal+=p.kcal||0; prot+=p.prot||0; carb+=p.carb||0; lip+=p.lip||0; }
-    });
-    totaliGiorno[g] = { kcal:Math.round(kcal), prot:Math.round(prot*10)/10, carb:Math.round(carb*10)/10, lip:Math.round(lip*10)/10 };
+function isAnimale(categoria){return CAT_ANIMALI.includes(categoria);}
+function isPesce(categoria){return CAT_PESCE.includes(categoria);}
+
+// Alert dieta vegetariana/vegana
+function getDietaVegAlert(categoria){
+  const tipo=S.paziente?.vegetariano_vegano;
+  if(tipo==='Vegana' && isAnimale(categoria)) return 'Il paziente è VEGANO. Questo alimento non è compatibile.';
+  if(tipo==='Vegetariana' && (categoria==='CARNE'||categoria==='CARNI TRASFORMATE'||categoria==='FRATTAGLIE'||isPesce(categoria))) return 'Il paziente è VEGETARIANO. Attenzione a carne e pesce.';
+  if(tipo==='Pescetariana' && (categoria==='CARNE'||categoria==='CARNI TRASFORMATE'||categoria==='FRATTAGLIE')) return 'Il paziente è PESCETARIANO. Attenzione alla carne.';
+  return null;
+}
+
+function renderPiano(){
+  const s=S.settimana, target=S.dieta.target_kcal;
+  const tot={};
+  for(let g=1;g<=7;g++){
+    let kcal=0,prot=0,carb=0,lip=0;
+    MOMENTI.forEach(m=>{const p=S.piano[s]?.[g]?.[m.id];if(p){kcal+=p.kcal||0;prot+=p.prot||0;carb+=p.carb||0;lip+=p.lip||0;}});
+    tot[g]={kcal:Math.round(kcal),prot:Math.round(prot*10)/10,carb:Math.round(carb*10)/10,lip:Math.round(lip*10)/10};
   }
-
-  // Alert se qualche giorno sfora
-  const giorniOver = Object.entries(totaliGiorno).filter(([,t])=>t.kcal > target*1.05);
-  const alertEl = n('kcal-alert');
-  if (giorniOver.length) {
-    alertEl.classList.add('show');
-    n('kcal-alert-text').textContent =
-      `I giorni ${giorniOver.map(([g])=>GIORNI[+g-1]).join(', ')} superano il target di ${Math.round(target)} kcal. Controlla gli alimenti inseriti.`;
-  } else {
-    alertEl.classList.remove('show');
+  // Alert
+  const over=Object.entries(tot).filter(([,t])=>t.kcal>target*1.05);
+  n('kcal-alert').classList.toggle('show',over.length>0);
+  if(over.length) n('kcal-alert-txt').textContent=`I giorni ${over.map(([g])=>GIORNI[+g-1]).join(', ')} superano il target di ${Math.round(target)} kcal.`;
+  // Alert dieta
+  let dietaWarn=false;
+  outer:for(let g=1;g<=7;g++) for(const m of MOMENTI){
+    const p=S.piano[s]?.[g]?.[m.id]; if(!p)continue;
+    const a=S.alimentiIdx[p.alimento_id];
+    if(a&&getDietaVegAlert(a.categoria)){dietaWarn=true;break outer;}
   }
+  n('diet-alert').classList.toggle('show',dietaWarn);
+  if(dietaWarn) n('diet-alert-txt').textContent=`Alcuni alimenti inseriti potrebbero non essere compatibili con il tipo di dieta del paziente (${S.paziente?.vegetariano_vegano}).`;
 
-  const cont = n('piano-container');
-  let html = '';
-
-  // Header giorni
-  html += '<div class="piano-header">';
-  html += '<div></div>';
-  GIORNI.forEach(g => html += `<div class="piano-day-label">${g}</div>`);
-  html += '</div>';
-
-  // Griglia pasti
-  html += '<div class="piano-grid">';
-  MOMENTI.forEach(mom => {
-    html += `<div class="momento-label">${mom.icon}<br>${mom.label}</div>`;
-    for (let g=1; g<=7; g++) {
-      const pasto = S.piano[sett]?.[g]?.[mom.id];
-      const isOver = totaliGiorno[g].kcal > target*1.05;
-      if (pasto) {
-        html += `<div class="pasto-cell has-food${isOver?' over-target':''}" 
-          data-s="${sett}" data-g="${g}" data-m="${mom.id}">
-          <div class="pasto-nome">${pasto.alimento_nome}</div>
-          <div class="pasto-kcal">${Math.round(pasto.quantita_g)}g · ${pasto.kcal||0} kcal</div>
-          <div class="pasto-macro">P${pasto.prot||0} C${pasto.carb||0} L${pasto.lip||0}</div>
-          ${pasto.sostituti_ids?.length ? `<div style="font-size:.6rem;color:var(--sage-400);margin-top:2px;">↔ ${pasto.sostituti_ids.length} sostitut${pasto.sostituti_ids.length===1?'o':'i'}</div>` : ''}
+  let html='<div class="piano-header"><div></div>'+GIORNI.map(g=>`<div class="piano-day-label">${g}</div>`).join('')+'</div>';
+  html+='<div class="piano-grid">';
+  MOMENTI.forEach(mom=>{
+    html+=`<div class="momento-label">${mom.icon}<br>${mom.label}</div>`;
+    for(let g=1;g<=7;g++){
+      const p=S.piano[s]?.[g]?.[mom.id];
+      const isOver=tot[g].kcal>target*1.05;
+      if(p){
+        const a=S.alimentiIdx[p.alimento_id];
+        const ci=a?checkControindicazioni(p.alimento_id):[];
+        const warn=ci.length>0;
+        html+=`<div class="pasto-cell has-food${isOver?' over-target':''}${warn?' warn-food':''}" data-s="${s}" data-g="${g}" data-m="${mom.id}">
+          <div class="pasto-nome">${p.alimento_nome.length>22?p.alimento_nome.slice(0,20)+'…':p.alimento_nome}</div>
+          <div class="pasto-kcal">${Math.round(p.quantita_g)}g · ${p.kcal||0}kcal</div>
+          <div class="pasto-macro">P${p.prot||0} C${p.carb||0} L${p.lip||0}</div>
+          ${p.sostituti_ids?.length?`<div style="font-size:.57rem;color:var(--sage-400);">↔ ${p.sostituti_ids.length} sost.</div>`:''}
+          ${warn?'<div style="font-size:.57rem;color:#b45309;">⚠ CI</div>':''}
         </div>`;
       } else {
-        html += `<div class="pasto-cell" data-s="${sett}" data-g="${g}" data-m="${mom.id}">
-          <div class="pasto-add">+</div>
-        </div>`;
+        html+=`<div class="pasto-cell" data-s="${s}" data-g="${g}" data-m="${mom.id}"><div class="pasto-add">+</div></div>`;
       }
     }
   });
-  html += '</div>';
-
-  // Totali giorno
-  html += '<div class="day-total-row"><div class="momento-label" style="font-size:.6rem;">Totale</div>';
-  for (let g=1; g<=7; g++) {
-    const t = totaliGiorno[g];
-    const pct = Math.min(Math.round(t.kcal/target*100), 110);
-    const cls = t.kcal > target*1.05 ? 'over' : t.kcal > target*0.90 ? 'ok' : 'warn';
-    html += `<div class="day-total-cell">
-      <div class="day-total-kcal ${cls}">${t.kcal}</div>
-      <div style="font-size:.6rem;color:var(--text-muted);">${pct}%</div>
-      <div class="day-total-bar"><div class="day-total-bar-fill ${cls}" style="width:${pct}%;"></div></div>
-      ${t.kcal>0?`<div style="font-size:.58rem;color:var(--text-muted);margin-top:2px;">P${t.prot} C${t.carb} L${t.lip}</div>`:''}
+  html+='</div>';
+  // Totali
+  html+='<div class="day-total-row"><div class="momento-label" style="font-size:.58rem;">Totale</div>';
+  for(let g=1;g<=7;g++){
+    const t=tot[g], pct=Math.min(Math.round(t.kcal/target*100),115);
+    const cls=t.kcal>target*1.05?'over':t.kcal>target*0.88?'ok':'warn';
+    html+=`<div class="day-total-cell"><div class="day-total-kcal ${cls}">${t.kcal}</div>
+      <div style="font-size:.58rem;color:var(--text-muted);">${pct}%</div>
+      <div class="dtb"><div class="dtbf ${cls}" style="width:${pct}%;"></div></div>
+      ${t.kcal>0?`<div style="font-size:.55rem;color:var(--text-muted);">P${t.prot} C${t.carb} L${t.lip}</div>`:''}
     </div>`;
   }
-  html += '</div>';
+  html+='</div>';
+  n('piano-cont').innerHTML=html;
 
-  cont.innerHTML = html;
-
-  // Event delegation griglia
-  cont.addEventListener('click', e => {
-    const cell = e.target.closest('.pasto-cell');
-    if (!cell) return;
-    const s=+cell.dataset.s, g=+cell.dataset.g, m=cell.dataset.m;
-    const pasto = S.piano[s]?.[g]?.[m];
-    if (pasto) {
-      openPastoDetail(s,g,m,pasto);
-    } else {
-      openFoodPicker(s,g,m);
-    }
+  // Event delegation
+  n('piano-cont').addEventListener('click',e=>{
+    const cell=e.target.closest('.pasto-cell'); if(!cell)return;
+    const cs=+cell.dataset.s,cg=+cell.dataset.g,cm=cell.dataset.m;
+    const p=S.piano[cs]?.[cg]?.[cm];
+    if(p) openPastoDetail(cs,cg,cm,p); else openFp(cs,cg,cm);
   });
 
-  // Riepilogo settimanale
-  renderWeekSummary(totaliGiorno, target);
+  renderWeekSummary(tot,target);
+  n('week-summary').style.display='block';
 }
 
-function renderWeekSummary(totali, target) {
-  const avgKcal = Math.round(Object.values(totali).reduce((s,t)=>s+t.kcal,0)/7);
-  const avgProt = Math.round(Object.values(totali).reduce((s,t)=>s+t.prot,0)/7*10)/10;
-  const avgCarb = Math.round(Object.values(totali).reduce((s,t)=>s+t.carb,0)/7*10)/10;
-  const avgLip  = Math.round(Object.values(totali).reduce((s,t)=>s+t.lip,0)/7*10)/10;
-  const cls = avgKcal > target*1.05 ? '#c53030' : avgKcal > target*0.90 ? '#5a8260' : '#b45309';
-
-  n('week-summary-body').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
-      <div style="text-align:center;">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media kcal/giorno</div>
-        <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:${cls};">${avgKcal}</div>
-        <div style="font-size:.72rem;color:var(--text-muted);">target: ${Math.round(target)}</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Proteine</div>
-        <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:#5a8260;">${avgProt}g</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Carboidrati</div>
-        <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:#d4a853;">${avgCarb}g</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Grassi</div>
-        <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:#e87373;">${avgLip}g</div>
-      </div>
-    </div>`;
+function renderWeekSummary(tot,target){
+  const avg=(f)=>Math.round(Object.values(tot).reduce((s,t)=>s+t[f],0)/7*10)/10;
+  const avgK=Math.round(Object.values(tot).reduce((s,t)=>s+t.kcal,0)/7);
+  const cls=avgK>target*1.05?'#c53030':avgK>target*0.88?'#5a8260':'#b45309';
+  n('week-summary-body').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+    <div style="text-align:center;"><div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media kcal/giorno</div>
+      <div style="font-family:var(--font-display);font-size:1.7rem;font-weight:700;color:${cls};">${avgK}</div>
+      <div style="font-size:.7rem;color:var(--text-muted);">target: ${Math.round(target)}</div></div>
+    <div style="text-align:center;"><div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Proteine</div>
+      <div style="font-family:var(--font-display);font-size:1.7rem;font-weight:700;color:#5a8260;">${avg('prot')}g</div></div>
+    <div style="text-align:center;"><div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Carboidrati</div>
+      <div style="font-family:var(--font-display);font-size:1.7rem;font-weight:700;color:#d4a853;">${avg('carb')}g</div></div>
+    <div style="text-align:center;"><div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Media Grassi</div>
+      <div style="font-family:var(--font-display);font-size:1.7rem;font-weight:700;color:#e87373;">${avg('lip')}g</div></div>
+  </div>`;
 }
 
-// ─── FOOD PICKER ────────────────────────────────────────
-function openFoodPicker(sett, giorno, momento, isSostituto=false) {
-  S.fp = { settimana:sett, giorno, momento, sostitutoTarget:isSostituto };
-  n('fp-title').textContent = isSostituto
-    ? `Aggiungi sostituto — ${MOMENTI.find(m=>m.id===momento)?.label}`
-    : `${GIORNI[giorno-1]} — ${MOMENTI.find(m=>m.id===momento)?.label}`;
+// ─── FOOD PICKER ──────────────────────────────────────
+let fpCtx={mode:'pasto',listTarget:null}; // mode: 'pasto'|'consigliati'|'sconsigliati'
 
-  // Porzione default = 100g, ma prova a suggerire la porzione standard dell'alimento
-  n('fp-qty').value = 100;
-  n('fp-search').value = '';
-  renderFoodPickerList();
-
-  // Posiziona il picker al centro dello schermo
-  const fp = n('food-picker');
-  fp.style.display = 'flex';
-  fp.style.top  = '50%';
-  fp.style.left = '50%';
-  fp.style.transform = 'translate(-50%,-50%)';
+function openFp(s,g,m){
+  fpCtx={mode:'pasto'};
+  S.fp={s,g,m,sostituto:false,alimentoId:null};
+  n('fp-title').textContent=`${GIORNI[g-1]} — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
+  n('fp-qty').value=100; n('fp-kcal').value='';
+  n('fp-search').value=''; renderFpList();
+  n('food-picker').style.display='flex';
 }
 
-function renderFoodPickerList() {
-  const q = n('fp-search').value.toLowerCase();
-  const lista = q
-    ? S.alimenti.filter(a => a.nome.toLowerCase().includes(q)).slice(0,30)
-    : S.alimenti.slice(0,80);
+function openFpForSostituto(s,g,m){
+  fpCtx={mode:'pasto'};
+  S.fp={s,g,m,sostituto:true,alimentoId:null};
+  n('fp-title').textContent=`Sostituto — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
+  n('fp-qty').value=100; n('fp-kcal').value='';
+  n('fp-search').value=''; renderFpList();
+  n('food-picker').style.display='flex';
+}
 
-  // Raggruppa per categoria
-  const gruppi = {};
-  lista.forEach(a => {
-    if (!gruppi[a.categoria]) gruppi[a.categoria] = [];
-    gruppi[a.categoria].push(a);
-  });
+function openFpForList(lista){
+  fpCtx={mode:lista};
+  n('fp-title').textContent=lista==='consigliati'?'Alimento consigliato':'Alimento sconsigliato';
+  S.fp.alimentoId=null; n('fp-search').value=''; renderFpList();
+  n('food-picker').style.display='flex';
+}
 
-  let html = '';
-  Object.entries(gruppi).forEach(([cat,items]) => {
-    if (!q) html += `<div class="food-picker-cat">${cat}</div>`;
-    items.forEach(a => {
-      html += `<div class="food-picker-item" data-alimento-id="${a.id}" data-porz="${a.porzione_default_g||100}">
-        <div>
-          <div class="fpi-nome">${a.nome}</div>
-          <div class="fpi-macro">P${a.proteine_g||0}g · C${a.carboidrati_g||0}g · L${a.lipidi_g||0}g per 100g</div>
+function renderFpList(){
+  const q=n('fp-search').value.toLowerCase();
+  const lista=q?S.alimenti.filter(a=>a.nome.toLowerCase().includes(q)).slice(0,40):S.alimenti.slice(0,100);
+  const gruppi={}; lista.forEach(a=>{if(!gruppi[a.categoria])gruppi[a.categoria]=[];gruppi[a.categoria].push(a);});
+  const patPaz=new Set(S.patologiePaziente.map(pp=>pp.patologia_id));
+
+  let html='';
+  Object.entries(gruppi).forEach(([cat,items])=>{
+    if(!q)html+=`<div class="fp-cat">${cat}</div>`;
+    items.forEach(a=>{
+      const ci=(S.controindicazioniIdx[a.id]||[]).filter(c=>patPaz.has(c.patologia_id));
+      const isViet=ci.some(c=>c.livello==='vietato');
+      const isWarn=ci.some(c=>c.livello==='attenzione');
+      const vegWarn=getDietaVegAlert(a.categoria);
+      let cls='fp-item'; let badge='';
+      if(isViet){cls+=' viet-item';badge='<span class="fpi-warn" style="background:#fee2e2;color:#c53030;">🚫</span>';}
+      else if(isWarn){cls+=' warn-item';badge='<span class="fpi-warn" style="background:#fef3c7;color:#b45309;">⚠</span>';}
+      else if(vegWarn){cls+=' veg-alert';badge='<span class="fpi-warn" style="background:#fef9ec;color:#d97706;">🌿</span>';}
+      html+=`<div class="${cls}" data-aid="${a.id}" data-porz="${a.porzione_default_g||100}">
+        <div style="flex:1;"><div class="fpi-nome">${a.nome}</div>
+        <div style="font-size:.65rem;color:var(--text-muted);">P${a.proteine_g||0} C${a.carboidrati_g||0} L${a.lipidi_g||0} per 100g</div>
         </div>
         <div class="fpi-kcal">${Math.round(a.energia_kcal||0)} kcal</div>
+        ${badge}
       </div>`;
     });
   });
-  n('fp-list').innerHTML = html || '<div style="padding:1rem;text-align:center;color:var(--text-muted);">Nessun alimento trovato</div>';
-
-  // Selezione alimento nel picker
-  n('fp-list').addEventListener('click', e => {
-    const item = e.target.closest('[data-alimento-id]');
-    if (!item) return;
-    // Rimuove selezione precedente
-    n('fp-list').querySelectorAll('.food-picker-item').forEach(i => i.style.background='');
-    item.style.background = 'var(--sage-100)';
-    S.fp.alimentoSelezionato = item.dataset.alimentoId;
-    // Suggerisci porzione default
-    const porz = +item.dataset.porz;
-    if (porz !== 100) n('fp-qty').value = porz;
+  n('fp-list').innerHTML=html||'<div style="padding:1rem;text-align:center;color:var(--text-muted);">Nessun alimento trovato</div>';
+  n('fp-list').addEventListener('click',e=>{
+    const item=e.target.closest('[data-aid]'); if(!item)return;
+    n('fp-list').querySelectorAll('.fp-item').forEach(i=>i.style.outline='');
+    item.style.outline='2px solid var(--sage-400)';
+    S.fp.alimentoId=item.dataset.aid;
+    const porz=+item.dataset.porz;
+    n('fp-qty').value=porz;
+    syncKcalFromG();
   });
 }
 
-function closeFoodPicker() {
-  n('food-picker').style.display = 'none';
-  S.fp.alimentoSelezionato = null;
+function syncKcalFromG(){
+  const a=S.alimentiIdx[S.fp.alimentoId]; if(!a)return;
+  const qg=parseFloat(n('fp-qty').value)||0;
+  n('fp-kcal').value=qg>0?Math.round((a.energia_kcal||0)*qg/100):'';
+}
+function syncGFromKcal(){
+  const a=S.alimentiIdx[S.fp.alimentoId]; if(!a||!a.energia_kcal)return;
+  const kc=parseFloat(n('fp-kcal').value)||0;
+  n('fp-qty').value=kc>0?Math.round(kc/(a.energia_kcal/100)):'';
 }
 
-function confirmFoodPicker() {
-  const aid = S.fp.alimentoSelezionato;
-  if (!aid) { toast('Seleziona un alimento dalla lista', 'error'); return; }
-  const qg = parseFloat(n('fp-qty').value) || 100;
-  const alimento = S.alimentiIdx[aid];
-  if (!alimento) return;
+async function openNuovoAlimentoInline(){
+  closeFp();
+  // Apre alimenti.html in overlay o naviga
+  window.open('alimenti.html','_blank');
+  toast('Dopo aver creato l\'alimento, torna qui e ricarica la pagina per trovarlo nella lista.','success');
+  // Ricarica alimenti dopo 3 secondi se l'utente torna
+  setTimeout(async()=>{await loadAlimenti();renderFpList();},3000);
+}
 
-  const m = calcKcal(alimento, qg);
-  const {settimana:s, giorno:g, momento:mom, sostitutoTarget} = S.fp;
+function closeFp(){ n('food-picker').style.display='none'; S.fp.alimentoId=null; }
 
-  if (sostitutoTarget) {
-    // Aggiungi come sostituto al pasto
-    const pasto = S.piano[s]?.[g]?.[mom];
-    if (pasto) {
-      if (!pasto.sostituti_ids) pasto.sostituti_ids = [];
-      if (!pasto.sostituti_ids.includes(aid)) pasto.sostituti_ids.push(aid);
-    }
+async function confirmFp(){
+  const aid=S.fp.alimentoId;
+  // Se siamo in modalità lista (consigliati/sconsigliati)
+  if(fpCtx.mode!=='pasto'){
+    if(!aid){toast('Seleziona un alimento','error');return;}
+    if(fpCtx.mode==='consigliati'){if(!S.alimConsigliatiBuf.includes(aid))S.alimConsigliatiBuf.push(aid);}
+    else{if(!S.alimSconsigliatiB.includes(aid))S.alimSconsigliatiB.push(aid);}
+    closeFp(); renderAlimConsig(); return;
+  }
+  if(!aid){toast('Seleziona un alimento dalla lista','error');return;}
+  const qg=parseFloat(n('fp-qty').value)||100;
+  const alimento=S.alimentiIdx[aid];
+  if(!alimento)return;
+
+  // Controindicazioni: chiedi conferma
+  const patPaz=new Set(S.patologiePaziente.map(pp=>pp.patologia_id));
+  const ci=(S.controindicazioniIdx[aid]||[]).filter(c=>patPaz.has(c.patologia_id));
+  if(ci.some(c=>c.livello==='vietato')){
+    const nomiPat=ci.map(c=>{const pp=S.patologiePaziente.find(p=>p.patologia_id===c.patologia_id);return pp?.patologie_catalogo?.nome||c.patologia_id;}).join(', ');
+    if(!confirm(`⚠️ ATTENZIONE\n\nQuesto alimento è CONTROINDICATO per le seguenti patologie del paziente:\n${nomiPat}\n\nVuoi aggiungerlo ugualmente?`))return;
+  }
+  const vegWarn=getDietaVegAlert(alimento.categoria);
+  if(vegWarn&&!confirm(`${vegWarn}\n\nAggiungi comunque?`))return;
+
+  const m=calcKcal(alimento,qg);
+  if(S.fp.sostituto){
+    const p=S.piano[S.fp.s]?.[S.fp.g]?.[S.fp.m];
+    if(p){if(!p.sostituti_ids)p.sostituti_ids=[];if(!p.sostituti_ids.includes(aid))p.sostituti_ids.push(aid);}
   } else {
-    S.piano[s][g][mom] = {
-      alimento_id: aid,
-      alimento_nome: alimento.nome,
-      quantita_g: qg,
-      kcal: m.kcal, prot: m.prot, carb: m.carb, lip: m.lip,
-      sostituti_ids: [],
+    S.piano[S.fp.s][S.fp.g][S.fp.m]={
+      alimento_id:aid,alimento_nome:alimento.nome,quantita_g:qg,
+      kcal:m.kcal,prot:m.prot,carb:m.carb,lip:m.lip,sostituti_ids:[],
     };
   }
-
-  closeFoodPicker();
-  renderPiano();
+  closeFp(); renderPiano();
 }
 
-// ─── DETTAGLIO PASTO ────────────────────────────────────
-function openPastoDetail(s, g, m, pasto) {
-  const momento = MOMENTI.find(mo=>mo.id===m);
-  n('modal-pasto-title').textContent = `${GIORNI[g-1]} — ${momento?.label}`;
+// ─── PASTO DETAIL ──────────────────────────────────────
+function openPastoDetail(s,g,m,pasto){
+  const mom=MOMENTI.find(mo=>mo.id===m);
+  n('mp-title').textContent=`${GIORNI[g-1]} — ${mom?.label}`;
+  const a=S.alimentiIdx[pasto.alimento_id];
+  const ci=a?checkControindicazioni(pasto.alimento_id):[];
+  const ciHtml=ci.length?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-md);padding:.5rem .75rem;margin-top:.5rem;font-size:.78rem;color:#92400e;">
+    ⚠ Controindicazioni rilevate: ${ci.map(c=>{const pp=S.patologiePaziente.find(p=>p.patologia_id===c.patologia_id);return(pp?.patologie_catalogo?.nome||c.patologia_id)+' ('+c.livello+')';}).join(', ')}
+  </div>`:'';
 
-  const sostituti = (pasto.sostituti_ids||[]).map(id => S.alimentiIdx[id]).filter(Boolean);
-
-  n('pasto-detail-body').innerHTML = `
-    <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;
-      background:var(--sage-50);border-radius:var(--r-md);margin-bottom:1rem;">
-      <div style="flex:1;">
-        <div style="font-weight:700;color:var(--text-primary);font-size:1rem;">${pasto.alimento_nome}</div>
-        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.2rem;">
-          Quantità: <strong>${Math.round(pasto.quantita_g)} g</strong>
+  const sostituti=(pasto.sostituti_ids||[]).map(id=>S.alimentiIdx[id]).filter(Boolean);
+  // Calcola kcal sostituto in automatico con stessa quantità
+  const sostHtml=sostituti.length?`<div style="margin-top:1rem;">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.4rem;">↔ Sostituti (stessa quantità: ${Math.round(pasto.quantita_g)}g)</div>
+    ${sostituti.map(alt=>{
+      const mc=calcKcal(alt,pasto.quantita_g);
+      const diff=mc.kcal-(pasto.kcal||0);
+      return`<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px dotted var(--border);">
+        <div style="flex:1;"><div style="font-size:.82rem;font-weight:500;">${alt.nome}</div>
+          <div style="font-size:.68rem;color:var(--text-muted);">${mc.kcal}kcal · P${mc.prot} C${mc.carb} L${mc.lip}
+          <span style="color:${diff>0?'#c53030':diff<0?'#16a34a':'var(--text-muted)'}">${diff>0?'+':''}${diff} kcal vs principale</span></div>
         </div>
+        <button class="btn btn-ghost btn-sm" data-rm-sost="${alt.id}">✕</button>
+      </div>`;
+    }).join('')}
+  </div>`:'<p class="text-muted text-sm" style="margin-top:.75rem;">Nessun sostituto. Aggiungine uno per dare opzioni alternative al paziente.</p>';
+
+  n('mp-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;background:var(--sage-50);border-radius:var(--r-md);margin-bottom:.75rem;">
+      <div style="flex:1;"><div style="font-weight:700;color:var(--text-primary);font-size:.95rem;">${pasto.alimento_nome}</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-top:.15rem;">Quantità: <strong>${Math.round(pasto.quantita_g)}g</strong></div>
       </div>
       <div style="text-align:right;">
-        <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--sage-600);">${pasto.kcal||0} kcal</div>
-        <div style="font-size:.72rem;color:var(--text-muted);">P${pasto.prot||0} C${pasto.carb||0} L${pasto.lip||0} g</div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--sage-600);">${pasto.kcal||0} kcal</div>
+        <div style="font-size:.7rem;color:var(--text-muted);">P${pasto.prot||0} C${pasto.carb||0} L${pasto.lip||0}g</div>
       </div>
     </div>
+    ${ciHtml}
+    ${sostHtml}`;
 
-    <div style="display:flex;gap:.5rem;margin-bottom:1rem;">
-      <button class="btn btn-secondary btn-sm" id="btn-change-food">🔄 Cambia alimento</button>
-      <button class="btn btn-ghost btn-sm" id="btn-add-sostituto">+ Sostituto</button>
-      <div style="flex:1;"></div>
-      <button class="btn btn-danger btn-sm" id="btn-remove-food">✕ Rimuovi</button>
-    </div>
+  n('mp-footer').innerHTML=`
+    <button class="btn btn-secondary btn-sm" id="mpch">🔄 Cambia</button>
+    <button class="btn btn-ghost btn-sm" id="mpadd">+ Sostituto</button>
+    <div style="flex:1;"></div>
+    <button class="btn btn-ghost" data-modal-close="modal-pasto">Chiudi</button>
+    <button class="btn btn-danger btn-sm" id="mprm">✕ Rimuovi</button>`;
 
-    ${sostituti.length ? `
-    <div>
-      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">↔ Sostituti possibili</div>
-      ${sostituti.map(alt => {
-        const mc = calcKcal(alt, pasto.quantita_g);
-        return `<div class="sostituto-item">
-          <div style="flex:1;">
-            <div style="font-size:.83rem;font-weight:500;color:var(--text-primary);">${alt.nome}</div>
-            <div style="font-size:.7rem;color:var(--text-muted);">${Math.round(pasto.quantita_g)}g · ${mc?.kcal||0} kcal</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" data-rm-sostituto="${alt.id}">✕</button>
-        </div>`;
-      }).join('')}
-    </div>` : '<p class="text-muted text-sm">Nessun sostituto. Aggiungine uno per dare al paziente opzioni alternative.</p>'}`;
-
-  n('pasto-footer').innerHTML = `<button class="btn btn-ghost" data-modal-close="modal-pasto">Chiudi</button>`;
-
-  // Event listeners pasto detail
-  n('btn-change-food').onclick = () => {
-    ModalManager.close('modal-pasto');
-    S.piano[s][g][m] = null;
-    openFoodPicker(s,g,m);
-  };
-  n('btn-add-sostituto').onclick = () => {
-    ModalManager.close('modal-pasto');
-    openFoodPicker(s,g,m,true);
-  };
-  n('btn-remove-food').onclick = () => {
-    S.piano[s][g][m] = null;
-    ModalManager.close('modal-pasto');
-    renderPiano();
-  };
-  n('pasto-detail-body').addEventListener('click', e => {
-    const rmBtn = e.target.closest('[data-rm-sostituto]');
-    if (rmBtn) {
-      const sid = rmBtn.dataset.rmSostituto;
-      pasto.sostituti_ids = (pasto.sostituti_ids||[]).filter(x=>x!==sid);
-      ModalManager.close('modal-pasto');
-      renderPiano();
-    }
+  n('mp-body').addEventListener('click',e=>{
+    const rm=e.target.closest('[data-rm-sost]');
+    if(rm){pasto.sostituti_ids=(pasto.sostituti_ids||[]).filter(x=>x!==rm.dataset.rmSost);ModalManager.close('modal-pasto');renderPiano();}
   });
-
+  n('mpch').onclick=()=>{ModalManager.close('modal-pasto');S.piano[s][g][m]=null;openFp(s,g,m);};
+  n('mpadd').onclick=()=>{ModalManager.close('modal-pasto');openFpForSostituto(s,g,m);};
+  n('mprm').onclick=()=>{S.piano[s][g][m]=null;ModalManager.close('modal-pasto');renderPiano();};
   ModalManager.open('modal-pasto');
 }
 
-// ─── SALVA PIANO ────────────────────────────────────────
-async function salvaPiano() {
-  if (!S.dieta) return;
-  setBtn('btn-salva-dieta', true);
-  loading(true, 'Salvataggio piano…');
-  try {
-    // Cancella tutti i pasti esistenti della dieta
-    await sb.from('pasti_dieta').delete().eq('dieta_id', S.dieta.id);
-
-    // Prepara nuovi pasti
-    const rows = [];
-    for (let s=1; s<=S.dieta.numero_settimane; s++) {
-      for (let g=1; g<=7; g++) {
-        MOMENTI.forEach(mom => {
-          const pasto = S.piano[s]?.[g]?.[mom.id];
-          if (!pasto) return;
-          rows.push({
-            user_id:         S.user.id,
-            dieta_id:        S.dieta.id,
-            settimana:       s,
-            giorno:          g,
-            momento:         mom.id,
-            alimento_id:     pasto.alimento_id,
-            alimento_nome:   pasto.alimento_nome,
-            quantita_g:      pasto.quantita_g,
-            kcal_calcolate:  pasto.kcal,
-            proteine_calcolate:    pasto.prot,
-            carboidrati_calcolati: pasto.carb,
-            lipidi_calcolati:      pasto.lip,
-            sostituti_ids:   pasto.sostituti_ids||[],
-          });
+// ─── SALVA PIANO ──────────────────────────────────────
+async function salvaPiano(){
+  if(!S.dieta)return;
+  setBtn('btn-salva',true); loading(true,'Salvataggio…');
+  try{
+    await sb.from('pasti_dieta').delete().eq('dieta_id',S.dieta.id);
+    const rows=[];
+    for(let s=1;s<=S.dieta.numero_settimane;s++)
+      for(let g=1;g<=7;g++)
+        MOMENTI.forEach(mom=>{
+          const p=S.piano[s]?.[g]?.[mom.id]; if(!p)return;
+          rows.push({user_id:S.user.id,dieta_id:S.dieta.id,settimana:s,giorno:g,momento:mom.id,
+            alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
+            kcal_calcolate:p.kcal,proteine_calcolate:p.prot,carboidrati_calcolati:p.carb,
+            lipidi_calcolati:p.lip,sostituti_ids:p.sostituti_ids||[]});
         });
-      }
-    }
-
-    if (rows.length > 0) {
-      const {error} = await sb.from('pasti_dieta').insert(rows);
-      if (error) throw error;
-    }
+    if(rows.length>0){const{error}=await sb.from('pasti_dieta').insert(rows);if(error)throw error;}
     toast(`Piano salvato — ${rows.length} pasti`);
-  } catch(e){ toast('Errore salvataggio: '+e.message, 'error'); }
-  finally { setBtn('btn-salva-dieta',false); loading(false); }
+  }catch(e){toast('Errore: '+e.message,'error');}
+  finally{setBtn('btn-salva',false);loading(false);}
+}
+
+// ─── TESTI ────────────────────────────────────────────
+async function salvaTestiDieta(){
+  if(!S.dieta)return;
+  setBtn('btn-salva-testi',true);
+  try{
+    const{error}=await sb.from('diete').update({
+      intestazione:n('txt-intestazione').value||null,
+      linee_guida:n('txt-linee-guida').value||null,
+      conclusioni:n('txt-conclusioni').value||null,
+    }).eq('id',S.dieta.id);
+    if(error)throw error; toast('Testi salvati');
+  }catch(e){toast('Errore: '+e.message,'error');}
+  finally{setBtn('btn-salva-testi',false);}
+}
+
+// ─── ALIM CONSIGLIATI / SCONSIGLIATI ─────────────────
+function renderAlimConsig(){
+  const rend=(ids,containerId,type)=>{
+    const cont=n(containerId);
+    if(!ids.length){cont.innerHTML='<span class="text-muted text-sm">Nessuno ancora.</span>';return;}
+    cont.innerHTML=ids.map(id=>{
+      const a=S.alimentiIdx[id]; if(!a)return'';
+      return`<span class="alim-tag ${type==='ok'?'alim-tag-ok':'alim-tag-no'}" data-remove-id="${id}" data-list="${type}">
+        ${a.nome} <span style="cursor:pointer;font-weight:700;" data-remove-id="${id}" data-list="${type}">×</span>
+      </span>`;
+    }).join('');
+    cont.addEventListener('click',e=>{
+      const rm=e.target.dataset.removeId; const li=e.target.dataset.list;
+      if(!rm||!li)return;
+      if(li==='ok') S.alimConsigliatiBuf=S.alimConsigliatiBuf.filter(x=>x!==rm);
+      else S.alimSconsigliatiB=S.alimSconsigliatiB.filter(x=>x!==rm);
+      renderAlimConsig();
+    });
+  };
+  rend(S.alimConsigliatiBuf,'consigliati-list','ok');
+  rend(S.alimSconsigliatiB,'sconsigliati-list','no');
+}
+
+async function salvaAlimConsig(){
+  if(!S.dieta)return;
+  setBtn('btn-salva-alim-consig',true);
+  try{
+    const{error}=await sb.from('diete').update({
+      alimenti_consigliati:S.alimConsigliatiBuf.length?S.alimConsigliatiBuf:null,
+      alimenti_sconsigliati:S.alimSconsigliatiB.length?S.alimSconsigliatiB:null,
+    }).eq('id',S.dieta.id);
+    if(error)throw error; toast('Liste salvate');
+  }catch(e){toast('Errore: '+e.message,'error');}
+  finally{setBtn('btn-salva-alim-consig',false);}
 }
 
 init();

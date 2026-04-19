@@ -8,37 +8,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <style>
-    /* ── Tabella alimenti ── */
     .alimenti-table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;}
     .alimenti-table{width:100%;border-collapse:collapse;font-size:.83rem;}
     .alimenti-table th{background:var(--sage-50);padding:.65rem .9rem;text-align:left;
       font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-      color:var(--sage-600);border-bottom:1px solid var(--border-sage);white-space:nowrap;cursor:pointer;}
-    .alimenti-table th:hover{background:var(--sage-100);}
-    .alimenti-table th .sort-icon{margin-left:.3rem;opacity:.4;}
-    .alimenti-table th.sorted .sort-icon{opacity:1;}
+      color:var(--sage-600);border-bottom:1px solid var(--border-sage);white-space:nowrap;}
     .alimenti-table td{padding:.6rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle;}
     .alimenti-table tr:last-child td{border-bottom:none;}
     .alimenti-table tr:hover td{background:var(--sage-50);}
-    .alimenti-table tr.custom-food td:first-child{border-left:3px solid var(--gold-300);}
-    .td-nome{font-weight:600;color:var(--text-primary);max-width:200px;}
-    .td-cat{font-size:.73rem;color:var(--text-muted);}
-    .td-num{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-primary);}
-    .td-num.highlight{color:var(--sage-600);font-weight:600;}
+    .alimenti-table tr.custom-food td{border-left:3px solid var(--gold-300);}
+    .td-nome{font-weight:600;color:var(--text-primary);}
+    .td-num{text-align:right;font-variant-numeric:tabular-nums;}
+    .td-num.hl{color:var(--sage-600);font-weight:600;}
     .td-actions{display:flex;gap:.35rem;justify-content:flex-end;}
-
-    /* ── Macro badge ── */
     .macro-bar{display:flex;height:6px;border-radius:9999px;overflow:hidden;width:80px;gap:1px;}
     .mb-p{background:#5a8260;}.mb-c{background:#d4a853;}.mb-l{background:#e87373;}
-
-    /* ── Filtri ── */
     .filter-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.25rem;}
-    .filter-row .form-group{margin:0;min-width:140px;flex:1;}
-    .badge-count{display:inline-flex;align-items:center;justify-content:center;
-      min-width:22px;height:22px;border-radius:9999px;
-      background:var(--sage-600);color:white;font-size:.72rem;font-weight:700;padding:0 6px;}
-
-    /* ── Detail panel ── */
+    .filter-row .form-group{margin:0;min-width:130px;flex:1;}
+    .badge-custom{font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:9999px;
+      background:#fffbf0;color:var(--gold-400);border:1px solid var(--gold-300);}
+    .cat-chip{font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:9999px;
+      border:1px solid var(--border);background:var(--beige-50);color:var(--text-body);}
+    /* Patologie nel form */
+    .pat-ctrl-row{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;
+      background:var(--beige-50);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:.4rem;}
+    .pat-ctrl-nome{flex:1;font-size:.85rem;font-weight:500;}
+    .pat-level-sel{font-size:.78rem;padding:.3rem .5rem;border:1px solid var(--border);
+      border-radius:var(--r-sm);background:var(--white);font-family:var(--font-body);}
+    /* Nutrient display */
     .nutrient-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .75rem;}
     .nutrient-row{display:flex;justify-content:space-between;padding:.3rem 0;
       border-bottom:1px dotted var(--border);font-size:.83rem;}
@@ -46,22 +43,10 @@
     .nutrient-label{color:var(--text-muted);}
     .nutrient-value{font-weight:600;color:var(--text-primary);}
     .macro-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem;}
-    .macro-card{background:var(--sage-50);border:1px solid var(--sage-200);border-radius:var(--r-md);
-      padding:.75rem;text-align:center;}
+    .macro-card{background:var(--sage-50);border:1px solid var(--sage-200);border-radius:var(--r-md);padding:.75rem;text-align:center;}
     .macro-card__label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);}
     .macro-card__value{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--sage-600);}
-    .macro-card__unit{font-size:.7rem;color:var(--text-muted);}
-
-    /* ── Paginazione ── */
     .pag-info{font-size:.82rem;color:var(--text-muted);}
-
-    /* Categoria chip */
-    .cat-chip{font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:9999px;
-      border:1px solid var(--border);background:var(--beige-50);color:var(--text-body);}
-
-    /* Custom badge */
-    .badge-custom{font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:9999px;
-      background:#fffbf0;color:var(--gold-400);border:1px solid var(--gold-300);}
   </style>
 </head>
 <body>
@@ -87,29 +72,32 @@
     <nav class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-section-label">Principale</div>
-        <a href="index.html"    class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
-        <a href="pazienti.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
-        <a href="visite.html"   class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
-        <a href="alimenti.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
+        <a href="index.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
       </div>
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
-        <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+        <a href="impostazioni.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
       </div>
     </nav>
 
     <main class="main">
       <div class="page-head">
-        <div>
-          <h2>Alimenti</h2>
-          <p id="db-count">Database nutrizionale</p>
-        </div>
+        <div><h2>Alimenti</h2><p id="db-count">Database nutrizionale</p></div>
         <div class="page-head-actions">
           <button class="btn btn-primary" id="btn-nuovo-alimento">+ Nuovo alimento</button>
         </div>
       </div>
 
-      <!-- FILTRI -->
       <div class="filter-row">
         <div class="form-group" style="flex:2;">
           <label>Cerca</label>
@@ -120,12 +108,10 @@
         </div>
         <div class="form-group">
           <label>Categoria</label>
-          <select id="filter-categoria">
-            <option value="">Tutte</option>
-          </select>
+          <select id="filter-categoria"><option value="">Tutte</option></select>
         </div>
         <div class="form-group">
-          <label>Kcal max / 100g</label>
+          <label>Kcal max /100g</label>
           <input type="number" id="filter-kcal-max" placeholder="es: 300" min="0" step="10" />
         </div>
         <div class="form-group">
@@ -139,27 +125,22 @@
         </div>
       </div>
 
-      <!-- TABELLA -->
       <div class="alimenti-table-wrap">
-        <table class="alimenti-table" id="alimenti-table">
-          <thead>
-            <tr>
-              <th style="min-width:180px;">Alimento</th>
-              <th>Categoria</th>
-              <th class="td-num">Kcal</th>
-              <th class="td-num">Prot. g</th>
-              <th class="td-num">Carb. g</th>
-              <th class="td-num">Lip. g</th>
-              <th class="td-num">Fibra g</th>
-              <th style="width:100px;">Macro %</th>
-              <th style="width:80px;"></th>
-            </tr>
-          </thead>
+        <table class="alimenti-table">
+          <thead><tr>
+            <th style="min-width:180px;">Alimento</th>
+            <th>Categoria</th>
+            <th class="td-num">Kcal</th>
+            <th class="td-num">Prot. g</th>
+            <th class="td-num">Carb. g</th>
+            <th class="td-num">Lip. g</th>
+            <th class="td-num">Fibra g</th>
+            <th style="width:90px;">Macro %</th>
+            <th style="width:90px;"></th>
+          </tr></thead>
           <tbody id="alimenti-tbody"></tbody>
         </table>
       </div>
-
-      <!-- PAGINAZIONE -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:.5rem;">
         <span class="pag-info" id="pag-info"></span>
         <div class="pagination" id="pag-controls"></div>
@@ -168,9 +149,9 @@
   </div>
 </div>
 
-<!-- ══ MODAL DETTAGLIO ALIMENTO ══ -->
+<!-- ══ MODAL DETTAGLIO ══ -->
 <div class="modal-overlay" id="modal-detail">
-  <div class="modal" style="max-width:620px;">
+  <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <h3 id="detail-title">—</h3>
       <button class="modal-close" data-modal-close="modal-detail" aria-label="Chiudi">✕</button>
@@ -178,14 +159,14 @@
     <div class="modal-body" id="detail-body"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-detail">Chiudi</button>
-      <button class="btn btn-secondary" id="detail-btn-edit">✏️ Modifica</button>
+      <button class="btn btn-secondary" id="detail-btn-edit" style="display:none;">✏️ Modifica</button>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL NUOVO/MODIFICA ALIMENTO ══ -->
+<!-- ══ MODAL FORM ALIMENTO ══ -->
 <div class="modal-overlay" id="modal-alimento">
-  <div class="modal" style="max-width:760px;">
+  <div class="modal" style="max-width:820px;">
     <div class="modal-header">
       <h3 id="modal-alimento-title">Nuovo alimento</h3>
       <button class="modal-close" data-modal-close="modal-alimento" aria-label="Chiudi">✕</button>
@@ -197,7 +178,7 @@
       <div class="form-section">
         <div class="form-section-header">📋 Informazioni base</div>
         <div class="form-section-body">
-          <div class="grid-2">
+          <div class="grid-3">
             <div class="form-group col-span-2"><label>Nome *</label><input type="text" id="a-nome" placeholder="Es: Petto di pollo crudo" /></div>
             <div class="form-group"><label>Categoria *</label>
               <select id="a-categoria">
@@ -209,14 +190,14 @@
                 <option>DOLCI</option><option>PRODOTTI VARI</option><option>ALCOOL</option>
               </select>
             </div>
-            <div class="form-group"><label>Porzione standard (g)</label><input type="number" id="a-porzione" value="100" min="1" step="1" /></div>
+            <div class="form-group"><label>Porzione standard (g)</label><input type="number" id="a-porzione" value="100" min="1" /></div>
             <div class="form-group col-span-2"><label>Note porzione</label><input type="text" id="a-note-porz" placeholder="Es: 1 conf = 43 gr" /></div>
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <div class="form-section-header">⚡ Macronutrienti principali <span style="font-weight:400;font-size:.75rem;opacity:.7;">— valori per 100g</span></div>
+        <div class="form-section-header">⚡ Macronutrienti <span style="font-weight:400;font-size:.75rem;opacity:.7;">— valori per 100g</span></div>
         <div class="form-section-body">
           <div class="grid-4">
             <div class="form-group"><label>Energia (kcal) *</label><input type="number" id="a-kcal" step=".1" min="0" /></div>
@@ -228,11 +209,10 @@
             <div class="form-group"><label>Amido (g)</label><input type="number" id="a-amido" step=".1" min="0" /></div>
             <div class="form-group"><label>Acqua (g)</label><input type="number" id="a-acqua" step=".1" min="0" /></div>
           </div>
-          <!-- Anteprima macro live -->
           <div id="macro-preview" style="display:none;margin-top:.75rem;padding:.75rem;background:var(--sage-50);border-radius:var(--r-md);">
-            <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">Ripartizione macro</div>
+            <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.5rem;">Ripartizione macro calcolata</div>
             <div style="display:flex;gap:.5rem;align-items:center;">
-              <div class="macro-bar" id="preview-bar" style="width:120px;height:10px;"></div>
+              <div class="macro-bar" id="preview-bar" style="width:140px;height:10px;"></div>
               <span id="preview-text" style="font-size:.78rem;color:var(--text-muted);"></span>
             </div>
           </div>
@@ -243,21 +223,27 @@
         <div class="form-section-header">💊 Micronutrienti <span style="font-weight:400;font-size:.75rem;opacity:.7;">— opzionali</span></div>
         <div class="form-section-body">
           <div class="grid-4">
-            <div class="form-group"><label>Sodio (mg)</label><input type="number" id="a-sodio" step=".1" min="0" /></div>
-            <div class="form-group"><label>Potassio (mg)</label><input type="number" id="a-potassio" step=".1" min="0" /></div>
-            <div class="form-group"><label>Calcio (mg)</label><input type="number" id="a-calcio" step=".1" min="0" /></div>
-            <div class="form-group"><label>Ferro (mg)</label><input type="number" id="a-ferro" step=".1" min="0" /></div>
-            <div class="form-group"><label>Fosforo (mg)</label><input type="number" id="a-fosforo" step=".1" min="0" /></div>
-            <div class="form-group"><label>Vit. C (mg)</label><input type="number" id="a-vitc" step=".1" min="0" /></div>
-            <div class="form-group"><label>Vit. D (mcg)</label><input type="number" id="a-vitd" step=".01" min="0" /></div>
+            <div class="form-group"><label>Sodio (mg)</label><input type="number" id="a-sodio" step=".1" /></div>
+            <div class="form-group"><label>Potassio (mg)</label><input type="number" id="a-potassio" step=".1" /></div>
+            <div class="form-group"><label>Calcio (mg)</label><input type="number" id="a-calcio" step=".1" /></div>
+            <div class="form-group"><label>Ferro (mg)</label><input type="number" id="a-ferro" step=".1" /></div>
+            <div class="form-group"><label>Fosforo (mg)</label><input type="number" id="a-fosforo" step=".1" /></div>
+            <div class="form-group"><label>Vit. C (mg)</label><input type="number" id="a-vitc" step=".1" /></div>
+            <div class="form-group"><label>Vit. A (mcg)</label><input type="number" id="a-vita" step=".01" /></div>
             <div class="form-group"><label>Indice glicemico</label><input type="number" id="a-ig" step="1" min="0" max="100" /></div>
+            <div class="form-group"><label>Grassi saturi (g)</label><input type="number" id="a-sat" step=".1" /></div>
+            <div class="form-group"><label>Grassi mono (g)</label><input type="number" id="a-mono" step=".1" /></div>
+            <div class="form-group"><label>Grassi poli (g)</label><input type="number" id="a-poli" step=".1" /></div>
+            <div class="form-group"><label>Colesterolo (mg)</label><input type="number" id="a-colest" step=".1" /></div>
           </div>
-          <div class="grid-4">
-            <div class="form-group"><label>Grassi saturi (g)</label><input type="number" id="a-sat" step=".1" min="0" /></div>
-            <div class="form-group"><label>Grassi mono (g)</label><input type="number" id="a-mono" step=".1" min="0" /></div>
-            <div class="form-group"><label>Grassi poli (g)</label><input type="number" id="a-poli" step=".1" min="0" /></div>
-            <div class="form-group"><label>Colesterolo (mg)</label><input type="number" id="a-colest" step=".1" min="0" /></div>
-          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">⚠️ Patologie controindicazioni <span style="font-weight:400;font-size:.75rem;opacity:.7;">— opzionale</span></div>
+        <div class="form-section-body">
+          <p class="text-muted text-sm" style="margin-bottom:.75rem;">Associa le patologie per cui questo alimento è controindicato o richiede attenzione.</p>
+          <div id="patologie-controindicazioni"></div>
         </div>
       </div>
     </div>
@@ -275,12 +261,9 @@ import { loading, toast, showAlert, hideAlert, setBtn,
 
 const PAGE_SIZE = 50;
 const S = {
-  user: null,
-  tutti: [],        // tutti gli alimenti caricati
-  filtrati: [],     // dopo filtri
-  pagina: 0,
-  sortField: 'nome',
-  sortDir: 1,
+  user: null, tutti: [], filtrati: [], pagina: 0,
+  catalogo: [],           // patologie_catalogo
+  controindicazioniIdx: {}, // alimento_id → [{patologia_id,livello}]
 };
 
 async function init() {
@@ -291,215 +274,167 @@ async function init() {
   n('topbar-email').textContent = S.user.email;
   n('app').style.display = 'block';
   n('btn-logout').addEventListener('click', logout);
-  n('btn-nuovo-alimento').addEventListener('click', openNuovoAlimento);
+  n('btn-nuovo-alimento').addEventListener('click', () => openAlimentoForm());
   n('btn-save-alimento').addEventListener('click', saveAlimento);
-  n('detail-btn-edit').addEventListener('click', () => {
-    const id = n('detail-btn-edit').dataset.alimentoId;
-    if (id) openEditAlimento(id);
-  });
+  n('detail-btn-edit').addEventListener('click', () => openAlimentoForm(n('detail-btn-edit').dataset.id));
 
-  // Filtri
-  ['search-alimento','filter-kcal-max'].forEach(id =>
-    n(id).addEventListener('input', () => { S.pagina=0; applyFilters(); })
-  );
-  ['filter-categoria','filter-sort'].forEach(id =>
-    n(id).addEventListener('change', () => { S.pagina=0; applyFilters(); })
-  );
+  ['search-alimento','filter-kcal-max'].forEach(id => n(id).addEventListener('input', () => { S.pagina=0; applyFilters(); }));
+  ['filter-categoria','filter-sort'].forEach(id => n(id).addEventListener('change', () => { S.pagina=0; applyFilters(); }));
+  ['a-kcal','a-prot','a-carb','a-lip'].forEach(id => n(id).addEventListener('input', updateMacroPreview));
 
-  // Macro preview live
-  ['a-kcal','a-prot','a-carb','a-lip'].forEach(id =>
-    n(id).addEventListener('input', updateMacroPreview)
-  );
-
-  await loadAlimenti();
+  await Promise.all([loadAlimenti(), loadCatalogo()]);
   loading(false);
+}
+
+async function loadCatalogo() {
+  const {data} = await sb.from('patologie_catalogo').select('id,codice,nome,categoria').order('categoria').order('nome');
+  S.catalogo = data || [];
 }
 
 async function loadAlimenti() {
   loading(true, 'Caricamento alimenti…');
-  try {
-    const { data, error } = await sb.from('alimenti')
-      .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,user_id,abilitato')
-      .eq('abilitato', true)
-      .order('categoria').order('nome');
-    if (error) throw error;
-    S.tutti = data || [];
+  const {data,error} = await sb.from('alimenti')
+    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,user_id,abilitato')
+    .eq('abilitato',true).order('categoria').order('nome');
+  if (error) { toast('Errore caricamento','error'); loading(false); return; }
+  S.tutti = data||[];
 
-    // Popola select categorie
-    const cats = [...new Set(S.tutti.map(a => a.categoria))].sort();
-    const sel = n('filter-categoria');
-    sel.innerHTML = '<option value="">Tutte (' + S.tutti.length + ')</option>' +
-      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  // Carica controindicazioni aggregate
+  const {data:ci} = await sb.from('alimenti_patologie').select('alimento_id,patologia_id,livello');
+  S.controindicazioniIdx = {};
+  (ci||[]).forEach(r => {
+    if (!S.controindicazioniIdx[r.alimento_id]) S.controindicazioniIdx[r.alimento_id]=[];
+    S.controindicazioniIdx[r.alimento_id].push(r);
+  });
 
-    n('db-count').textContent = `${S.tutti.length} alimenti · ${cats.length} categorie`;
-    applyFilters();
-  } catch (e) { toast('Errore caricamento alimenti', 'error'); console.error(e); }
-  finally { loading(false); }
+  const cats = [...new Set(S.tutti.map(a=>a.categoria))].sort();
+  n('filter-categoria').innerHTML = `<option value="">Tutte (${S.tutti.length})</option>` +
+    cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  n('db-count').textContent = `${S.tutti.length} alimenti · ${cats.length} categorie`;
+  applyFilters();
+  loading(false);
 }
 
 function applyFilters() {
-  const q     = val('search-alimento').toLowerCase();
-  const cat   = n('filter-categoria').value;
-  const kcalM = n('filter-kcal-max').value ? parseFloat(n('filter-kcal-max').value) : null;
-  const sort  = n('filter-sort').value;
-
-  let lista = S.tutti.filter(a => {
-    if (q   && !a.nome.toLowerCase().includes(q)) return false;
-    if (cat && a.categoria !== cat) return false;
-    if (kcalM != null && (a.energia_kcal||0) > kcalM) return false;
+  const q=val('search-alimento').toLowerCase(), cat=n('filter-categoria').value;
+  const km=n('filter-kcal-max').value?parseFloat(n('filter-kcal-max').value):null;
+  const sort=n('filter-sort').value;
+  let lista = S.tutti.filter(a=>{
+    if (q && !a.nome.toLowerCase().includes(q)) return false;
+    if (cat && a.categoria!==cat) return false;
+    if (km!=null && (a.energia_kcal||0)>km) return false;
     return true;
   });
-
-  // Sort
-  lista.sort((a,b) => {
-    if (sort === 'nome') return a.nome.localeCompare(b.nome);
-    if (sort === 'kcal') return (a.energia_kcal||0) - (b.energia_kcal||0);
-    if (sort === 'prot') return (a.proteine_g||0) - (b.proteine_g||0);
-    if (sort === 'carb') return (a.carboidrati_g||0) - (b.carboidrati_g||0);
+  lista.sort((a,b)=>{
+    if(sort==='nome') return a.nome.localeCompare(b.nome);
+    if(sort==='kcal') return (a.energia_kcal||0)-(b.energia_kcal||0);
+    if(sort==='prot') return (a.proteine_g||0)-(b.proteine_g||0);
+    if(sort==='carb') return (a.carboidrati_g||0)-(b.carboidrati_g||0);
     return 0;
   });
-
-  S.filtrati = lista;
-  renderTable();
-  renderPagination();
+  S.filtrati=lista; renderTable(); renderPagination();
 }
 
-function macroBar(prot, carb, lip) {
-  const tot = (prot||0)*4 + (carb||0)*4 + (lip||0)*9;
-  if (!tot) return '<div class="macro-bar"></div>';
-  const pp = Math.round((prot||0)*4/tot*100);
-  const pc = Math.round((carb||0)*4/tot*100);
-  const pl = 100 - pp - pc;
-  return `<div class="macro-bar">
-    <div class="mb-p" style="width:${pp}%"></div>
-    <div class="mb-c" style="width:${pc}%"></div>
-    <div class="mb-l" style="width:${Math.max(pl,0)}%"></div>
-  </div>`;
+function macroBar(p,c,l) {
+  const t=(p||0)*4+(c||0)*4+(l||0)*9; if(!t) return '<div class="macro-bar"></div>';
+  const pp=Math.round((p||0)*4/t*100),pc=Math.round((c||0)*4/t*100),pl=100-pp-pc;
+  return `<div class="macro-bar"><div class="mb-p" style="width:${pp}%"></div><div class="mb-c" style="width:${pc}%"></div><div class="mb-l" style="width:${Math.max(pl,0)}%"></div></div>`;
 }
 
 function renderTable() {
-  const tbody = n('alimenti-tbody');
-  const start = S.pagina * PAGE_SIZE;
-  const slice = S.filtrati.slice(start, start + PAGE_SIZE);
-
-  if (!slice.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted);">
-      Nessun alimento trovato con i filtri selezionati.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = slice.map(a => {
-    const isCustom = a.user_id != null;
-    return `<tr class="${isCustom ? 'custom-food' : ''}" data-alimento-id="${a.id}">
+  const tbody=n('alimenti-tbody');
+  const slice=S.filtrati.slice(S.pagina*PAGE_SIZE,(S.pagina+1)*PAGE_SIZE);
+  if(!slice.length){tbody.innerHTML=`<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted);">Nessun alimento trovato</td></tr>`;return;}
+  tbody.innerHTML=slice.map(a=>{
+    const isCustom=a.user_id!=null;
+    const ci=S.controindicazioniIdx[a.id]||[];
+    const ciTag=ci.length?`<span style="font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:${ci.some(x=>x.livello==='vietato')?'#fef2f2':'#fef3c7'};color:${ci.some(x=>x.livello==='vietato')?'#c53030':'#b45309'};border:1px solid ${ci.some(x=>x.livello==='vietato')?'#fecaca':'#fcd34d'};">⚠ ${ci.length}</span>`:'';
+    return `<tr class="${isCustom?'custom-food':''}" data-alimento-id="${a.id}">
       <td class="td-nome">
         <div style="display:flex;align-items:center;gap:.4rem;">
-          ${isCustom ? '<span class="badge-custom">Custom</span>' : ''}
-          <span>${a.nome}</span>
+          ${isCustom?'<span class="badge-custom">Custom</span>':''}
+          ${a.nome} ${ciTag}
         </div>
-        ${a.note_porzione ? `<div style="font-size:.68rem;color:var(--text-muted);margin-top:1px;">${a.note_porzione}</div>` : ''}
+        ${a.note_porzione?`<div style="font-size:.68rem;color:var(--text-muted);">${a.note_porzione}</div>`:''}
       </td>
       <td><span class="cat-chip">${a.categoria}</span></td>
-      <td class="td-num highlight">${a.energia_kcal != null ? Math.round(a.energia_kcal) : '—'}</td>
-      <td class="td-num">${a.proteine_g != null ? (+a.proteine_g).toFixed(1) : '—'}</td>
-      <td class="td-num">${a.carboidrati_g != null ? (+a.carboidrati_g).toFixed(1) : '—'}</td>
-      <td class="td-num">${a.lipidi_g != null ? (+a.lipidi_g).toFixed(1) : '—'}</td>
-      <td class="td-num">${a.fibra_g != null ? (+a.fibra_g).toFixed(1) : '—'}</td>
-      <td>${macroBar(a.proteine_g, a.carboidrati_g, a.lipidi_g)}</td>
+      <td class="td-num hl">${a.energia_kcal!=null?Math.round(a.energia_kcal):'—'}</td>
+      <td class="td-num">${a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—'}</td>
+      <td class="td-num">${a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—'}</td>
+      <td class="td-num">${a.lipidi_g!=null?(+a.lipidi_g).toFixed(1):'—'}</td>
+      <td class="td-num">${a.fibra_g!=null?(+a.fibra_g).toFixed(1):'—'}</td>
+      <td>${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}</td>
       <td><div class="td-actions">
         <button class="btn btn-secondary btn-sm" data-detail="${a.id}">🔍</button>
-        ${isCustom ? `<button class="btn btn-ghost btn-sm" data-edit="${a.id}">✏️</button>` : ''}
+        <button class="btn btn-ghost btn-sm" data-edit="${a.id}">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
 
-  // Event delegation tabella
-  tbody.addEventListener('click', e => {
-    const detailBtn = e.target.closest('[data-detail]');
-    if (detailBtn) { openDetail(detailBtn.dataset.detail); return; }
-    const editBtn = e.target.closest('[data-edit]');
-    if (editBtn)  { openEditAlimento(editBtn.dataset.edit); return; }
-    // Click su riga → dettaglio
-    const row = e.target.closest('[data-alimento-id]');
-    if (row && !e.target.closest('button')) openDetail(row.dataset.alimentoId);
+  tbody.addEventListener('click', e=>{
+    const d=e.target.closest('[data-detail]'); if(d){openDetail(d.dataset.detail);return;}
+    const ed=e.target.closest('[data-edit]');  if(ed){openAlimentoForm(ed.dataset.edit);return;}
+    const row=e.target.closest('[data-alimento-id]');
+    if(row&&!e.target.closest('button')) openDetail(row.dataset.alimentoId);
   });
 }
 
 function renderPagination() {
-  const total = S.filtrati.length;
-  const pages = Math.ceil(total / PAGE_SIZE);
-  const start = S.pagina * PAGE_SIZE + 1;
-  const end   = Math.min((S.pagina + 1) * PAGE_SIZE, total);
-  n('pag-info').textContent = total > 0 ? `${start}–${end} di ${total} alimenti` : '';
-
-  if (pages <= 1) { n('pag-controls').innerHTML = ''; return; }
-  let html = '';
-  if (S.pagina > 0) html += `<button class="page-btn" data-goto="${S.pagina-1}">‹</button>`;
-  for (let i = 0; i < pages; i++) {
-    if (pages > 8 && Math.abs(i - S.pagina) > 2 && i !== 0 && i !== pages-1) {
-      if (i === S.pagina - 3 || i === S.pagina + 3) html += '<span style="padding:0 4px;color:var(--text-muted);">…</span>';
+  const total=S.filtrati.length, pages=Math.ceil(total/PAGE_SIZE);
+  const start=S.pagina*PAGE_SIZE+1, end=Math.min((S.pagina+1)*PAGE_SIZE,total);
+  n('pag-info').textContent = total>0?`${start}–${end} di ${total} alimenti`:'';
+  if(pages<=1){n('pag-controls').innerHTML='';return;}
+  let html='';
+  if(S.pagina>0) html+=`<button class="page-btn" data-goto="${S.pagina-1}">‹</button>`;
+  for(let i=0;i<pages;i++){
+    if(pages>8&&Math.abs(i-S.pagina)>2&&i!==0&&i!==pages-1){
+      if(i===S.pagina-3||i===S.pagina+3) html+='<span style="padding:0 4px;color:var(--text-muted);">…</span>';
       continue;
     }
-    html += `<button class="page-btn${i===S.pagina?' active':''}" data-goto="${i}">${i+1}</button>`;
+    html+=`<button class="page-btn${i===S.pagina?' active':''}" data-goto="${i}">${i+1}</button>`;
   }
-  if (S.pagina < pages-1) html += `<button class="page-btn" data-goto="${S.pagina+1}">›</button>`;
-  n('pag-controls').innerHTML = html;
-  n('pag-controls').addEventListener('click', e => {
-    const btn = e.target.closest('[data-goto]');
-    if (btn) { S.pagina = parseInt(btn.dataset.goto); renderTable(); renderPagination(); window.scrollTo(0,0); }
+  if(S.pagina<pages-1) html+=`<button class="page-btn" data-goto="${S.pagina+1}">›</button>`;
+  n('pag-controls').innerHTML=html;
+  n('pag-controls').addEventListener('click',e=>{
+    const b=e.target.closest('[data-goto]');
+    if(b){S.pagina=+b.dataset.goto;renderTable();renderPagination();window.scrollTo(0,0);}
   });
 }
 
 // ─── DETTAGLIO ──────────────────────────────────────────
 async function openDetail(id) {
-  const { data: a, error } = await sb.from('alimenti').select('*').eq('id', id).single();
-  if (error || !a) { toast('Errore', 'error'); return; }
+  const {data:a,error}=await sb.from('alimenti').select('*').eq('id',id).single();
+  if(error||!a){toast('Errore','error');return;}
+  // Carica controindicazioni con nome patologia
+  const {data:ci}=await sb.from('alimenti_patologie')
+    .select('livello,patologie_catalogo(nome)').eq('alimento_id',id);
 
-  n('detail-title').textContent = a.nome;
-  n('detail-btn-edit').dataset.alimentoId = a.user_id ? id : '';
-  n('detail-btn-edit').style.display = a.user_id ? 'inline-flex' : 'none';
+  n('detail-title').textContent=a.nome;
+  n('detail-btn-edit').dataset.id=id;
+  n('detail-btn-edit').style.display='inline-flex';
 
-  const tot = (a.proteine_g||0)*4 + (a.carboidrati_g||0)*4 + (a.lipidi_g||0)*9;
-  const pp = tot ? Math.round((a.proteine_g||0)*4/tot*100) : 0;
-  const pc = tot ? Math.round((a.carboidrati_g||0)*4/tot*100) : 0;
-  const pl = tot ? 100-pp-pc : 0;
+  const tot=(a.proteine_g||0)*4+(a.carboidrati_g||0)*4+(a.lipidi_g||0)*9||1;
+  const pp=Math.round((a.proteine_g||0)*4/tot*100),pc=Math.round((a.carboidrati_g||0)*4/tot*100),pl=100-pp-pc;
+  const nv=(v,u='')=>v!=null?`<span class="nutrient-value">${+v%1===0?+v:(+v).toFixed(1)} ${u}</span>`:'<span style="color:var(--text-muted);">—</span>';
 
-  const nv = (v, u='') => v != null ? `<span class="nutrient-value">${+v%1===0?+v:(+v).toFixed(1)} ${u}</span>` : '<span style="color:var(--text-muted);">—</span>';
+  const ciHtml=(ci&&ci.length)?`<div style="margin-top:.75rem;padding:.6rem .75rem;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-md);">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b45309;margin-bottom:.35rem;">⚠ Controindicazioni</div>
+    ${ci.map(c=>`<div style="font-size:.82rem;font-weight:500;color:#92400e;">${c.patologie_catalogo?.nome} — <em>${c.livello}</em></div>`).join('')}
+  </div>`:'';
 
-  n('detail-body').innerHTML = `
-    <div style="margin-bottom:.5rem;">
-      <span class="cat-chip">${a.categoria}</span>
-      ${a.note_porzione ? `<span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem;">📌 ${a.note_porzione}</span>` : ''}
-    </div>
-
+  n('detail-body').innerHTML=`
+    <div style="margin-bottom:.5rem;"><span class="cat-chip">${a.categoria}</span>${a.note_porzione?`<span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem;">📌 ${a.note_porzione}</span>`:''}</div>
     <div class="macro-summary">
-      <div class="macro-card">
-        <div class="macro-card__label">Energia</div>
-        <div class="macro-card__value">${a.energia_kcal != null ? Math.round(a.energia_kcal) : '—'}</div>
-        <div class="macro-card__unit">kcal / 100g</div>
-      </div>
-      <div class="macro-card" style="background:#fef9ec;">
-        <div class="macro-card__label">Proteine</div>
-        <div class="macro-card__value" style="color:#b8923e;">${a.proteine_g != null ? (+a.proteine_g).toFixed(1) : '—'}</div>
-        <div class="macro-card__unit">g · ${pp}% kcal</div>
-      </div>
-      <div class="macro-card" style="background:#fef2f2;">
-        <div class="macro-card__label">Carboidrati</div>
-        <div class="macro-card__value" style="color:#c53030;">${a.carboidrati_g != null ? (+a.carboidrati_g).toFixed(1) : '—'}</div>
-        <div class="macro-card__unit">g · ${pc}% kcal</div>
-      </div>
+      <div class="macro-card"><div class="macro-card__label">Energia</div><div class="macro-card__value">${a.energia_kcal!=null?Math.round(a.energia_kcal):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">kcal / 100g</div></div>
+      <div class="macro-card" style="background:#fef9ec;"><div class="macro-card__label">Proteine</div><div class="macro-card__value" style="color:#b8923e;">${a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${pp}% kcal</div></div>
+      <div class="macro-card" style="background:#fef2f2;"><div class="macro-card__label">Carboidrati</div><div class="macro-card__value" style="color:#c53030;">${a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${pc}% kcal</div></div>
     </div>
-
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
-      <div class="macro-bar" style="width:100%;height:10px;">${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g).replace('class="macro-bar"','style="display:flex;height:10px;border-radius:9999px;overflow:hidden;width:100%;gap:1px;"')}</div>
-    </div>
-
-    <div class="nutrient-grid">
+    ${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}
+    <div class="nutrient-grid" style="margin-top:1rem;">
       <div>
         <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.35rem;">Macronutrienti</div>
         <div class="nutrient-row"><span class="nutrient-label">Lipidi</span>${nv(a.lipidi_g,'g')}</div>
         <div class="nutrient-row"><span class="nutrient-label">— Saturi</span>${nv(a.grassi_saturi_g,'g')}</div>
-        <div class="nutrient-row"><span class="nutrient-label">— Monoinsaturi</span>${nv(a.grassi_monoinsaturi_g,'g')}</div>
-        <div class="nutrient-row"><span class="nutrient-label">— Polinsaturi</span>${nv(a.grassi_polinsaturi_g,'g')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Zuccheri</span>${nv(a.zuccheri_g,'g')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Amido</span>${nv(a.amido_g,'g')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Fibra</span>${nv(a.fibra_g,'g')}</div>
@@ -515,131 +450,155 @@ async function openDetail(id) {
         <div class="nutrient-row"><span class="nutrient-label">Ferro</span>${nv(a.ferro_mg,'mg')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Fosforo</span>${nv(a.fosforo_mg,'mg')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Vitamina C</span>${nv(a.vit_c_mg,'mg')}</div>
-        <div class="nutrient-row"><span class="nutrient-label">Vitamina E</span>${nv(a.vit_e_mg,'mg')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Vitamina A</span>${nv(a.vit_a_mcg,'mcg')}</div>
-        <div class="nutrient-row"><span class="nutrient-label">Tiamina</span>${nv(a.tiamina_mg,'mg')}</div>
         <div class="nutrient-row"><span class="nutrient-label">Niacina</span>${nv(a.niacina_mg,'mg')}</div>
       </div>
-    </div>`;
-
+    </div>
+    ${ciHtml}`;
   ModalManager.open('modal-detail');
 }
 
 // ─── FORM ALIMENTO ───────────────────────────────────────
 function updateMacroPreview() {
-  const k = flt('a-kcal'), p = flt('a-prot'), c = flt('a-carb'), l = flt('a-lip');
-  const prev = n('macro-preview');
-  if (!k) { prev.style.display='none'; return; }
-  prev.style.display = 'block';
-  const tot = (p||0)*4 + (c||0)*4 + (l||0)*9 || 1;
-  const pp=Math.round((p||0)*4/tot*100), pc=Math.round((c||0)*4/tot*100), pl=100-pp-pc;
-  n('preview-bar').innerHTML = `
-    <div class="mb-p" style="width:${pp}%;height:100%;"></div>
-    <div class="mb-c" style="width:${pc}%;height:100%;"></div>
-    <div class="mb-l" style="width:${Math.max(pl,0)}%;height:100%;"></div>`;
-  n('preview-text').textContent = `Prot ${pp}% · Carb ${pc}% · Lip ${Math.max(pl,0)}%`;
+  const k=flt('a-kcal'),p=flt('a-prot'),c=flt('a-carb'),l=flt('a-lip');
+  if(!k){n('macro-preview').style.display='none';return;}
+  n('macro-preview').style.display='block';
+  const tot=(p||0)*4+(c||0)*4+(l||0)*9||1;
+  const pp=Math.round((p||0)*4/tot*100),pc=Math.round((c||0)*4/tot*100),pl=100-pp-pc;
+  n('preview-bar').innerHTML=`<div class="mb-p" style="width:${pp}%;height:100%;"></div><div class="mb-c" style="width:${pc}%;height:100%;"></div><div class="mb-l" style="width:${Math.max(pl,0)}%;height:100%;"></div>`;
+  n('preview-text').textContent=`Prot ${pp}% · Carb ${pc}% · Lip ${Math.max(pl,0)}%`;
 }
 
-function openNuovoAlimento() {
-  n('a-editing-id').value = '';
-  n('modal-alimento-title').textContent = 'Nuovo alimento';
-  hideAlert('alimento-error');
-  ['a-nome','a-note-porz','a-kcal','a-prot','a-carb','a-lip','a-zucc','a-fibra',
-   'a-amido','a-acqua','a-sodio','a-potassio','a-calcio','a-ferro','a-fosforo',
-   'a-vitc','a-vitd','a-ig','a-sat','a-mono','a-poli','a-colest'].forEach(id=>{const el=n(id);if(el)el.value='';});
-  n('a-categoria').value = '';
-  n('a-porzione').value = '100';
-  n('macro-preview').style.display='none';
-  ModalManager.open('modal-alimento');
+function buildPatologieSelector(attuali=[]) {
+  const wrap=n('patologie-controindicazioni');
+  if(!S.catalogo.length){wrap.innerHTML='<p class="text-muted text-sm">Catalogo patologie non disponibile.</p>';return;}
+  // Raggruppa per categoria
+  const gruppi={};
+  S.catalogo.forEach(p=>{const c=p.categoria||'Altro';if(!gruppi[c])gruppi[c]=[];gruppi[c].push(p);});
+  wrap.innerHTML=Object.entries(gruppi).map(([cat,pats])=>`
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 4px;">${cat}</div>
+    ${pats.map(p=>{
+      const att=attuali.find(a=>a.patologia_id===p.id);
+      return `<div class="pat-ctrl-row">
+        <input type="checkbox" id="pc-${p.id}" value="${p.id}" ${att?'checked':''}
+          style="width:15px;height:15px;accent-color:var(--sage-600);flex-shrink:0;" />
+        <label for="pc-${p.id}" class="pat-ctrl-nome">${p.nome}</label>
+        <select class="pat-level-sel" id="pl-${p.id}" ${!att?'disabled':''}>
+          <option value="attenzione" ${att?.livello==='attenzione'?'selected':''}>⚠ Attenzione</option>
+          <option value="vietato"    ${att?.livello==='vietato'?'selected':''}>🚫 Vietato</option>
+        </select>
+      </div>`;
+    }).join('')}`).join('');
+
+  // Abilita/disabilita select quando check cambia
+  wrap.addEventListener('change',e=>{
+    const cb=e.target.closest('input[type=checkbox]');
+    if(!cb)return;
+    const sel=document.getElementById('pl-'+cb.value);
+    if(sel)sel.disabled=!cb.checked;
+  });
 }
 
-async function openEditAlimento(id) {
-  const {data:a,error} = await sb.from('alimenti').select('*').eq('id',id).single();
-  if(error||!a){toast('Errore caricamento','error');return;}
-  n('a-editing-id').value = id;
-  n('modal-alimento-title').textContent = 'Modifica alimento';
-  hideAlert('alimento-error');
-  n('a-nome').value      = a.nome||'';
-  n('a-categoria').value = a.categoria||'';
-  n('a-porzione').value  = a.porzione_default_g||100;
-  n('a-note-porz').value = a.note_porzione||'';
-  n('a-kcal').value  = a.energia_kcal||'';
-  n('a-prot').value  = a.proteine_g||'';
-  n('a-carb').value  = a.carboidrati_g||'';
-  n('a-lip').value   = a.lipidi_g||'';
-  n('a-zucc').value  = a.zuccheri_g||'';
-  n('a-fibra').value = a.fibra_g||'';
-  n('a-amido').value = a.amido_g||'';
-  n('a-acqua').value = a.acqua_g||'';
-  n('a-sodio').value    = a.sodio_mg||'';
-  n('a-potassio').value = a.potassio_mg||'';
-  n('a-calcio').value   = a.calcio_mg||'';
-  n('a-ferro').value    = a.ferro_mg||'';
-  n('a-fosforo').value  = a.fosforo_mg||'';
-  n('a-vitc').value  = a.vit_c_mg||'';
-  n('a-vitd').value  = a.vit_a_mcg||'';
-  n('a-ig').value    = a.indice_glicemico||'';
-  n('a-sat').value   = a.grassi_saturi_g||'';
-  n('a-mono').value  = a.grassi_monoinsaturi_g||'';
-  n('a-poli').value  = a.grassi_polinsaturi_g||'';
-  n('a-colest').value= a.colesterolo_mg||'';
-  updateMacroPreview();
+function getPatologieSelezionate() {
+  return [...document.querySelectorAll('#patologie-controindicazioni input[type=checkbox]:checked')].map(cb=>({
+    patologia_id: cb.value,
+    livello: document.getElementById('pl-'+cb.value)?.value||'attenzione',
+  }));
+}
+
+async function openAlimentoForm(id=null) {
   ModalManager.close('modal-detail');
+  n('a-editing-id').value = id||'';
+  n('modal-alimento-title').textContent = id?'Modifica alimento':'Nuovo alimento';
+  hideAlert('alimento-error');
+  n('macro-preview').style.display='none';
+
+  const fields=['a-nome','a-note-porz','a-kcal','a-prot','a-carb','a-lip','a-zucc','a-fibra',
+    'a-amido','a-acqua','a-sodio','a-potassio','a-calcio','a-ferro','a-fosforo',
+    'a-vitc','a-vita','a-ig','a-sat','a-mono','a-poli','a-colest'];
+
+  let attualiCi=[];
+  if(id) {
+    const {data:a}=await sb.from('alimenti').select('*').eq('id',id).single();
+    if(a){
+      n('a-nome').value=a.nome||''; n('a-categoria').value=a.categoria||'';
+      n('a-porzione').value=a.porzione_default_g||100; n('a-note-porz').value=a.note_porzione||'';
+      n('a-kcal').value=a.energia_kcal||''; n('a-prot').value=a.proteine_g||'';
+      n('a-carb').value=a.carboidrati_g||''; n('a-lip').value=a.lipidi_g||'';
+      n('a-zucc').value=a.zuccheri_g||''; n('a-fibra').value=a.fibra_g||'';
+      n('a-amido').value=a.amido_g||''; n('a-acqua').value=a.acqua_g||'';
+      n('a-sodio').value=a.sodio_mg||''; n('a-potassio').value=a.potassio_mg||'';
+      n('a-calcio').value=a.calcio_mg||''; n('a-ferro').value=a.ferro_mg||'';
+      n('a-fosforo').value=a.fosforo_mg||''; n('a-vitc').value=a.vit_c_mg||'';
+      n('a-vita').value=a.vit_a_mcg||''; n('a-ig').value=a.indice_glicemico||'';
+      n('a-sat').value=a.grassi_saturi_g||''; n('a-mono').value=a.grassi_monoinsaturi_g||'';
+      n('a-poli').value=a.grassi_polinsaturi_g||''; n('a-colest').value=a.colesterolo_mg||'';
+      updateMacroPreview();
+    }
+    const {data:ci}=await sb.from('alimenti_patologie').select('patologia_id,livello').eq('alimento_id',id);
+    attualiCi=ci||[];
+  } else {
+    fields.forEach(f=>{const el=n(f);if(el)el.value='';});
+    n('a-categoria').value=''; n('a-porzione').value='100';
+  }
+  buildPatologieSelector(attualiCi);
   ModalManager.open('modal-alimento');
 }
 
 async function saveAlimento() {
   hideAlert('alimento-error');
-  const nome = val('a-nome'), cat = n('a-categoria').value;
-  const kcal = flt('a-kcal');
-  if (!nome) { showAlert('alimento-error','Il nome è obbligatorio.'); return; }
-  if (!cat)  { showAlert('alimento-error','Seleziona una categoria.'); return; }
-  if (!kcal) { showAlert('alimento-error','Le calorie sono obbligatorie.'); return; }
+  const nome=val('a-nome'), cat=n('a-categoria').value, kcal=flt('a-kcal');
+  if(!nome){showAlert('alimento-error','Il nome è obbligatorio.');return;}
+  if(!cat){showAlert('alimento-error','Seleziona una categoria.');return;}
+  if(!kcal){showAlert('alimento-error','Le calorie sono obbligatorie.');return;}
 
-  const editId = n('a-editing-id').value || null;
-  const payload = {
-    nome, categoria: cat,
-    porzione_default_g: parseFloat(n('a-porzione').value)||100,
-    note_porzione: val('a-note-porz')||null,
-    energia_kcal: kcal,
-    proteine_g:        flt('a-prot'),
-    carboidrati_g:     flt('a-carb'),
-    lipidi_g:          flt('a-lip'),
-    zuccheri_g:        flt('a-zucc'),
-    fibra_g:           flt('a-fibra'),
-    amido_g:           flt('a-amido'),
-    acqua_g:           flt('a-acqua'),
-    sodio_mg:          flt('a-sodio'),
-    potassio_mg:       flt('a-potassio'),
-    calcio_mg:         flt('a-calcio'),
-    ferro_mg:          flt('a-ferro'),
-    fosforo_mg:        flt('a-fosforo'),
-    vit_c_mg:          flt('a-vitc'),
-    vit_a_mcg:         flt('a-vitd'),
-    indice_glicemico:  flt('a-ig'),
-    grassi_saturi_g:   flt('a-sat'),
-    grassi_monoinsaturi_g: flt('a-mono'),
-    grassi_polinsaturi_g:  flt('a-poli'),
-    colesterolo_mg:    flt('a-colest'),
+  const editId=n('a-editing-id').value||null;
+  const payload={
+    nome,categoria:cat,porzione_default_g:parseFloat(n('a-porzione').value)||100,
+    note_porzione:val('a-note-porz')||null,energia_kcal:kcal,
+    proteine_g:flt('a-prot'),carboidrati_g:flt('a-carb'),lipidi_g:flt('a-lip'),
+    zuccheri_g:flt('a-zucc'),fibra_g:flt('a-fibra'),amido_g:flt('a-amido'),acqua_g:flt('a-acqua'),
+    sodio_mg:flt('a-sodio'),potassio_mg:flt('a-potassio'),calcio_mg:flt('a-calcio'),
+    ferro_mg:flt('a-ferro'),fosforo_mg:flt('a-fosforo'),vit_c_mg:flt('a-vitc'),
+    vit_a_mcg:flt('a-vita'),indice_glicemico:flt('a-ig'),grassi_saturi_g:flt('a-sat'),
+    grassi_monoinsaturi_g:flt('a-mono'),grassi_polinsaturi_g:flt('a-poli'),colesterolo_mg:flt('a-colest'),
   };
 
-  setBtn('btn-save-alimento', true);
+  setBtn('btn-save-alimento',true);
   try {
-    if (editId) {
-      const {error} = await sb.from('alimenti').update(payload).eq('id',editId);
-      if(error) throw error;
-      toast('Alimento aggiornato');
+    let alimentoId=editId;
+    if(editId){
+      const{error}=await sb.from('alimenti').update(payload).eq('id',editId);
+      if(error)throw error;
     } else {
-      payload.user_id = S.user.id;
-      const {error} = await sb.from('alimenti').insert(payload);
-      if(error) throw error;
-      toast('Alimento salvato');
+      payload.user_id=S.user.id;
+      const{data,error}=await sb.from('alimenti').insert(payload).select().single();
+      if(error)throw error;
+      alimentoId=data.id;
     }
+    // Salva controindicazioni: rimuovi vecchie, inserisci nuove
+    await sb.from('alimenti_patologie').delete().eq('alimento_id',alimentoId);
+    const selPat=getPatologieSelezionate();
+    if(selPat.length>0){
+      const rows=selPat.map(p=>({alimento_id:alimentoId,patologia_id:p.patologia_id,livello:p.livello}));
+      const{error}=await sb.from('alimenti_patologie').insert(rows);
+      if(error)throw error;
+    }
+    toast(editId?'Alimento aggiornato':'Alimento salvato');
     ModalManager.close('modal-alimento');
     await loadAlimenti();
-  } catch(e){ showAlert('alimento-error','Errore: '+e.message); }
-  finally { setBtn('btn-save-alimento',false); }
+  } catch(e){showAlert('alimento-error','Errore: '+e.message);}
+  finally{setBtn('btn-save-alimento',false);}
 }
+
+// Espone funzione globale per essere chiamata dal food picker nelle diete
+window.openAlimentoFormEsterno = (callback) => {
+  openAlimentoForm().then(()=>{
+    // Dopo il salvataggio, chiama la callback con l'id del nuovo alimento
+    n('btn-save-alimento').dataset.callback='true';
+    S._afterSaveCallback=callback;
+  });
+};
 
 init();
 </script>
