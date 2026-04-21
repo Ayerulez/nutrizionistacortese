@@ -364,3 +364,48 @@ a{text-decoration:none;color:inherit;}
 .form-section-body {
   border-radius: 0 0 var(--r-lg) var(--r-lg);
 }
+
+/* ── Confirm-close overlay ── */
+.confirm-close-banner{display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--stone-900);color:white;padding:.85rem 1.5rem;
+  z-index:3000;align-items:center;gap:1rem;box-shadow:0 -4px 20px rgba(0,0,0,.3);}
+.confirm-close-banner.show{display:flex;}
+.confirm-close-banner p{flex:1;font-size:.87rem;font-weight:500;margin:0;}
+
+/* ── Visuale giornaliera dieta ── */
+.day-view-wrap{display:flex;flex-direction:column;gap:.6rem;}
+.day-section{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.day-section-header{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;
+  background:linear-gradient(135deg,var(--sage-50),var(--beige-50));border-bottom:1px solid var(--border);}
+.day-section-momento{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);}
+.day-section-kcal{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text-primary);}
+.day-section-body{padding:.85rem 1rem;}
+.day-pasto-main{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;
+  background:var(--sage-50);border-radius:var(--r-md);margin-bottom:.4rem;}
+.day-pasto-sost{display:flex;align-items:center;gap:.75rem;padding:.4rem .75rem .4rem 2rem;
+  border-left:3px solid var(--sage-200);margin-left:.5rem;border-radius:0 var(--r-sm) var(--r-sm) 0;}
+.day-pasto-sost:hover{background:var(--beige-50);}
+.dpasto-nome{font-size:.85rem;font-weight:600;color:var(--text-primary);flex:1;}
+.dpasto-qty{font-size:.75rem;color:var(--sage-600);font-weight:600;white-space:nowrap;}
+.dpasto-macro{font-size:.7rem;color:var(--text-muted);white-space:nowrap;}
+.dpasto-note{font-size:.73rem;color:var(--stone-600);font-style:italic;margin-top:.25rem;padding-left:.5rem;}
+.dpasto-warn{font-size:.65rem;font-weight:700;padding:.1rem .35rem;border-radius:9999px;white-space:nowrap;}
+
+/* ── Copy/paste pasto ── */
+.clipboard-bar{display:none;background:var(--sage-600);color:white;border-radius:var(--r-md);
+  padding:.5rem 1rem;font-size:.82rem;font-weight:500;margin-bottom:.6rem;
+  align-items:center;gap:.75rem;}
+.clipboard-bar.show{display:flex;}
+
+/* ── Lista diete globale ── */
+.diete-global-list{display:flex;flex-direction:column;gap:.5rem;}
+.dg-card{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.25rem;
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
+  cursor:pointer;transition:all .2s;}
+.dg-card:hover{border-color:var(--sage-300);box-shadow:var(--shadow-md);}
+.dg-avatar{width:40px;height:40px;border-radius:50%;background:var(--sage-100);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--sage-600);flex-shrink:0;}
+
+/* ── BMI chart ── */
+.bmi-chart-wrap{position:relative;padding:1rem 0;}
