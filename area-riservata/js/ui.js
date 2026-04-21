@@ -1,13 +1,9 @@
 /**
- * ui.js — Helper UI condivisi tra tutte le pagine
+ * ui.js — Helper UI condivisi
  *
- * ARCHITETTURA MODALE:
- * I moduli ES hanno scope isolato — funzioni come closeModal non finiscono
- * su window automaticamente. Soluzione adottata:
- *   1. ModalManager gestisce tutto via event delegation (data-modal-open/close)
- *   2. Ogni pagina chiama initUI() una volta all'avvio
- *   3. initUI() espone window.closeModal/openModal come safety net globale
- *   4. Zero onclick inline nei template HTML
+ * Novità v2:
+ * - confirmClose: banner "dati non salvati" su ogni modal con dati
+ * - ModalManager registra se una modale ha modifiche pendenti
  */
 
 // ─── LOADING ──────────────────────────────────────────────────────────────
@@ -49,18 +45,19 @@ export function setBtn(id, on) {
   else if (b.dataset.orig) b.textContent = b.dataset.orig;
 }
 
-// ─── MODAL MANAGER ────────────────────────────────────────────────────────
+// ─── DIRTY TRACKING ──────────────────────────────────────────────────────
 /**
- * API programmatica:
- *   ModalManager.open('id')
- *   ModalManager.close('id')   ← id opzionale, senza chiude l'ultima aperta
- *   ModalManager.closeAll()
- *
- * API markup (NESSUN onclick inline):
- *   data-modal-open="id"    su qualsiasi elemento cliccabile
- *   data-modal-close        su bottoni X / Annulla (chiude la corrente)
- *   data-modal-close="id"   chiude modale specifica
+ * Tiene traccia di quali modali hanno modifiche non salvate.
+ * Usare markDirty(modalId) quando l'utente inizia a modificare un campo.
+ * Usare markClean(modalId) dopo il salvataggio.
  */
+const _dirtyModals = new Set();
+
+export function markDirty(modalId) { _dirtyModals.add(modalId); }
+export function markClean(modalId) { _dirtyModals.delete(modalId); }
+export function isDirty(modalId)   { return _dirtyModals.has(modalId); }
+
+// ─── MODAL MANAGER ────────────────────────────────────────────────────────
 export const ModalManager = {
   open(id) {
     const el = document.getElementById(id);
@@ -75,67 +72,123 @@ export const ModalManager = {
     });
   },
 
+  /**
+   * Chiude la modale.
+   * Se la modale è "dirty" (ha modifiche non salvate), mostra un banner
+   * di conferma invece di chiudere immediatamente.
+   */
   close(id) {
-    if (id) {
-      document.getElementById(id)?.classList.remove('open');
-    } else {
-      document.querySelector('.modal-overlay.open')?.classList.remove('open');
+    const targetId = id ?? document.querySelector('.modal-overlay.open')?.id;
+    if (!targetId) { document.body.style.overflow = ''; return; }
+
+    if (_dirtyModals.has(targetId)) {
+      _showConfirmBanner(targetId);
+      return;
     }
+    _doClose(targetId);
+  },
+
+  closeAll() {
+    // Chiudi solo le modali pulite; le dirty mostrano il banner
+    document.querySelectorAll('.modal-overlay.open').forEach(m => {
+      if (_dirtyModals.has(m.id)) {
+        _showConfirmBanner(m.id);
+      } else {
+        m.classList.remove('open');
+      }
+    });
     if (!document.querySelector('.modal-overlay.open')) {
       document.body.style.overflow = '';
     }
   },
 
-  closeAll() {
-    document.querySelectorAll('.modal-overlay.open')
-      .forEach(m => m.classList.remove('open'));
-    document.body.style.overflow = '';
+  forceClose(id) {
+    // Chiude senza controllo dirty (usato dopo salvataggio)
+    const targetId = id ?? document.querySelector('.modal-overlay.open')?.id;
+    _dirtyModals.delete(targetId);
+    _doClose(targetId);
   },
 };
 
-// Alias esportati per uso programmatico nei moduli JS
+function _doClose(id) {
+  if (id) document.getElementById(id)?.classList.remove('open');
+  else document.querySelector('.modal-overlay.open')?.classList.remove('open');
+  if (!document.querySelector('.modal-overlay.open')) {
+    document.body.style.overflow = '';
+  }
+  _hideConfirmBanner();
+}
+
+function _showConfirmBanner(modalId) {
+  // Crea il banner se non esiste
+  let banner = document.getElementById('_confirm-close-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = '_confirm-close-banner';
+    banner.className = 'confirm-close-banner';
+    banner.innerHTML = `
+      <p>⚠ Hai modifiche non salvate. Uscire senza salvare?</p>
+      <button class="btn btn-ghost btn-sm" id="_ccb-stay" style="border-color:rgba(255,255,255,.3);color:white;">Rimani</button>
+      <button class="btn btn-danger btn-sm" id="_ccb-leave">Esci senza salvare</button>`;
+    document.body.appendChild(banner);
+  }
+  banner.classList.add('show');
+  banner.dataset.targetModal = modalId;
+
+  document.getElementById('_ccb-stay').onclick = _hideConfirmBanner;
+  document.getElementById('_ccb-leave').onclick = () => {
+    _dirtyModals.delete(modalId);
+    _doClose(modalId);
+  };
+}
+
+function _hideConfirmBanner() {
+  document.getElementById('_confirm-close-banner')?.classList.remove('show');
+}
+
+// Alias esportati
 export const openModal  = id => ModalManager.open(id);
 export const closeModal = id => ModalManager.close(id);
 
 /**
  * initUI() — chiamare UNA VOLTA all'avvio di ogni pagina.
- * - Installa event delegation globale per data-modal-open/close
- * - Chiusura con ESC
- * - Espone window.closeModal/openModal come safety net assoluto
+ * - Installa event delegation per data-modal-open/close
+ * - Gestisce ESC con controllo dirty
+ * - Registra input listener per markDirty automatico su tutti i modal
  */
 export function initUI() {
-  // Safety net: previene ReferenceError da qualsiasi onclick residuo
   window.closeModal = id => ModalManager.close(id);
   window.openModal  = id => ModalManager.open(id);
 
   document.addEventListener('click', e => {
-    // Apri modale
     const opener = e.target.closest('[data-modal-open]');
-    if (opener) {
-      e.preventDefault();
-      ModalManager.open(opener.dataset.modalOpen);
-      return;
-    }
-    // Chiudi modale (bottone X, Annulla, o qualsiasi data-modal-close)
+    if (opener) { e.preventDefault(); ModalManager.open(opener.dataset.modalOpen); return; }
+
     const closer = e.target.closest('[data-modal-close], .modal-close');
-    if (closer) {
-      e.preventDefault();
-      ModalManager.close(closer.dataset.modalClose || undefined);
-      return;
-    }
-    // Click diretto sull'overlay (fuori dal .modal)
+    if (closer) { e.preventDefault(); ModalManager.close(closer.dataset.modalClose || undefined); return; }
+
+    // Click su overlay
     if (e.target.classList.contains('modal-overlay')) {
       ModalManager.close(e.target.id || undefined);
     }
   });
 
-  // ESC chiude tutto
+  // ESC con controllo dirty
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') ModalManager.closeAll();
   });
+
+  // Auto-markDirty: ogni input/change dentro una modal-overlay segna la modal come dirty
+  document.addEventListener('input', e => {
+    const modal = e.target.closest('.modal-overlay');
+    if (modal) markDirty(modal.id);
+  });
+  document.addEventListener('change', e => {
+    const modal = e.target.closest('.modal-overlay');
+    if (modal) markDirty(modal.id);
+  });
 }
 
-// Retrocompatibilità con vecchio nome
 export const initModals = initUI;
 
 // ─── FORM HELPERS ─────────────────────────────────────────────────────────
@@ -172,14 +225,6 @@ export function emptyState(icon, title, text = '') {
 }
 
 // ─── VALORI PRECEDENTI ────────────────────────────────────────────────────
-/**
- * Mostra sotto ogni label numerico antropometrico:
- *   "01/02/2026 — 78.2 kg"
- * come .prec-hint, inserito tra <label> e <input>.
- * NON tocca mai campi testuali (note, andamento, indicazioni, ecc.).
- *
- * @param {Object|null} ultimaVisita - riga completa dal DB (getUltimaVisita)
- */
 export function showValoriPrecedenti(ultimaVisita) {
   clearValoriPrecedenti();
   if (!ultimaVisita) return;
@@ -217,7 +262,6 @@ export function showValoriPrecedenti(ultimaVisita) {
     hint.innerHTML = dataPrec
       ? `<span class="prec-hint__date">${dataPrec}</span><span class="prec-hint__sep">—</span><span class="prec-hint__val">${v}${u ? '\u00a0' + u : ''}</span>`
       : `<span class="prec-hint__val">Prec: ${v}${u ? '\u00a0' + u : ''}</span>`;
-
     label.insertAdjacentElement('afterend', hint);
     input.placeholder = `Es: ${v}`;
     input.dataset.precVal = String(v);
