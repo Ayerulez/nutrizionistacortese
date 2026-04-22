@@ -133,6 +133,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- FOOD PICKER -->
+<div id="fpk-overlay" style="display:none;position:fixed;inset:0;z-index:1999;" id="fpk-overlay"></div>
 <div class="fpk" id="fpk" style="display:none;">
   <div class="fpk-hdr">
     <h4 id="fpk-title">Seleziona alimento</h4>
@@ -256,6 +257,7 @@
               </div>
             </div>
             <div class="page-head-actions">
+              <button class="btn btn-ghost btn-sm" id="btn-vai-paziente">👤 Scheda paziente</button>
               <button class="btn btn-ghost btn-sm" id="btn-clone">📋 Clona verso…</button>
               <button class="btn btn-secondary btn-sm" id="btn-edit-meta">✏️ Info</button>
               <button class="btn btn-primary btn-sm" id="btn-salva">💾 Salva piano</button>
@@ -337,7 +339,7 @@
 </div>
 
 <!-- ══ MODAL PAZIENTE ══ -->
-<div class="modal-overlay" id="modal-pz">
+<div class="modal-overlay" id="modal-pz" data-no-dirty="true">
   <div class="modal" style="max-width:540px;">
     <div class="modal-header"><h3>Seleziona paziente</h3>
       <button class="modal-close" data-modal-close="modal-pz" aria-label="Chiudi">✕</button></div>
@@ -360,7 +362,7 @@
 </div>
 
 <!-- ══ MODAL DIETA ══ -->
-<div class="modal-overlay" id="modal-dieta">
+<div class="modal-overlay" id="modal-dieta" data-no-dirty="true">
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <h3 id="md-title">Nuova dieta</h3>
@@ -410,7 +412,7 @@
 </div>
 
 <!-- ══ MODAL PASTO DETAIL ══ -->
-<div class="modal-overlay" id="modal-pasto">
+<div class="modal-overlay" id="modal-pasto" data-no-dirty="true">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
       <h3 id="mp-title">Pasto</h3>
@@ -422,7 +424,7 @@
 </div>
 
 <!-- ══ MODAL CLONE ══ -->
-<div class="modal-overlay" id="modal-clone">
+<div class="modal-overlay" id="modal-clone" data-no-dirty="true">
   <div class="modal" style="max-width:500px;">
     <div class="modal-header">
       <h3>Clona dieta verso paziente</h3>
@@ -547,12 +549,15 @@ async function init(){
   n('btn-save-dieta').addEventListener('click',saveDieta);
   n('btn-salva').addEventListener('click',()=>salvaPiano(true));
   n('btn-edit-meta').addEventListener('click',editMeta);
+  n('btn-vai-paziente').addEventListener('click',()=>{
+    if(S.paziente) window.location.href='pazienti.html?id='+S.paziente.id;
+  });
   n('btn-clone').addEventListener('click',openClone);
   n('btn-salva-testi').addEventListener('click',salvaTestiDieta);
   n('btn-salva-consig').addEventListener('click',salvaAlimConsig);
   n('btn-add-cons').addEventListener('click',()=>openFpForList('cons'));
   n('btn-add-scons').addEventListener('click',()=>openFpForList('scons'));
-  n('clip-clear').addEventListener('click',()=>{S.clipboard=null;n('clip-bar').classList.remove('show');});
+  n('clip-clear').addEventListener('click',()=>{S.clipboard=null;n('clip-bar').classList.remove('show');renderPiano();});
   // Food picker
   n('fpk-q').addEventListener('input',renderFpList);
   n('fpk-ann').addEventListener('click',closeFp);
@@ -581,6 +586,8 @@ async function init(){
   ['mpz-q','mpz-emin','mpz-emax'].forEach(id=>n(id)?.addEventListener('input',renderMpzList));
 
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFp();});
+  // Click fuori dal picker lo chiude
+  document.getElementById('fpk-overlay').addEventListener('click',closeFp);
 
   await Promise.all([loadAlimenti(), loadCatalogo(), loadAllPazienti()]);
   populatePatologie();
@@ -765,10 +772,15 @@ function backToGlobal(){
   n('view-paziente').style.display='none';
   n('view-editor').style.display='none';
 }
-function backToPzList(){
+async function backToPzList(){
   n('view-editor').style.display='none';
-  if(S.paziente){n('view-paziente').style.display='block';}
-  else n('view-list').style.display='block';
+  if(S.paziente){
+    n('view-paziente').style.display='block';
+    await loadPzDiete(); // ricarica lista diete del paziente
+  } else {
+    n('view-list').style.display='block';
+    await renderGlobalList();
+  }
 }
 
 // ─── NUOVA / MODIFICA DIETA ────────────────────────────
@@ -798,8 +810,7 @@ function openNuovaDieta(){
   n('btn-save-dieta').textContent='Crea dieta';
   document.querySelector('[name=mds][value="1"]').checked=true;
   selSchema('low_carb_leggera');n('md-prev').style.display='none';hideAlert('md-err');
-  markClean('modal-dieta');
-  ModalManager.open('modal-dieta');
+  ModalManager.openClean('modal-dieta');
 }
 function editMeta(){
   if(!S.dieta)return;
@@ -810,8 +821,7 @@ function editMeta(){
   selSchema(S.dieta.schema_macro||'low_carb_leggera');
   if(S.dieta.pct_carboidrati){n('md-pc').value=S.dieta.pct_carboidrati;}
   aggiornaMdPrev();hideAlert('md-err');
-  markClean('modal-dieta');
-  ModalManager.open('modal-dieta');
+  ModalManager.openClean('modal-dieta');
 }
 
 async function saveDieta(){
@@ -1125,19 +1135,25 @@ function openFp(s,g,m){
   n('fpk-title').textContent=`${GIORNI[g-1]} — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
   n('fpk-qty-row').style.display='flex';
   n('fpk-g').value=100;n('fpk-k').value='';n('fpk-q').value='';
-  renderFpList();n('fpk').style.display='flex';
+  renderFpList();
+  const fpkOv=document.getElementById('fpk-overlay');if(fpkOv)fpkOv.style.display='block';
+  n('fpk').style.display='flex';
 }
 function openFpSost(s,g,m){
   S._fpMode='sostituto';S._fpCtx={s,g,m};S._fpSelId=null;
   n('fpk-title').textContent=`Sostituto — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
   n('fpk-qty-row').style.display='none'; // isocalorico: no quantità
-  n('fpk-q').value='';renderFpList();n('fpk').style.display='flex';
+  n('fpk-q').value='';renderFpList();
+  const fpkOv2=document.getElementById('fpk-overlay');if(fpkOv2)fpkOv2.style.display='block';
+  n('fpk').style.display='flex';
 }
 function openFpForList(tipo){
   S._fpMode=tipo;S._fpSelId=null;
   n('fpk-title').textContent=tipo==='cons'?'Alimento consigliato':'Alimento sconsigliato';
   n('fpk-qty-row').style.display='none';
-  n('fpk-q').value='';renderFpList();n('fpk').style.display='flex';
+  n('fpk-q').value='';renderFpList();
+  const fpkOv3=document.getElementById('fpk-overlay');if(fpkOv3)fpkOv3.style.display='block';
+  n('fpk').style.display='flex';
 }
 
 function renderFpList(){
@@ -1166,8 +1182,8 @@ function renderFpList(){
   n('fpk-list').innerHTML=html||'<div style="padding:1rem;text-align:center;color:var(--text-muted);">Nessun alimento</div>';
   n('fpk-list').addEventListener('click',e=>{
     const item=e.target.closest('[data-faid]');if(!item)return;
-    n('fpk-list').querySelectorAll('.fpk-item').forEach(i=>i.style.outline='');
-    item.style.outline='2px solid var(--sage-400)';
+    n('fpk-list').querySelectorAll('.fpk-item').forEach(i=>i.classList.remove('fp-selected'));
+    item.classList.add('fp-selected');
     S._fpSelId=item.dataset.faid;
     if(S._fpMode==='pasto'){n('fpk-g').value=+item.dataset.fporz;syncKfromG();}
   });
@@ -1184,7 +1200,11 @@ function syncGfromK(){
   n('fpk-g').value=k>0?Math.round(k/(a.energia_kcal/100)):'';
 }
 
-function closeFp(){n('fpk').style.display='none';S._fpSelId=null;}
+function closeFp(){
+  n('fpk').style.display='none';
+  const ov=document.getElementById('fpk-overlay');if(ov)ov.style.display='none';
+  S._fpSelId=null;
+}
 
 async function confirmFp(){
   const aid=S._fpSelId;
@@ -1327,8 +1347,7 @@ function openPastoDetail(s,g,m,pasto){
     ModalManager.close('modal-pasto');renderPiano();renderDayView();
     await autoSave();toast('Nota salvata');
   };
-  markClean('modal-pasto');
-  ModalManager.open('modal-pasto');
+  ModalManager.openClean('modal-pasto');
 }
 
 // ─── TESTI ────────────────────────────────────────────
@@ -1426,8 +1445,8 @@ function openInlineAlim(){
   ['ali-nome','ali-note-p','ali-kcal','ali-prot','ali-carb','ali-lip','ali-zucc','ali-fibra']
     .forEach(id=>{const el=n(id);if(el)el.value='';});
   n('ali-cat').value='';n('ali-porz').value='100';
-  hideAlert('ali-err');markClean('modal-alim-inline');
-  ModalManager.open('modal-alim-inline');
+  hideAlert('ali-err');
+  ModalManager.openClean('modal-alim-inline');
 }
 
 async function saveAlimInline(){

@@ -132,6 +132,9 @@
             <div class="form-group" style="margin:0;"><label>Città</label><input type="text" id="adv-citta" /></div>
             <div class="form-group" style="margin:0;"><label>Età min</label><input type="number" id="adv-eta-min" min="0" max="120" /></div>
             <div class="form-group" style="margin:0;"><label>Età max</label><input type="number" id="adv-eta-max" min="0" max="120" /></div>
+            <div class="form-group" style="margin:0;"><label>Patologia</label>
+              <select id="adv-patologia"><option value="">Tutte</option></select>
+            </div>
             <div class="form-group" style="margin:0;"><label>Ordina per</label>
               <select id="adv-order"><option value="cognome">Alfabetico</option><option value="data_creazione">Più recente</option></select>
             </div>
@@ -471,7 +474,7 @@ async function init() {
   n('btn-nuova-visita').addEventListener('click', openVisitModal);
 
   n('search-base').addEventListener('input', debouncedSearch);
-  ['adv-sesso','adv-order'].forEach(id => n(id).addEventListener('change', debouncedSearch));
+  ['adv-sesso','adv-order','adv-patologia'].forEach(id => n(id).addEventListener('change', debouncedSearch));
   ['adv-citta','adv-eta-min','adv-eta-max'].forEach(id => n(id).addEventListener('input', debouncedSearch));
 
   n('v-peso').addEventListener('input', calcIndici);
@@ -485,6 +488,11 @@ async function init() {
 
   // Carica catalogo patologie (una sola volta)
   S.catalogoPatologie = await getPatologieCatalogo().catch(() => []);
+  // Popola select patologia nella ricerca avanzata
+  if (n('adv-patologia') && S.catalogoPatologie.length) {
+    n('adv-patologia').innerHTML = '<option value="">Tutte</option>' +
+      S.catalogoPatologie.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+  }
 
   await loadPazienti();
   loading(false);
