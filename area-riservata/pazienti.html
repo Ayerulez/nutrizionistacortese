@@ -158,8 +158,7 @@
             <div><h2 id="detail-name">—</h2><p id="detail-meta" class="text-muted text-sm" style="margin-top:.2rem;"></p></div>
           </div>
           <div class="page-head-actions">
-            <button class="btn btn-ghost btn-sm" id="btn-diete-paziente">🥗 Diete</button>
-              <button class="btn btn-secondary" id="btn-edit-patient">✏️ Modifica anagrafica</button>
+<button class="btn btn-secondary" id="btn-edit-patient">✏️ Modifica anagrafica</button>
             <button class="btn btn-primary"   id="btn-nuova-visita">+ Nuova visita</button>
           </div>
         </div>
@@ -168,6 +167,7 @@
           <button class="tab-btn active" data-tab="tab-visite">📋 Visite</button>
           <button class="tab-btn" data-tab="tab-anagrafica">👤 Anagrafica</button>
           <button class="tab-btn" data-tab="tab-grafici">📈 Grafici</button>
+          <button class="tab-btn" data-tab="tab-diete">🥗 Diete</button>
         </div>
 
         <div id="tab-visite"     class="tab-panel active"><div id="visit-list-container"></div></div>
@@ -178,6 +178,13 @@
             <div class="chart-card"><div class="card-title">📊 BMI</div><canvas id="chart-bmi"></canvas></div>
             <div class="chart-card"><div class="card-title">💧 FM vs FFM (kg)</div><canvas id="chart-comp"></canvas></div>
             <div class="chart-card"><div class="card-title">📐 Circonferenze (cm)</div><canvas id="chart-circ"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ══ TAB DIETE (inline, filtrata per paziente) ══ -->
+        <div id="tab-diete" class="tab-panel">
+          <div id="tab-diete-content">
+            <!-- Viene popolato da renderDieteTab() -->
           </div>
         </div>
       </div>
@@ -470,7 +477,7 @@ async function init() {
   n('btn-save-visit').addEventListener('click', saveVisit);
   n('btn-back').addEventListener('click', backToList);
   n('btn-edit-patient').addEventListener('click', editCurrentPatient);
-  n('btn-diete-paziente').addEventListener('click', () => { if(S.patientId) window.location.href='diete.html?paziente='+S.patientId; });
+  // Diete sono ora nel tab inline
   n('btn-nuova-visita').addEventListener('click', openVisitModal);
 
   n('search-base').addEventListener('input', debouncedSearch);
@@ -608,6 +615,7 @@ function switchTab(tabId, btn) {
   n(tabId)?.classList.add('active');
   btn.classList.add('active');
   if (tabId === 'tab-grafici') renderCharts();
+  if (tabId === 'tab-diete')   renderDieteTab();
 }
 
 // ─── ANAGRAFICA DISPLAY ──────────────────────────────────
@@ -1124,6 +1132,87 @@ async function exportPDF(visitId) {
     toast('PDF generato!');
   } catch (e) { console.error(e); toast('Errore PDF','error'); }
   finally { loading(false); }
+}
+
+// ─── TAB DIETE ────────────────────────────────────────────────────
+const SCHEMI_DIETA = {
+  low_carb_leggera:'Low Carb Leggera (C40/P30/L30)',
+  low_carb:        'Low Carb (C20/P40/L40)',
+  mediterranea:    'Mediterranea (C55/P15/L30)',
+  libera:          'Libera',
+};
+
+async function renderDieteTab() {
+  if (!S.patientId) return;
+  const cont = n('tab-diete-content');
+  cont.innerHTML = '<div class="loading-inline" style="text-align:center;padding:2rem;color:var(--text-muted);">Caricamento diete…</div>';
+
+  const { data: diete, error } = await sb.from('diete')
+    .select('id,nome,target_kcal,schema_macro,numero_settimane,attiva,created_at,updated_at')
+    .eq('paziente_id', S.patientId)
+    .order('created_at', { ascending: false });
+
+  if (error) { cont.innerHTML = '<p class="text-muted" style="padding:1rem;">Errore caricamento.</p>'; return; }
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+    <p class="text-muted text-sm">Piani alimentari di questo paziente.</p>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn btn-ghost btn-sm" id="dt-apri-completa"
+        onclick="window.open('diete.html?paziente=${S.patientId}','_blank')">
+        🔗 Apri in Diete
+      </button>
+      <button class="btn btn-primary btn-sm" id="dt-nuova">+ Nuova dieta</button>
+    </div>
+  </div>`;
+
+  if (!diete?.length) {
+    html += emptyState('🥗', 'Nessuna dieta', 'Clicca "+ Nuova dieta" per creare il primo piano alimentare.');
+  } else {
+    html += diete.map(d => `
+      <div style="display:flex;align-items:center;gap:.85rem;padding:.9rem 1.25rem;
+        background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
+        margin-bottom:.45rem;cursor:pointer;transition:all .2s;"
+        class="dg-card-inline" data-diet-id="${d.id}"
+        onmouseover="this.style.borderColor='var(--sage-300)'"
+        onmouseout="this.style.borderColor='var(--border)'">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:var(--text-primary);font-size:.92rem;">
+            ${d.nome}
+            ${d.attiva ? '<span style="font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.35rem;">✓ Attiva</span>' : ''}
+          </div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem;">
+            🎯 ${Math.round(d.target_kcal)} kcal/g · ${SCHEMI_DIETA[d.schema_macro] || 'Libera'} · ${d.numero_settimane} sett.
+            · ${fmtDateShort(d.created_at)}
+          </div>
+        </div>
+        <div style="display:flex;gap:.4rem;flex-shrink:0;">
+          <button class="btn btn-secondary btn-sm" data-open-diet="${d.id}">Apri →</button>
+          <button class="btn btn-ghost btn-sm" data-toggle-diet="${d.id}" data-att="${d.attiva}">
+            ${d.attiva ? '⏸' : '▶'}
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  cont.innerHTML = html;
+
+  // Listeners
+  n('dt-nuova')?.addEventListener('click', openNuovaDietaInline);
+  cont.addEventListener('click', async e => {
+    const ob = e.target.closest('[data-open-diet]');
+    if (ob) { window.location.href = 'diete.html?paziente=' + S.patientId + '&dieta=' + ob.dataset.openDiet; return; }
+    const tb = e.target.closest('[data-toggle-diet]');
+    if (tb) {
+      await sb.from('diete').update({ attiva: tb.dataset.att !== 'true' }).eq('id', tb.dataset.toggleDiet);
+      await renderDieteTab();
+    }
+  });
+}
+
+// ── Modal nuova dieta inline (apre diete.html precompilato) ──────
+function openNuovaDietaInline() {
+  // Apre diete.html con il paziente pre-selezionato e il modal nuova dieta aperto
+  window.location.href = 'diete.html?paziente=' + S.patientId + '&new=1';
 }
 
 init();

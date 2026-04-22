@@ -596,7 +596,13 @@ async function init(){
   const p=new URLSearchParams(location.search);
   if(p.get('paziente')){
     const pz=S._allPz.find(x=>x.id===p.get('paziente'));
-    if(pz) await selectPz(pz);
+    if(pz){
+      await selectPz(pz);
+      // Se c'è &new=1 apre subito il modal nuova dieta
+      if(p.get('new')==='1') openNuovaDieta();
+      // Se c'è &dieta=id apre direttamente quell'editor
+      if(p.get('dieta')) await openEditor(p.get('dieta'));
+    }
   }
   loading(false);
 }
