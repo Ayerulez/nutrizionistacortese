@@ -165,7 +165,7 @@
 </div>
 
 <!-- ══ MODAL FORM ALIMENTO ══ -->
-<div class="modal-overlay" id="modal-alimento">
+<div class="modal-overlay" id="modal-alimento" data-dirty-check="true">
   <div class="modal" style="max-width:820px;">
     <div class="modal-header">
       <h3 id="modal-alimento-title">Nuovo alimento</h3>
@@ -507,7 +507,7 @@ function getPatologieSelezionate() {
 }
 
 async function openAlimentoForm(id=null) {
-  ModalManager.close('modal-detail');
+  ModalManager.forceClose('modal-detail');
   n('a-editing-id').value = id||'';
   n('modal-alimento-title').textContent = id?'Modifica alimento':'Nuovo alimento';
   hideAlert('alimento-error');
@@ -542,7 +542,7 @@ async function openAlimentoForm(id=null) {
     n('a-categoria').value=''; n('a-porzione').value='100';
   }
   buildPatologieSelector(attualiCi);
-  ModalManager.open('modal-alimento');
+  ModalManager.openClean('modal-alimento');
 }
 
 async function saveAlimento() {
@@ -585,7 +585,7 @@ async function saveAlimento() {
       if(error)throw error;
     }
     toast(editId?'Alimento aggiornato':'Alimento salvato');
-    ModalManager.close('modal-alimento');
+    ModalManager.forceClose('modal-alimento');
     await loadAlimenti();
   } catch(e){showAlert('alimento-error','Errore: '+e.message);}
   finally{setBtn('btn-save-alimento',false);}

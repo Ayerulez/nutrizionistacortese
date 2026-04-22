@@ -339,7 +339,7 @@
 </div>
 
 <!-- ══ MODAL PAZIENTE ══ -->
-<div class="modal-overlay" id="modal-pz" data-no-dirty="true">
+<div class="modal-overlay" id="modal-pz">
   <div class="modal" style="max-width:540px;">
     <div class="modal-header"><h3>Seleziona paziente</h3>
       <button class="modal-close" data-modal-close="modal-pz" aria-label="Chiudi">✕</button></div>
@@ -362,7 +362,7 @@
 </div>
 
 <!-- ══ MODAL DIETA ══ -->
-<div class="modal-overlay" id="modal-dieta" data-no-dirty="true">
+<div class="modal-overlay" id="modal-dieta">
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <h3 id="md-title">Nuova dieta</h3>
@@ -412,7 +412,7 @@
 </div>
 
 <!-- ══ MODAL PASTO DETAIL ══ -->
-<div class="modal-overlay" id="modal-pasto" data-no-dirty="true">
+<div class="modal-overlay" id="modal-pasto">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
       <h3 id="mp-title">Pasto</h3>
@@ -424,7 +424,7 @@
 </div>
 
 <!-- ══ MODAL CLONE ══ -->
-<div class="modal-overlay" id="modal-clone" data-no-dirty="true">
+<div class="modal-overlay" id="modal-clone">
   <div class="modal" style="max-width:500px;">
     <div class="modal-header">
       <h3>Clona dieta verso paziente</h3>
@@ -445,7 +445,7 @@
 </div>
 
 <!-- ══ MODAL NUOVO ALIMENTO INLINE ══ -->
-<div class="modal-overlay" id="modal-alim-inline">
+<div class="modal-overlay" id="modal-alim-inline" data-dirty-check="true">
   <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <h3>Nuovo alimento</h3>
@@ -721,7 +721,7 @@ async function renderMpzList(){
   n('mpz-list').addEventListener('click',async e=>{
     const item=e.target.closest('[data-pzid]');if(!item)return;
     const pz=S._allPz.find(p=>p.id===item.dataset.pzid);
-    if(pz){ModalManager.close('modal-pz');await selectPz(pz);}
+    if(pz){ModalManager.forceClose('modal-pz');await selectPz(pz);}
   });
 }
 
@@ -1336,15 +1336,15 @@ function openPastoDetail(s,g,m,pasto){
   n('mp-body').addEventListener('click',async e=>{
     const rm=e.target.closest('[data-rm-sost]');
     if(rm){pasto.sostituti_ids=(pasto.sostituti_ids||[]).filter(x=>x!==rm.dataset.rmSost);
-      ModalManager.close('modal-pasto');renderPiano();renderDayView();await autoSave();}
+      ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();await autoSave();}
   });
-  n('mp-change').onclick=()=>{ModalManager.close('modal-pasto');S.piano[s][g][m]=null;openFp(s,g,m);};
-  n('mp-add-sost').onclick=()=>{ModalManager.close('modal-pasto');openFpSost(s,g,m);};
-  n('mp-copy').onclick=()=>{copiaPasto(s,g,m);ModalManager.close('modal-pasto');};
-  n('mp-remove').onclick=async()=>{S.piano[s][g][m]=null;ModalManager.close('modal-pasto');renderPiano();renderDayView();await autoSave();};
+  n('mp-change').onclick=()=>{ModalManager.forceClose('modal-pasto');S.piano[s][g][m]=null;openFp(s,g,m);};
+  n('mp-add-sost').onclick=()=>{ModalManager.forceClose('modal-pasto');openFpSost(s,g,m);};
+  n('mp-copy').onclick=()=>{copiaPasto(s,g,m);ModalManager.forceClose('modal-pasto');};
+  n('mp-remove').onclick=async()=>{S.piano[s][g][m]=null;ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();await autoSave();};
   n('mp-save-note').onclick=async()=>{
     pasto.note=n('mp-note').value.trim()||null;
-    ModalManager.close('modal-pasto');renderPiano();renderDayView();
+    ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();
     await autoSave();toast('Nota salvata');
   };
   ModalManager.openClean('modal-pasto');
@@ -1434,7 +1434,7 @@ async function cloneVerso(targetPzId){
     if(rows.length>0)await sb.from('pasti_dieta').insert(rows);
     const dest=S._allPz.find(p=>p.id===targetPzId);
     toast(`Dieta clonata verso ${dest?.cognome} ${dest?.nome}!`);
-    ModalManager.close('modal-clone');
+    ModalManager.forceClose('modal-clone');
   }catch(e){toast('Errore clonazione: '+e.message,'error');}
   finally{loading(false);}
 }

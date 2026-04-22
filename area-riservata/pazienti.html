@@ -186,7 +186,7 @@
 </div>
 
 <!-- ══ MODAL PAZIENTE ══ -->
-<div class="modal-overlay" id="modal-patient">
+<div class="modal-overlay" id="modal-patient" data-dirty-check="true">
   <div class="modal modal--wide">
     <div class="modal-header">
       <h3 id="modal-patient-title">Nuovo paziente</h3>
@@ -311,7 +311,7 @@
 </div>
 
 <!-- ══ MODAL VISITA ══ -->
-<div class="modal-overlay" id="modal-visit">
+<div class="modal-overlay" id="modal-visit" data-dirty-check="true">
   <div class="modal modal--wide">
     <div class="modal-header">
       <h3 id="modal-visit-title">Nuova visita</h3>
@@ -694,7 +694,7 @@ async function openPatientModal() {
   ['p-sesso','p-canale','p-alvo','p-obiettivo'].forEach(id => { const el=n(id); if(el) el.value=''; });
   document.querySelectorAll('[name=dieta]').forEach(r => r.checked = false);
   buildPatologieSelector([]);
-  ModalManager.open('modal-patient');
+  ModalManager.openClean('modal-patient');
 }
 
 async function editCurrentPatient() {
@@ -730,7 +730,7 @@ async function editCurrentPatient() {
     if (r) r.checked = true;
   }
   buildPatologieSelector(patIds);
-  ModalManager.open('modal-patient');
+  ModalManager.openClean('modal-patient');
 }
 
 async function savePatient() {
@@ -769,7 +769,7 @@ async function savePatient() {
     // Salva patologie (sostituisce il set)
     await savePatologiePaziente(pid, S.user.id, patIds);
     toast(S.editingPatientId ? 'Anagrafica aggiornata' : 'Paziente salvato');
-    ModalManager.close('modal-patient');
+    ModalManager.forceClose('modal-patient');
     if (S.patientId) { S.patientAltezza = flt('p-altezza'); openPatient(S.patientId); }
     else loadPazienti();
   } catch (e) { showAlert('patient-error', 'Errore: ' + e.message); }
@@ -909,7 +909,7 @@ async function openVisitModal() {
   }
 
   await populateVisitSelects();
-  ModalManager.open('modal-visit');
+  ModalManager.openClean('modal-visit');
 }
 
 async function editVisit(id) {
@@ -948,7 +948,7 @@ async function editVisit(id) {
   });
 
   await populateVisitSelects(v.struttura_id, v.prestazione_id);
-  ModalManager.open('modal-visit');
+  ModalManager.openClean('modal-visit');
 }
 
 async function populateVisitSelects(selStr=null, selPrest=null) {
@@ -1002,7 +1002,7 @@ async function saveVisit() {
   try {
     await saveVisita(payload, S.editingVisitId);
     toast(S.editingVisitId ? 'Visita aggiornata' : 'Visita salvata');
-    ModalManager.close('modal-visit');
+    ModalManager.forceClose('modal-visit');
     clearValoriPrecedenti();
     await loadVisite();
   } catch (e) { showAlert('visit-error', 'Errore: ' + e.message); }

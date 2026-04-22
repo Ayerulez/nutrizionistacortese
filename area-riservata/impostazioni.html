@@ -68,15 +68,19 @@
   </header>
 
   <div class="app-body">
-    <nav class="sidebar">
+        <nav class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-section-label">Principale</div>
-        <a href="index.html"    class="sidebar-link">
+        <a href="index.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
         <a href="pazienti.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
-        <a href="visite.html"   class="sidebar-link">
+        <a href="visite.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
       </div>
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
@@ -356,7 +360,7 @@ async function saveStrutturaHandler() {
       await saveStruttura({ nome, indirizzo: val('str-indirizzo') }, S.user.id);
       toast('Struttura salvata');
     }
-    ModalManager.close('modal-struttura');
+    ModalManager.forceClose('modal-struttura');
     await loadStrutture();
     await loadPrestazioni();
   } catch (e) { toast('Errore: ' + e.message, 'error'); }
@@ -530,7 +534,7 @@ async function savePrestazioneHandler() {
       editId
     );
     toast(editId ? 'Prestazione aggiornata' : 'Prestazione salvata');
-    ModalManager.close('modal-prestazione');
+    ModalManager.forceClose('modal-prestazione');
     await loadPrestazioni();
   } catch (e) { showAlert('prest-error', 'Errore: ' + e.message); }
   finally { setBtn('btn-save-prest', false); }
