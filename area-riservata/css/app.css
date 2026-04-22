@@ -409,3 +409,35 @@ a{text-decoration:none;color:inherit;}
 
 /* ── BMI chart ── */
 .bmi-chart-wrap{position:relative;padding:1rem 0;}
+
+/* ── Riga selezionata nelle liste / picker ── */
+/* Sostituisce il semplice bordo con un background evidente */
+.fpk-item.selected,
+.food-picker-item.selected,
+[data-faid].selected,
+[data-aid].selected {
+  background: var(--sage-100) !important;
+  border-left: 3px solid var(--sage-600) !important;
+}
+/* Item selezionato nel food picker tramite outline → usiamo classe invece */
+.fpk-item[style*="outline"] {
+  background: var(--sage-100);
+  border-left: 3px solid var(--sage-600);
+}
+/* Lista pazienti: riga hover e selected */
+.patient-item:hover {
+  background: var(--sage-50);
+  border-left: 3px solid var(--sage-300);
+  cursor: pointer;
+}
+/* Picker pazienti hover */
+.fpk-item:hover,
+.fp-item:hover {
+  background: var(--sage-50);
+  border-left: 3px solid var(--sage-200);
+}
+/* Selezione attiva nel picker */
+.fpk-item.fp-selected {
+  background: var(--sage-100) !important;
+  border-left: 3px solid var(--sage-600) !important;
+}
