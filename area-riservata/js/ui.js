@@ -105,8 +105,14 @@ export const ModalManager = {
   forceClose(id) {
     // Chiude senza controllo dirty (usato dopo salvataggio)
     const targetId = id ?? document.querySelector('.modal-overlay.open')?.id;
-    _dirtyModals.delete(targetId);
+    if (targetId) _dirtyModals.delete(targetId);
     _doClose(targetId);
+  },
+
+  /** Apre e azzera lo stato dirty della modale (usato prima di popolare i campi) */
+  openClean(id) {
+    _dirtyModals.delete(id);
+    this.open(id);
   },
 };
 
@@ -179,13 +185,14 @@ export function initUI() {
   });
 
   // Auto-markDirty: ogni input/change dentro una modal-overlay segna la modal come dirty
+  // Escluse le modali con data-no-dirty="true"
   document.addEventListener('input', e => {
     const modal = e.target.closest('.modal-overlay');
-    if (modal) markDirty(modal.id);
+    if (modal && modal.dataset.noDirty !== 'true') markDirty(modal.id);
   });
   document.addEventListener('change', e => {
     const modal = e.target.closest('.modal-overlay');
-    if (modal) markDirty(modal.id);
+    if (modal && modal.dataset.noDirty !== 'true') markDirty(modal.id);
   });
 }
 
