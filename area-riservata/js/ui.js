@@ -184,15 +184,15 @@ export function initUI() {
     if (e.key === 'Escape') ModalManager.closeAll();
   });
 
-  // Auto-markDirty: ogni input/change dentro una modal-overlay segna la modal come dirty
-  // Escluse le modali con data-no-dirty="true"
+  // Auto-markDirty: SOLO le modali con data-dirty-check="true" mostrano il banner
+  // Logica opt-in: nessuna modal attiva il banner per default
   document.addEventListener('input', e => {
     const modal = e.target.closest('.modal-overlay');
-    if (modal && modal.dataset.noDirty !== 'true') markDirty(modal.id);
+    if (modal && modal.dataset.dirtyCheck === 'true') markDirty(modal.id);
   });
   document.addEventListener('change', e => {
     const modal = e.target.closest('.modal-overlay');
-    if (modal && modal.dataset.noDirty !== 'true') markDirty(modal.id);
+    if (modal && modal.dataset.dirtyCheck === 'true') markDirty(modal.id);
   });
 }
 
