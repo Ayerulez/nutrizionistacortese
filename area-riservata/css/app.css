@@ -441,3 +441,11 @@ a{text-decoration:none;color:inherit;}
   background: var(--sage-100) !important;
   border-left: 3px solid var(--sage-600) !important;
 }
+
+/* ── Card dieta nel tab paziente ── */
+.dg-card-inline {
+  transition: border-color .15s, box-shadow .15s;
+}
+.dg-card-inline:hover {
+  box-shadow: var(--shadow-md);
+}
