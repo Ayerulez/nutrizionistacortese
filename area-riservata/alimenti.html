@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- build: 2026-04-22 15:57 -->
 <html lang="it">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -276,7 +277,7 @@ async function init() {
   n('btn-logout').addEventListener('click', logout);
   n('btn-nuovo-alimento').addEventListener('click', () => openAlimentoForm());
   n('btn-save-alimento').addEventListener('click', saveAlimento);
-  n('detail-btn-edit').addEventListener('click', () => { const isSystem=n('detail-btn-edit').dataset.isSystem==='true'; openAlimentoForm(n('detail-btn-edit').dataset.id, isSystem); });
+  n('detail-btn-edit').addEventListener('click', () => openAlimentoForm(n('detail-btn-edit').dataset.id));
 
   ['search-alimento','filter-kcal-max'].forEach(id => n(id).addEventListener('input', () => { S.pagina=0; applyFilters(); }));
   ['filter-categoria','filter-sort'].forEach(id => n(id).addEventListener('change', () => { S.pagina=0; applyFilters(); }));
@@ -366,9 +367,7 @@ function renderTable() {
       <td>${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}</td>
       <td><div class="td-actions">
         <button class="btn btn-secondary btn-sm" data-detail="${a.id}">🔍</button>
-        ${isCustom
-          ? `<button class="btn btn-ghost btn-sm" data-edit="${a.id}">✏️</button>`
-          : `<button class="btn btn-ghost btn-sm" data-dup="${a.id}" title="Crea versione personalizzata">📋</button>`}
+        <button class="btn btn-ghost btn-sm" data-edit="${a.id}">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -376,7 +375,6 @@ function renderTable() {
   tbody.addEventListener('click', e=>{
     const d=e.target.closest('[data-detail]'); if(d){openDetail(d.dataset.detail);return;}
     const ed=e.target.closest('[data-edit]');  if(ed){openAlimentoForm(ed.dataset.edit);return;}
-    const dup=e.target.closest('[data-dup]');   if(dup){openAlimentoForm(dup.dataset.dup, true);return;}
     const row=e.target.closest('[data-alimento-id]');
     if(row&&!e.target.closest('button')) openDetail(row.dataset.alimentoId);
   });
@@ -414,8 +412,7 @@ async function openDetail(id) {
 
   n('detail-title').textContent=a.nome;
   n('detail-btn-edit').dataset.id=id;
-  n('detail-btn-edit').dataset.isSystem= a.user_id ? 'false' : 'true';
-  n('detail-btn-edit').textContent= a.user_id ? '✏️ Modifica' : '📋 Duplica e personalizza';
+  n('detail-btn-edit').textContent='✏️ Modifica';
   n('detail-btn-edit').style.display='inline-flex';
 
   const tot=(a.proteine_g||0)*4+(a.carboidrati_g||0)*4+(a.lipidi_g||0)*9||1;
@@ -511,13 +508,10 @@ function getPatologieSelezionate() {
   }));
 }
 
-async function openAlimentoForm(id=null, isDuplicate=false) {
+async function openAlimentoForm(id=null) {
   ModalManager.forceClose('modal-detail');
-  // isDuplicate: carica dati per precompilare ma salva come NUOVO alimento custom
-  n('a-editing-id').value = (id && !isDuplicate) ? id : '';
-  n('modal-alimento-title').textContent = isDuplicate
-    ? 'Duplica alimento (versione personalizzata)'
-    : (id ? 'Modifica alimento' : 'Nuovo alimento');
+  n('a-editing-id').value = id||'';
+  n('modal-alimento-title').textContent = id ? 'Modifica alimento' : 'Nuovo alimento';
   hideAlert('alimento-error');
   n('macro-preview').style.display='none';
 
