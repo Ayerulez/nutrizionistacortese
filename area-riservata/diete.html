@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- build: 2026-04-22 15:57 -->
 <html lang="it">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -127,6 +128,7 @@
       padding:.18rem .55rem;border-radius:9999px;margin:.18rem;
       background:#fef2f2;color:#c53030;border:1px solid #fecaca;}
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -260,6 +262,7 @@
               <button class="btn btn-ghost btn-sm" id="btn-vai-paziente">👤 Scheda paziente</button>
               <button class="btn btn-ghost btn-sm" id="btn-clone">📋 Clona verso…</button>
               <button class="btn btn-secondary btn-sm" id="btn-edit-meta">✏️ Info</button>
+              <button class="btn btn-gold btn-sm" id="btn-pdf">📄 Esporta PDF</button>
               <button class="btn btn-primary btn-sm" id="btn-salva">💾 Salva piano</button>
             </div>
           </div>
@@ -496,6 +499,7 @@
 
 <script type="module">
 import { sb, requireAuth, logout } from './js/supabase.js';
+import { esportaPianoPDF } from './js/pdf-dieta.js';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
          n, val, flt, emptyState, fmtDateShort, calcEta } from './js/ui.js';
@@ -548,6 +552,7 @@ async function init(){
   n('btn-nuova-dieta').addEventListener('click',openNuovaDieta);
   n('btn-save-dieta').addEventListener('click',saveDieta);
   n('btn-salva').addEventListener('click',()=>salvaPiano(true));
+  n('btn-pdf').addEventListener('click', handleEsportaPDF);
   n('btn-edit-meta').addEventListener('click',editMeta);
   n('btn-vai-paziente').addEventListener('click',()=>{
     if(S.paziente) window.location.href='pazienti.html?id='+S.paziente.id;
@@ -1487,6 +1492,27 @@ async function saveAlimInline(){
     },100);
   }catch(e){showAlert('ali-err','Errore: '+e.message);}
   finally{setBtn('btn-save-ali-inline',false);}
+}
+
+// ─── ESPORTA PDF ─────────────────────────────────────────────────
+async function handleEsportaPDF() {
+  if (!S.dieta || !S.paziente) {
+    toast('Nessuna dieta aperta', 'error');
+    return;
+  }
+  // Auto-salva prima di esportare per avere dati aggiornati
+  setBtn('btn-pdf', true);
+  try {
+    await salvaPiano(false);
+    toast('Generazione PDF…');
+    await esportaPianoPDF(S.dieta, S.paziente, S.piano, S.aliIdx);
+    toast('PDF generato!');
+  } catch(e) {
+    toast('Errore PDF: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    setBtn('btn-pdf', false);
+  }
 }
 
 init();
