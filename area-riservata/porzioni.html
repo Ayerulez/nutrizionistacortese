@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!-- build: 2026-04-25 -->
+<html lang="it">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabella Porzioni – Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .porzioni-table { width:100%; border-collapse:collapse; font-size:.83rem; }
+    .porzioni-table th {
+      background:var(--sage-50); padding:.6rem .85rem; text-align:left;
+      font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      color:var(--sage-600); border-bottom:2px solid var(--sage-200); white-space:nowrap;
+    }
+    .porzioni-table td { padding:.5rem .85rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .porzioni-table tr:last-child td { border-bottom:none; }
+    .porzioni-table tr.cat-row td {
+      background:var(--sage-600); color:white; font-weight:700;
+      font-size:.75rem; letter-spacing:.12em; text-transform:uppercase;
+      padding:.4rem .85rem;
+    }
+    .porzioni-table tr:hover:not(.cat-row) td { background:var(--sage-50); }
+    .td-input {
+      width:90px; padding:.3rem .5rem;
+      border:1.5px solid var(--border); border-radius:var(--r-sm);
+      font-size:.85rem; font-family:var(--font-body); text-align:center;
+      background:white; transition:border-color .15s;
+    }
+    .td-input:focus { border-color:var(--sage-400); outline:none; }
+    .td-input.computed {
+      background:var(--sage-50); color:var(--sage-700);
+      font-weight:600; border-color:var(--sage-200); cursor:default;
+    }
+    .td-input.base { border-color:var(--gold-300); background:#fffbf0; }
+    .td-note { font-size:.75rem; color:var(--text-muted); }
+    .td-name { font-weight:500; color:var(--text-primary); }
+    .section-divider { height:8px; background:transparent; }
+    .input-group { display:flex; align-items:center; gap:.35rem; }
+    .unit-lbl { font-size:.73rem; color:var(--text-muted); white-space:nowrap; }
+  </style>
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span class="topbar__email" id="topbar-email"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <a href="index.html"    class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html"   class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html"    class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
+        <a href="porzioni.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Porzioni</a>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h2>Tabella delle Porzioni</h2>
+          <p class="text-muted text-sm">
+            Modifica i valori base evidenziati in <span style="color:var(--gold-400);font-weight:600;">giallo</span> — tutti gli altri si calcolano automaticamente.
+            Le grammature sono da crudo, al netto degli scarti.
+          </p>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn btn-secondary" id="btn-reset">↺ Ripristina default</button>
+          <button class="btn btn-primary"   id="btn-pdf">📄 Esporta PDF</button>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;">
+        <table class="porzioni-table" id="porzioni-table">
+          <thead>
+            <tr>
+              <th style="width:22%;">Alimento</th>
+              <th style="width:28%;">Esempi</th>
+              <th style="width:15%;">Peso crudo (g)</th>
+              <th style="width:15%;">Peso cotto (g)</th>
+              <th style="width:10%;">F.C.</th>
+              <th style="width:10%;">Note</th>
+            </tr>
+          </thead>
+          <tbody id="porzioni-tbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { requireAuth, logout } from './js/supabase.js';
+import { loading, toast, n, initUI } from './js/ui.js';
+
+// ─── DATI TABELLA ─────────────────────────────────────────────────────────
+// Struttura: ogni entry ha id, nome, note, crudo, cotto, fc
+// Le formule replicano l'Excel (dipendenze da valori di altre righe via id)
+// I valori con formula sono ricalcolati live quando cambia il valore base
+
+const DEFAULTS = {
+  carneBianca: 150,   // C4 - valore base principale PROTEINE
+  pescoCrudo:  100,   // C6 - pesce grasso/magro base
+  pastaSemola: 50,    // C19 - valore base principale CARBOIDRATI
+  pane:        60,    // C33 - pane base
+};
+
+function rd(val, dec) {
+  // ROUNDDOWN Excel: arrotonda verso zero al multiplo di 10^(-dec)
+  // dec=-1 significa multiplo di 10
+  if (dec === -1) return Math.floor(val / 10) * 10;
+  return Math.floor(val);
+}
+function ru(val, dec) {
+  if (dec === -1) return Math.ceil(val / 10) * 10;
+  return Math.ceil(val);
+}
+
+function getRows(v) {
+  const cb = v.carneBianca;  // C4
+  const pf = v.pescoCrudo;   // C6
+  const ps = v.pastaSemola;  // C19
+  const pn = v.pane;         // C33
+
+  // Derivati proteine
+  const c11 = rd(cb / 1.5, -1);
+  const c12 = c11 / 2;
+  const c13 = c11 / 2;
+  const c14 = rd(c11 / 3, -1);
+  const c15 = rd(cb / 3, -1);
+  const c16 = rd(cb / 1.6, -1);
+  const c8  = rd(pf * 1, -1);
+
+  // Derivati carboidrati
+  const c20 = rd(ps * 1.28, -1);
+  const c21 = rd(ps * 1.28, -1);
+  const c22 = rd(ps * 1.18, -1);
+  const c23 = rd(ps * 1, -1);
+  const c24 = ps * 1;
+  const c25 = ps * 1;
+  const c26 = ps * 1;
+  const c27 = ps * 1;
+  const c28 = ps * 1;
+  const c29 = rd(ps * 2.5, -1);
+  const c30 = rd(ps * 2.66, -1);
+  const c31 = rd(ps * 4, -1);
+  const c32 = ps * 1;
+  const c34 = rd(ps * 0.5, -1);
+  const c35 = rd(ps * 0.5, -1);
+  const c36 = rd(ps * 0.5, -1);
+  const c38 = rd(pn / 1.6, -1);
+  const c39 = rd(ps * 0.8, -1);
+
+  return [
+    // PROTEINE
+    { cat: 'PROTEINE' },
+    { id:'carneBianca', nome:'Carne bianca',      note:'petto di pollo, petto di tacchino, coniglio',           crudo: cb,        cotto: rd(cb*0.7,-1),   fc:0.7,  baseField:'carneBianca' },
+    { id:'carneRossa',  nome:'Carne rossa',        note:'manzo, vitello tagli magri',                             crudo: 100,       cotto: rd(100*0.7,-1),  fc:0.7 },
+    { id:'pesceGrasso', nome:'Pesce grasso',       note:'salmone, sgombro',                                       crudo: pf,        cotto: rd(pf*0.7,-1),                baseField:'pescoCrudo' },
+    { id:'pesceMagro',  nome:'Pesce magro',         note:'merluzzo, nasello, sogliola, platessa, totani, seppie…', crudo: 150,       cotto: rd(150*0.7,-1),  fc:0.7 },
+    { id:'burgerPesce', nome:'Burger di pesce',    note:'di salmone, merluzzo, trota, nasello',                   crudo: c8,        cotto: rd(c8*0.75,-1) },
+    { id:'pesceCons',   nome:'Pesce conservato',   note:'tonno al naturale, sgombro, salmone affumicato',          crudo: 100,       cotto: null },
+    { id:'uova',        nome:'Uova',               note:'',                                                        crudoTxt:'2 uova',cotto: null },
+    { id:'formagFM',    nome:'Formaggio fresco magro',      note:'ricotta, primosale leggero, fiocchi di latte',   crudo: c11,       cotto: null },
+    { id:'formagFS',    nome:'Formaggio fresco semigrasso', note:'crescenza, certosa, robiola, caprino, stracchino',crudo: c12,       cotto: null },
+    { id:'formagSemi',  nome:'Formaggio semiduro',          note:'emmenthal, fontina, asiago',                     crudo: c13,       cotto: null },
+    { id:'formagSta',   nome:'Formaggio stagionato',        note:'grana, parmigiano, pecorino',                    crudo: c14,       cotto: null },
+    { id:'legumi',      nome:'Legumi',             note:'ceci, fagioli, piselli, edamame, fave',                   crudo: c15,       cotto: rd(c15*2.7,-1),  fc:2.7 },
+    { id:'affettati',   nome:'Affettati magri',    note:'arrosto di tacchino, crudo, bresaola, cotto',             crudo: c16,       cotto: null },
+    // CARBOIDRATI
+    { cat: 'CARBOIDRATI' },
+    { id:'pastaSemola', nome:'Pasta semola/integrale',     note:'',                                                 crudo: ps,        cotto: ps*2,           fc:2,   baseField:'pastaSemola' },
+    { id:'pastaFresca', nome:'Pasta fresca',               note:"pasta all'uovo",                                   crudo: c20,       cotto: rd(c20*1.36,-1), fc:1.36 },
+    { id:'pastaFrSec',  nome:'Pasta fresca secca',         note:"pasta all'uovo confezionata secca",               crudo: c21,       cotto: rd(c21*2.99,-1), fc:2.99 },
+    { id:'pastaRipiena',nome:'Pasta ripiena',              note:'ravioli o tortellini',                             crudo: c22,       cotto: c22*2,          fc:2 },
+    { id:'risoBasmati', nome:'Riso basmati',               note:'',                                                 crudo: c23,       cotto: rd(c23*3,-1),   fc:3 },
+    { id:'risoBrillato',nome:'Riso brillato/arborio',      note:'',                                                 crudo: c24,       cotto: c24*2.5,        fc:2.5 },
+    { id:'legumotti',   nome:'Legumotti Barilla',          note:'',                                                 crudo: c25,       cotto: rd(ps*2,-1) },
+    { id:'orzoFarro',   nome:'Orzo, farro',                note:'',                                                 crudo: c26,       cotto: rd(c26*2.7,-1),  fc:2.7 },
+    { id:'quinoa',      nome:'Quinoa',                     note:'',                                                 crudo: c27,       cotto: rd(c27*3.12,-1), fc:3.12 },
+    { id:'cousCous',    nome:'Cous cous',                  note:'',                                                 crudo: c28,       cotto: rd(c28*2.25,-1), fc:2.25 },
+    { id:'gnocchi',     nome:'Gnocchi',                    note:'',                                                 crudo: c29,       cotto: rd(c29*1.06,-1), fc:1.06 },
+    { id:'spatzle',     nome:'Spatzle',                    note:'',                                                 crudo: c30,       cotto: null },
+    { id:'patate',      nome:'Patate sbucciate',           note:'',                                                 crudo: c31,       cotto: rd(c31*0.9,-1),  fc:0.9 },
+    { id:'polenta',     nome:'Polenta',                    note:'',                                                 crudo: c32,       cotto: rd(c32*1.8,-1),  fc:4.8 },
+    { id:'pane',        nome:'Pane',                       note:'',                                                 crudo: pn,        cotto: null,                   baseField:'pane' },
+    { id:'paneAzzimo',  nome:'Pane azzimo',                note:'integrale, bianco, di kamut (1 sfoglia=15-16g)',   crudo: c34,       cotto: null },
+    { id:'wasa',        nome:'Wasa',                       note:'tradizionali, integrali, protein (1 fetta=10g)',   crudo: c35,       cotto: null },
+    { id:'fioriAcqua',  nome:"Fiori d'acqua Mulino Bianco",note:'anche integrali (1 cracker=3g)',                   crudo: c36,       cotto: null },
+    { id:'piadina',     nome:'Piadina',                    note:'1 piadina',                                        crudoTxt:'~100g', cotto: null },
+    { id:'gallette',    nome:'Gallette',                   note:'di riso, mais, grano saraceno, quinoa (1=7-8g)',   crudo: c38,       cotto: null },
+    { id:'crostini',    nome:'Crostini non fritti',        note:'crostini per insalate',                             crudo: c39,       cotto: null, fc:0.8 },
+    // VERDURE
+    { cat: 'VERDURE' },
+    { id:'verdFoglie',  nome:'A foglia crude',     note:'a porzione',   crudoTxt:'80-100g', cotto: null },
+    { id:'verdCrude',   nome:'Crude',              note:'a porzione',   crudo: 200,         cotto: null },
+    { id:'verdCotte',   nome:'Cotte',              note:'a porzione',   crudo: null,        cotto: 250 },
+    { id:'minestrone',  nome:'Minestrone/passato', note:'a porzione',   crudo: null,        cotto: 300 },
+    // FRUTTA
+    { cat: 'FRUTTA' },
+    { id:'frutta',      nome:'Frutta',             note:'1 porzione = 2 frutti piccoli o 1 frutto grande', crudo: 200, cotto: null },
+    // PIATTI UNICI
+    { cat: 'PIATTI UNICI' },
+    { id:'lasagne',     nome:'Lasagne',            note:'ricetta classica',                       crudo: null,  cotto: ru(ps*3.5,-1) },
+    { id:'tortaSalata', nome:'Torta salata',       note:'con verdure e una proteina',             crudo: null,  cotto: 250 },
+    { id:'risotto',     nome:'Risotto',            note:'mantecato con formaggio e verdura',      crudo: null,  cotto: rd(ps*3.15,-1) },
+    // CONDIMENTI
+    { cat: 'CONDIMENTI' },
+    { id:'olioEvo',     nome:'Olio EVO',           note:'a pasto (1 cucchiaio da minestra=10g)', crudo: 15,    cotto: null },
+    { id:'salsaSoia',   nome:'Salsa di soia iposodica (tappo verde)', note:'1 cucchiaio=10g',   crudo: 10,    cotto: null },
+    { id:'parmigiano',  nome:'Parmigiano/Grana',   note:'grattugiato sul primo, 1 cucchiaino',  crudo: 5,     cotto: null },
+  ];
+}
+
+// ─── STATO ────────────────────────────────────────────────────────────────
+let vals = { ...DEFAULTS };
+
+function fmt(v) {
+  if (v == null) return '—';
+  if (typeof v === 'string') return v;
+  const n = Math.round(v * 10) / 10;
+  return n % 1 === 0 ? String(n) : n.toFixed(1);
+}
+
+function renderTable() {
+  const tbody = document.getElementById('porzioni-tbody');
+  const rows = getRows(vals);
+  let html = '';
+
+  rows.forEach(row => {
+    if (row.cat) {
+      html += `<tr class="cat-row"><td colspan="6">${row.cat}</td></tr>`;
+      return;
+    }
+
+    const isBase = !!row.baseField;
+    const crudoVal = row.crudoTxt
+      ? `<span class="unit-lbl">${row.crudoTxt}</span>`
+      : row.crudo != null
+        ? `<div class="input-group">
+             <input type="number" class="td-input ${isBase ? 'base' : 'computed'}"
+               id="inp-${row.id}"
+               value="${fmt(row.crudo)}"
+               min="0" step="1"
+               ${isBase ? `data-base="${row.baseField}"` : 'readonly tabindex="-1"'} />
+             <span class="unit-lbl">g</span>
+           </div>`
+        : '<span style="color:var(--text-muted)">—</span>';
+
+    const cottoVal = row.cotto != null
+      ? `<div class="input-group">
+           <input type="number" class="td-input computed" value="${fmt(row.cotto)}"
+             readonly tabindex="-1" />
+           <span class="unit-lbl">g</span>
+         </div>`
+      : '<span style="color:var(--text-muted)">—</span>';
+
+    const fcVal = row.fc != null ? row.fc : '—';
+
+    html += `<tr data-rowid="${row.id}">
+      <td class="td-name">${row.nome}</td>
+      <td class="td-note">${row.note || '—'}</td>
+      <td>${crudoVal}</td>
+      <td>${cottoVal}</td>
+      <td style="text-align:center;color:var(--text-muted);">${fcVal}</td>
+      <td></td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+
+  // Event listeners sugli input base
+  tbody.querySelectorAll('input[data-base]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const field = inp.dataset.base;
+      const v = parseFloat(inp.value);
+      if (!isNaN(v) && v > 0) {
+        vals[field] = v;
+        renderTable();
+        // Rimetti il focus sull'input dopo re-render
+        setTimeout(() => {
+          const el = document.querySelector(`[data-base="${field}"]`);
+          if (el) { el.focus(); el.select(); }
+        }, 0);
+      }
+    });
+  });
+}
+
+// ─── EXPORT PDF ───────────────────────────────────────────────────────────
+async function exportPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true; btn.textContent = 'Generazione…';
+  toast('Generazione PDF…');
+
+  try {
+    const rows = getRows(vals);
+
+    // Carica logo
+    const logoSrc = 'images/logo.png';
+
+    let tRows = '';
+    rows.forEach(row => {
+      if (row.cat) {
+        tRows += `<tr>
+          <td colspan="5" style="background:#5a8260;color:white;font-weight:700;
+            font-size:8pt;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;">
+            ${row.cat}
+          </td></tr>`;
+        return;
+      }
+      const crudo = row.crudoTxt ? row.crudoTxt : (row.crudo != null ? fmt(row.crudo)+'g' : '—');
+      const cotto = row.cotto != null ? fmt(row.cotto)+'g' : '—';
+      const fc    = row.fc != null ? row.fc : '—';
+      const isBase = !!row.baseField;
+      tRows += `<tr>
+        <td style="font-weight:500;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;">${row.nome}</td>
+        <td style="color:#666;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7pt;">${row.note||'—'}</td>
+        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;
+          ${isBase?'font-weight:700;color:#b8923e;background:#fffbf0;':''}">${crudo}</td>
+        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;
+          color:#5a8260;font-weight:${row.cotto!=null?'600':'400'};">${cotto}</td>
+        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7pt;color:#999;">${fc}</td>
+      </tr>`;
+    });
+
+    const html = `<div style="font-family:Arial,sans-serif;width:190mm;padding:10mm;box-sizing:border-box;background:white;">
+      <div style="display:flex;align-items:center;border-bottom:2.5px solid #5a8260;padding-bottom:8px;margin-bottom:10px;">
+        <img src="${logoSrc}" style="height:48px;margin-right:12px;" onerror="this.style.display='none'" />
+        <div>
+          <div style="font-size:13pt;font-weight:700;color:#5a8260;">Tabella delle Porzioni</div>
+          <div style="font-size:8pt;color:#777;margin-top:2px;">Le grammature sono da crudo, al netto degli scarti · Dott.ssa Giulia Cortese</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="background:#f0f5f1;text-align:left;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:25%;">Alimento</th>
+          <th style="background:#f0f5f1;text-align:left;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:33%;">Esempi</th>
+          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:15%;">Crudo (g)</th>
+          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:15%;">Cotto (g)</th>
+          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:12%;">F.C.</th>
+        </tr></thead>
+        <tbody>${tRows}</tbody>
+      </table>
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid #e8e2d9;display:flex;justify-content:space-between;font-size:6.5pt;color:#aaa;">
+        <span>Generato il ${new Date().toLocaleDateString('it-IT')}</span>
+        <span>nutrizionistacortese.it · Tel. 320 145 9853</span>
+      </div>
+    </div>`;
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:absolute;top:-9999px;left:0;width:210mm;background:white;';
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+
+    await html2pdf().set({
+      margin: 0,
+      filename: 'Tabella_Porzioni_Cortese.pdf',
+      image: { type: 'jpeg', quality: 0.96 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, scrollX:0, scrollY:0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }).from(wrap).save();
+
+    document.body.removeChild(wrap);
+    toast('PDF generato!');
+  } catch(e) {
+    console.error(e);
+    toast('Errore PDF: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📄 Esporta PDF';
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+async function init() {
+  loading(true);
+  initUI();
+  const { requireAuth: ra, logout: lo } = await import('./js/supabase.js');
+  const user = await requireAuth();
+  if (!user) return;
+  document.getElementById('topbar-email').textContent = user.email;
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('btn-logout').addEventListener('click', logout);
+  document.getElementById('btn-pdf').addEventListener('click', exportPDF);
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    vals = { ...DEFAULTS };
+    renderTable();
+    toast('Valori ripristinati');
+  });
+  renderTable();
+  loading(false);
+}
+
+init();
+</script>
+</body>
+</html>
