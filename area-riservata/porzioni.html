@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- jsPDF caricato dinamicamente da exportPDF() -->
   <style>
     .porzioni-table { width:100%; border-collapse:collapse; font-size:.83rem; }
     .porzioni-table th {
@@ -312,80 +312,141 @@ function renderTable() {
 }
 
 // ─── EXPORT PDF ───────────────────────────────────────────────────────────
+async function loadJsPDF() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  if (window.jsPDF) return window.jsPDF;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => resolve(window.jspdf?.jsPDF || window.jsPDF);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
 async function exportPDF() {
   const btn = document.getElementById('btn-pdf');
   btn.disabled = true; btn.textContent = 'Generazione…';
   toast('Generazione PDF…');
-
   try {
+    const jsPDF = await loadJsPDF();
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const rows = getRows(vals);
 
-    // Carica logo
-    const logoSrc = 'images/logo.png';
+    const ML = 12, MT = 10, W = 186;
+    const GREEN  = [90, 130, 96];
+    const LGREEN = [240, 245, 241];
+    const BORDER = [200, 216, 200];
+    const BLACK  = [42, 42, 42];
+    const GREY   = [100, 100, 100];
+    const GOLD   = [184, 146, 62];
+    const WHITE  = [255, 255, 255];
 
-    let tRows = '';
+    let y = MT;
+
+    // Header logo + titolo
+    try {
+      const logoB64 = await fetch('images/logo.png')
+        .then(r => r.blob())
+        .then(b => new Promise(res => { const rd = new FileReader(); rd.onload=e=>res(e.target.result); rd.readAsDataURL(b); }));
+      doc.addImage(logoB64, 'PNG', ML, y, 18, 12);
+    } catch(e) {}
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.setTextColor(...GREEN);
+    doc.text('Tabella delle Porzioni', ML + 21, y + 6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.setTextColor(...GREY);
+    doc.text('Le grammature sono da crudo, al netto degli scarti · Dott.ssa Giulia Cortese', ML + 21, y + 11);
+    y += 16;
+
+    doc.setDrawColor(...GREEN); doc.setLineWidth(0.6);
+    doc.line(ML, y, ML + W, y); y += 4;
+
+    // Colonne: Nome(55) | Esempi(70) | Crudo(22) | Cotto(22) | FC(17)
+    const cols = [55, 70, 22, 22, 17];
+    const headers = ['Alimento', 'Esempi', 'Crudo', 'Cotto', 'F.C.'];
+    const hH = 6;
+
+    // Header tabella
+    let x = ML;
+    headers.forEach((h, i) => {
+      doc.setFillColor(...LGREEN); doc.setDrawColor(...BORDER);
+      doc.rect(x, y, cols[i], hH, 'FD');
+      doc.setFont('helvetica','bold'); doc.setFontSize(6);
+      doc.setTextColor(...GREEN);
+      doc.text(h, x + cols[i]/2, y + 3.8, { align: 'center' });
+      x += cols[i];
+    });
+    y += hH;
+
     rows.forEach(row => {
       if (row.cat) {
-        tRows += `<tr>
-          <td colspan="5" style="background:#5a8260;color:white;font-weight:700;
-            font-size:8pt;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;">
-            ${row.cat}
-          </td></tr>`;
+        doc.setFillColor(...GREEN); doc.setDrawColor(...GREEN);
+        doc.rect(ML, y, W, 5.5, 'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7);
+        doc.setTextColor(...WHITE);
+        doc.text(row.cat, ML + 3, y + 3.7);
+        y += 5.5;
         return;
       }
-      const crudo = row.crudoTxt ? row.crudoTxt : (row.crudo != null ? fmt(row.crudo)+'g' : '—');
-      const cotto = row.cotto != null ? fmt(row.cotto)+'g' : '—';
-      const fc    = row.fc != null ? row.fc : '—';
-      const isBase = !!row.baseField;
-      tRows += `<tr>
-        <td style="font-weight:500;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;">${row.nome}</td>
-        <td style="color:#666;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7pt;">${row.note||'—'}</td>
-        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;
-          ${isBase?'font-weight:700;color:#b8923e;background:#fffbf0;':''}">${crudo}</td>
-        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7.5pt;
-          color:#5a8260;font-weight:${row.cotto!=null?'600':'400'};">${cotto}</td>
-        <td style="text-align:center;padding:4px 6px;border-bottom:1px solid #e8e2d9;font-size:7pt;color:#999;">${fc}</td>
-      </tr>`;
+
+      // Calcola altezza riga in base al testo più lungo
+      const noteLines = doc.splitTextToSize(row.note || '', cols[1] - 2);
+      const rowH = Math.max(6, noteLines.length * 2.8 + 2.5);
+
+      doc.setFillColor(255, 255, 255); doc.setDrawColor(...BORDER);
+      let rx = ML;
+      cols.forEach(cw => { doc.rect(rx, y, cw, rowH, 'FD'); rx += cw; });
+
+      // Nome
+      doc.setFont('helvetica', row.baseField ? 'bold' : 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(...(row.baseField ? GOLD : BLACK));
+      const nameLines = doc.splitTextToSize(row.nome, cols[0] - 2);
+      nameLines.forEach((l, i) => doc.text(l, ML + 1.5, y + 2.5 + i * 2.8));
+
+      // Esempi
+      doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(...GREY);
+      let ex = ML + cols[0];
+      noteLines.forEach((l, i) => doc.text(l, ex + 1.5, y + 2.5 + i * 2.8));
+
+      // Crudo
+      const crudo = row.crudoTxt ? row.crudoTxt : (row.crudo != null ? fmt(row.crudo) + 'g' : '—');
+      let cx = ML + cols[0] + cols[1];
+      doc.setFont('helvetica', row.baseField ? 'bold' : 'normal');
+      doc.setFontSize(7); doc.setTextColor(...(row.baseField ? GOLD : BLACK));
+      doc.text(crudo, cx + cols[2]/2, y + rowH/2 + 0.8, { align: 'center' });
+
+      // Cotto
+      const cotto = row.cotto != null ? fmt(row.cotto) + 'g' : '—';
+      cx += cols[2];
+      doc.setFont('helvetica', row.cotto != null ? 'bold' : 'normal');
+      doc.setFontSize(7); doc.setTextColor(...(row.cotto != null ? GREEN : GREY));
+      doc.text(cotto, cx + cols[3]/2, y + rowH/2 + 0.8, { align: 'center' });
+
+      // FC
+      cx += cols[3];
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(...GREY);
+      doc.text(row.fc != null ? String(row.fc) : '—', cx + cols[4]/2, y + rowH/2 + 0.8, { align: 'center' });
+
+      y += rowH;
+
+      // Nuova pagina se serve
+      if (y > 272) {
+        doc.addPage();
+        y = MT;
+      }
     });
 
-    const html = `<div style="font-family:Arial,sans-serif;width:190mm;padding:10mm;box-sizing:border-box;background:white;">
-      <div style="display:flex;align-items:center;border-bottom:2.5px solid #5a8260;padding-bottom:8px;margin-bottom:10px;">
-        <img src="${logoSrc}" style="height:48px;margin-right:12px;" onerror="this.style.display='none'" />
-        <div>
-          <div style="font-size:13pt;font-weight:700;color:#5a8260;">Tabella delle Porzioni</div>
-          <div style="font-size:8pt;color:#777;margin-top:2px;">Le grammature sono da crudo, al netto degli scarti · Dott.ssa Giulia Cortese</div>
-        </div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr>
-          <th style="background:#f0f5f1;text-align:left;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:25%;">Alimento</th>
-          <th style="background:#f0f5f1;text-align:left;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:33%;">Esempi</th>
-          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:15%;">Crudo (g)</th>
-          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:15%;">Cotto (g)</th>
-          <th style="background:#f0f5f1;text-align:center;padding:5px 6px;font-size:7.5pt;font-weight:700;color:#5a8260;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid #c8d8c8;width:12%;">F.C.</th>
-        </tr></thead>
-        <tbody>${tRows}</tbody>
-      </table>
-      <div style="margin-top:8px;padding-top:6px;border-top:1px solid #e8e2d9;display:flex;justify-content:space-between;font-size:6.5pt;color:#aaa;">
-        <span>Generato il ${new Date().toLocaleDateString('it-IT')}</span>
-        <span>nutrizionistacortese.it · Tel. 320 145 9853</span>
-      </div>
-    </div>`;
+    // Footer
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.2);
+    doc.line(ML, 284, ML + W, 284);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(180,180,180);
+    doc.text('Generato il ' + new Date().toLocaleDateString('it-IT'), ML, 288);
+    doc.text('nutrizionistacortese.it · Tel. 320 145 9853', ML + W, 288, { align: 'right' });
 
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:absolute;top:-9999px;left:0;width:210mm;background:white;';
-    wrap.innerHTML = html;
-    document.body.appendChild(wrap);
-
-    await html2pdf().set({
-      margin: 0,
-      filename: 'Tabella_Porzioni_Cortese.pdf',
-      image: { type: 'jpeg', quality: 0.96 },
-      html2canvas: { scale: 2, useCORS: true, logging: false, scrollX:0, scrollY:0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    }).from(wrap).save();
-
-    document.body.removeChild(wrap);
+    doc.save('Tabella_Porzioni_Cortese.pdf');
     toast('PDF generato!');
   } catch(e) {
     console.error(e);
