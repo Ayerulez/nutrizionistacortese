@@ -346,10 +346,11 @@ async function exportPDF() {
 
     // Header logo + titolo
     try {
-      const logoB64 = await fetch('images/logo.png')
-        .then(r => r.blob())
-        .then(b => new Promise(res => { const rd = new FileReader(); rd.onload=e=>res(e.target.result); rd.readAsDataURL(b); }));
-      doc.addImage(logoB64, 'PNG', ML, y, 18, 12);
+      const logoBlob = await fetch('images/logo.png').then(r => r.ok ? r.blob() : null).catch(() => null);
+      if (logoBlob) {
+        const logoB64 = await new Promise(res => { const rd = new FileReader(); rd.onload=e=>res(e.target.result); rd.readAsDataURL(logoBlob); });
+        doc.addImage(logoB64, 'JPEG', ML, y, 18, 12);
+      }
     } catch(e) {}
 
     doc.setFont('helvetica','bold'); doc.setFontSize(14);
