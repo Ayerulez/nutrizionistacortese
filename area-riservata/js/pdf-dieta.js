@@ -48,8 +48,8 @@ function wrapText(doc, text, maxW) {
 }
 
 function drawRect(doc, x, y, w, h, fillColor, strokeColor) {
-  if (fillColor) { doc.setFillColor(...fillColor); doc.rect(x, y, w, h, 'F'); }
-  if (strokeColor) { doc.setDrawColor(...strokeColor); doc.rect(x, y, w, h, 'S'); }
+  if (fillColor) { doc.setFillColor(fillColor[0],fillColor[1],fillColor[2]); doc.rect(x, y, w, h, 'F'); }
+  if (strokeColor) { doc.setDrawColor(strokeColor[0],strokeColor[1],strokeColor[2]); doc.rect(x, y, w, h, 'S'); }
 }
 
 function textInBox(doc, lines, x, y, w, h, opts) {
@@ -61,7 +61,7 @@ function textInBox(doc, lines, x, y, w, h, opts) {
   const lh     = size * 0.4;
   doc.setFontSize(size);
   doc.setFont('helvetica', bold ? 'bold' : 'normal');
-  doc.setTextColor(...color);
+  doc.setTextColor(color[0],color[1],color[2]);
   const textH = lines.length * lh;
   let ty = y + (h - textH) / 2 + lh * 0.75;
   lines.forEach(line => {
@@ -86,12 +86,12 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
   // ── HEADER TESTO ──────────────────────────────────────────────────
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.setTextColor(...GREEN);
+  doc.setTextColor(90,130,96);
   doc.text(dieta.nome, ML + 23, y + 5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(...GREY);
+  doc.setTextColor(120,120,120);
   doc.text('Paziente: ' + paziente.cognome + ' ' + paziente.nome +
     '   ·   Target: ' + Math.round(dieta.target_kcal) + ' kcal/giorno' +
     '   ·   Settimana ' + sett + ' di ' + dieta.numero_settimane,
@@ -102,7 +102,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
 
   // Linea separatrice header
   y += 17;
-  doc.setDrawColor(...GREEN);
+  doc.setDrawColor(90,130,96);
   doc.setLineWidth(0.5);
   doc.line(ML, y, ML + W, y);
   y += 3;
@@ -119,7 +119,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
     drawRect(doc, x, y, colW, hH, GREEN, BORDER);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(...WHITE);
+    doc.setTextColor(255,255,255);
     doc.text(GIORNI[g], x + colW / 2, y + 4, { align: 'center' });
   }
   y += hH;
@@ -165,7 +165,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
     drawRect(doc, ML, y, labelW, rowH, LGREEN, BORDER);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(5.5);
-    doc.setTextColor(...GREEN);
+    doc.setTextColor(90,130,96);
     const lLines = label.split('\n');
     const lY = y + rowH / 2 - (lLines.length * 2.2) / 2 + 2.2;
     lLines.forEach((l, i) => doc.text(l, ML + labelW / 2, lY + i * 2.5, { align: 'center' }));
@@ -178,12 +178,12 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
         const mainLines = wrapText(doc, p.alimento_nome, W - labelW - 4);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7);
-        doc.setTextColor(...BLACK);
+        doc.setTextColor(42,42,42);
         let ty = y + 3;
         mainLines.forEach(l => { doc.text(l, ML + labelW + 2, ty); ty += 2.8; });
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6);
-        doc.setTextColor(...GREY);
+        doc.setTextColor(120,120,120);
         doc.text(Math.round(p.quantita_g) + 'g' + (p.kcal ? '  ·  ' + p.kcal + ' kcal' : ''), ML + labelW + 2, ty);
         if (p.sostituti_ids?.length) {
           ty += 2.5;
@@ -191,7 +191,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
             const alt = aliIdx[sid];
             if (!alt) return;
             const qIso = alt.energia_kcal ? Math.round((p.kcal||0)/(alt.energia_kcal/100)) : Math.round(p.quantita_g);
-            doc.setTextColor(...GREY);
+            doc.setTextColor(120,120,120);
             doc.text('↔ ' + alt.nome + ' ' + qIso + 'g', ML + labelW + 4, ty);
             ty += 2.5;
           });
@@ -199,7 +199,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
       } else {
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(6.5);
-        doc.setTextColor(...GREY);
+        doc.setTextColor(120,120,120);
         doc.text('Non specificato', ML + labelW + 3, y + rowH / 2);
       }
     } else {
@@ -213,16 +213,16 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
         const mainLines = wrapText(doc, p.alimento_nome, colW - 3);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(6.5);
-        doc.setTextColor(...BLACK);
+        doc.setTextColor(42,42,42);
         mainLines.forEach(l => { doc.text(l, x + 1.2, ty); ty += 2.5; });
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(5.8);
-        doc.setTextColor(...GREEN);
+        doc.setTextColor(90,130,96);
         doc.text(Math.round(p.quantita_g) + 'g' + (p.kcal ? ' · ' + p.kcal + 'k' : ''), x + 1.2, ty);
         ty += 2.5;
         if (p.note) {
           doc.setFontSize(5.5);
-          doc.setTextColor(...GREY);
+          doc.setTextColor(120,120,120);
           const nLines = wrapText(doc, p.note, colW - 3);
           nLines.forEach(l => { doc.text(l, x + 1.2, ty); ty += 2.2; });
         }
@@ -247,7 +247,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
   drawRect(doc, ML, y, labelW, totH, GREEN, BORDER);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(5.5);
-  doc.setTextColor(...WHITE);
+  doc.setTextColor(255,255,255);
   doc.text('TOTALE', ML + labelW / 2, y + 3.3, { align: 'center' });
   for (let g = 1; g <= 7; g++) {
     const x = ML + labelW + (g - 1) * colW;
@@ -258,7 +258,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
     if (k > 0) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.8);
-      doc.setTextColor(over ? [255, 150, 150] : low ? [255, 220, 100] : WHITE);
+      if(over){doc.setTextColor(255,150,150);}else if(low){doc.setTextColor(255,220,100);}else{doc.setTextColor(255,255,255);}
       doc.text(k + ' kcal', x + colW / 2, y + 3.3, { align: 'center' });
     }
   }
@@ -266,13 +266,13 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
 
   // ── NOTE LINEE GUIDA ──────────────────────────────────────────────
   if (dieta.linee_guida && y < PH - MB - 10) {
-    doc.setDrawColor(...GREEN);
+    doc.setDrawColor(90,130,96);
     doc.setLineWidth(0.8);
     doc.line(ML, y, ML, y + 6);
     doc.setLineWidth(0.2);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
-    doc.setTextColor(...GREY);
+    doc.setTextColor(120,120,120);
     const lgLines = wrapText(doc, dieta.linee_guida, W - 4);
     lgLines.slice(0, 3).forEach((l, i) => doc.text(l, ML + 2.5, y + 2 + i * 2.5));
     y += Math.min(lgLines.length, 3) * 2.5 + 3;
@@ -280,7 +280,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
 
   // ── FOOTER ────────────────────────────────────────────────────────
   const fy = PH - MB;
-  doc.setDrawColor(...BORDER);
+  doc.setDrawColor(200,216,200);
   doc.setLineWidth(0.2);
   doc.line(ML, fy - 3, ML + W, fy - 3);
   doc.setFont('helvetica', 'normal');
@@ -325,22 +325,22 @@ function drawPageOnDoc(doc, piano, sett, dieta, paziente, aliIdx, logoPdf) {
   const W = PW - ML - MR;
   let y = MT;
   if (logoPdf) { try { doc.addImage(logoPdf, 'JPEG', ML, y, 20, 14); } catch(e) {} }
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...GREEN);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(90,130,96);
   doc.text(dieta.nome, ML+23, y+5);
-  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...GREY);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(120,120,120);
   doc.text('Paziente: '+paziente.cognome+' '+paziente.nome+
     '   ·   Target: '+Math.round(dieta.target_kcal)+' kcal/g'+
     '   ·   Settimana '+sett+' di '+dieta.numero_settimane, ML+23, y+10);
   doc.setFontSize(6.5);
   doc.text('Le grammature sono da crudo (eccetto legumi in scatola) ed al netto degli scarti.', ML+23, y+14);
   y += 17;
-  doc.setDrawColor(...GREEN); doc.setLineWidth(0.5); doc.line(ML,y,ML+W,y); y+=3;
+  doc.setDrawColor(90,130,96); doc.setLineWidth(0.5); doc.line(ML,y,ML+W,y); y+=3;
   const labelW=18, colW=(W-labelW)/7, hH=6;
   drawRect(doc,ML,y,labelW,hH,LGREEN,BORDER);
   for(let g=0;g<7;g++){
     const x=ML+labelW+g*colW;
     drawRect(doc,x,y,colW,hH,GREEN,BORDER);
-    doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(...WHITE);
+    doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(255,255,255);
     doc.text(GIORNI[g],x+colW/2,y+4,{align:'center'});
   }
   y+=hH;
@@ -354,24 +354,24 @@ function drawPageOnDoc(doc, piano, sett, dieta, paziente, aliIdx, logoPdf) {
     const rowH=Math.max(10,maxLines*2.8+4);
     const label=MOM_LABEL[mom];
     drawRect(doc,ML,y,labelW,rowH,LGREEN,BORDER);
-    doc.setFont('helvetica','bold'); doc.setFontSize(5.5); doc.setTextColor(...GREEN);
+    doc.setFont('helvetica','bold'); doc.setFontSize(5.5); doc.setTextColor(90,130,96);
     const ll=label.split('\n'); const lY=y+rowH/2-(ll.length*2.2)/2+2.2;
     ll.forEach((l,i)=>doc.text(l,ML+labelW/2,lY+i*2.5,{align:'center'}));
     if(isSpunt){
       const p=piano[sett]?.[1]?.[mom];
       drawRect(doc,ML+labelW,y,W-labelW,rowH,[250,252,250],BORDER);
-      if(p){let ty=y+3;const ml=wrapText(doc,p.alimento_nome,W-labelW-4);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...BLACK);ml.forEach(l=>{doc.text(l,ML+labelW+2,ty);ty+=2.8;});doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(...GREY);doc.text(Math.round(p.quantita_g)+'g'+(p.kcal?'  ·  '+p.kcal+' kcal':''),ML+labelW+2,ty);if(p.sostituti_ids?.length){ty+=2.5;p.sostituti_ids.forEach(sid=>{const alt=aliIdx[sid];if(!alt)return;const qi=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);doc.setTextColor(...GREY);doc.text('↔ '+alt.nome+' '+qi+'g',ML+labelW+4,ty);ty+=2.5;});}}
+      if(p){let ty=y+3;const ml=wrapText(doc,p.alimento_nome,W-labelW-4);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(42,42,42);ml.forEach(l=>{doc.text(l,ML+labelW+2,ty);ty+=2.8;});doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(120,120,120);doc.text(Math.round(p.quantita_g)+'g'+(p.kcal?'  ·  '+p.kcal+' kcal':''),ML+labelW+2,ty);if(p.sostituti_ids?.length){ty+=2.5;p.sostituti_ids.forEach(sid=>{const alt=aliIdx[sid];if(!alt)return;const qi=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);doc.setTextColor(120,120,120);doc.text('↔ '+alt.nome+' '+qi+'g',ML+labelW+4,ty);ty+=2.5;});}}
     }else{
-      for(let g=1;g<=7;g++){const x=ML+labelW+(g-1)*colW;const p=piano[sett]?.[g]?.[mom];drawRect(doc,x,y,colW,rowH,WHITE,BORDER);if(!p)continue;let ty=y+3;const ml=wrapText(doc,p.alimento_nome,colW-3);doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(...BLACK);ml.forEach(l=>{doc.text(l,x+1.2,ty);ty+=2.5;});doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(...GREEN);doc.text(Math.round(p.quantita_g)+'g'+(p.kcal?' · '+p.kcal+'k':''),x+1.2,ty);ty+=2.5;if(p.note){doc.setFontSize(5.5);doc.setTextColor(...GREY);wrapText(doc,p.note,colW-3).forEach(l=>{doc.text(l,x+1.2,ty);ty+=2.2;});}if(p.sostituti_ids?.length){doc.setFontSize(5.3);doc.setTextColor(160,160,160);p.sostituti_ids.forEach(sid=>{const alt=aliIdx[sid];if(!alt)return;const qi=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);wrapText(doc,'↔ '+alt.nome+' '+qi+'g',colW-4).forEach(l=>{doc.text(l,x+1.5,ty);ty+=2.2;});});}}}
+      for(let g=1;g<=7;g++){const x=ML+labelW+(g-1)*colW;const p=piano[sett]?.[g]?.[mom];drawRect(doc,x,y,colW,rowH,WHITE,BORDER);if(!p)continue;let ty=y+3;const ml=wrapText(doc,p.alimento_nome,colW-3);doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(42,42,42);ml.forEach(l=>{doc.text(l,x+1.2,ty);ty+=2.5;});doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(90,130,96);doc.text(Math.round(p.quantita_g)+'g'+(p.kcal?' · '+p.kcal+'k':''),x+1.2,ty);ty+=2.5;if(p.note){doc.setFontSize(5.5);doc.setTextColor(120,120,120);wrapText(doc,p.note,colW-3).forEach(l=>{doc.text(l,x+1.2,ty);ty+=2.2;});}if(p.sostituti_ids?.length){doc.setFontSize(5.3);doc.setTextColor(160,160,160);p.sostituti_ids.forEach(sid=>{const alt=aliIdx[sid];if(!alt)return;const qi=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);wrapText(doc,'↔ '+alt.nome+' '+qi+'g',colW-4).forEach(l=>{doc.text(l,x+1.5,ty);ty+=2.2;});});}}}
     y+=rowH;
   });
   const totH=5;drawRect(doc,ML,y,labelW,totH,GREEN,BORDER);
-  doc.setFont('helvetica','bold');doc.setFontSize(5.5);doc.setTextColor(...WHITE);
+  doc.setFont('helvetica','bold');doc.setFontSize(5.5);doc.setTextColor(255,255,255);
   doc.text('TOTALE',ML+labelW/2,y+3.3,{align:'center'});
-  for(let g=1;g<=7;g++){const x=ML+labelW+(g-1)*colW;const k=totK[g];drawRect(doc,x,y,colW,totH,GREEN,BORDER);if(k>0){doc.setFont('helvetica','bold');doc.setFontSize(5.8);doc.setTextColor(k>dieta.target_kcal*1.05?[255,150,150]:k<dieta.target_kcal*0.88?[255,220,100]:WHITE);doc.text(k+' kcal',x+colW/2,y+3.3,{align:'center'});}}
+  for(let g=1;g<=7;g++){const x=ML+labelW+(g-1)*colW;const k=totK[g];drawRect(doc,x,y,colW,totH,GREEN,BORDER);if(k>0){doc.setFont('helvetica','bold');doc.setFontSize(5.8);if(k>dieta.target_kcal*1.05){doc.setTextColor(255,150,150);}else if(k<dieta.target_kcal*0.88){doc.setTextColor(255,220,100);}else{doc.setTextColor(255,255,255);};doc.text(k+' kcal',x+colW/2,y+3.3,{align:'center'});}}
   y+=totH+2;
-  if(dieta.linee_guida&&y<PH-MB-10){doc.setDrawColor(...GREEN);doc.setLineWidth(0.8);doc.line(ML,y,ML,y+6);doc.setLineWidth(0.2);doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...GREY);wrapText(doc,dieta.linee_guida,W-4).slice(0,3).forEach((l,i)=>doc.text(l,ML+2.5,y+2+i*2.5));}
-  const fy=PH-MB;doc.setDrawColor(...BORDER);doc.setLineWidth(0.2);doc.line(ML,fy-3,ML+W,fy-3);
+  if(dieta.linee_guida&&y<PH-MB-10){doc.setDrawColor(90,130,96);doc.setLineWidth(0.8);doc.line(ML,y,ML,y+6);doc.setLineWidth(0.2);doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(120,120,120);wrapText(doc,dieta.linee_guida,W-4).slice(0,3).forEach((l,i)=>doc.text(l,ML+2.5,y+2+i*2.5));}
+  const fy=PH-MB;doc.setDrawColor(200,216,200);doc.setLineWidth(0.2);doc.line(ML,fy-3,ML+W,fy-3);
   doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(180,180,180);
   doc.text('Dott.ssa Giulia Cortese · Biologa Nutrizionista · Tel. 320 145 9853',ML,fy);
   doc.text('nutrizionistacortese.it',ML+W,fy,{align:'right'});
