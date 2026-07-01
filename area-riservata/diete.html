@@ -115,6 +115,12 @@
     .week-tab{padding:.38rem 1rem;border-radius:9999px;font-size:.8rem;font-weight:600;
       border:1.5px solid var(--border);background:var(--white);cursor:pointer;color:var(--text-body);transition:all .15s;}
     .week-tab.active{background:var(--sage-600);color:var(--white);border-color:var(--sage-600);}
+    /* ── Celle piano multi-voce ── */
+    .pc-voce{font-size:.67rem;font-weight:600;color:var(--text-primary);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .pc-qty{font-size:.6rem;font-weight:400;color:var(--sage-600);}
+    .pc-slot-tot{font-size:.6rem;font-weight:700;color:var(--sage-600);margin-top:2px;border-top:1px dotted var(--border);padding-top:1px;display:flex;align-items:center;gap:3px;}
+    .pc-add-inline{font-size:.75rem;color:var(--sage-400);cursor:pointer;margin-left:auto;}
+    .pc-paste{font-size:.6rem;text-align:center;padding:.2rem;color:var(--sage-400);}
     /* ── Editor tabs ── */
     .et-btn{padding:.5rem 1rem;font-size:.83rem;font-weight:500;border:none;background:none;
       cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;
@@ -873,7 +879,7 @@ async function openEditor(dietaId){
   S.piano={};
   for(let s=1;s<=d.numero_settimane;s++){
     S.piano[s]={};
-    for(let g=1;g<=7;g++){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=null);}
+    for(let g=1;g<=7;g++){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=[]);}
   }
   const{data:pasti}=await sb.from('pasti_dieta').select('*').eq('dieta_id',dietaId);
   (pasti||[]).forEach(p=>{
@@ -961,7 +967,7 @@ function renderPiano(){
   const tot={};
   for(let g=1;g<=7;g++){
     let k=0,p=0,c=0,l=0;
-    MOMENTI.forEach(m=>{const ps=S.piano[s]?.[g]?.[m.id];if(ps){k+=ps.kcal||0;p+=ps.prot||0;c+=ps.carb||0;l+=ps.lip||0;}});
+    MOMENTI.forEach(m=>{(S.piano[s]?.[g]?.[m.id]||[]).forEach(ps=>{k+=ps.kcal||0;p+=ps.prot||0;c+=ps.carb||0;l+=ps.lip||0;});});
     tot[g]={kcal:Math.round(k),prot:Math.round(p*10)/10,carb:Math.round(c*10)/10,lip:Math.round(l*10)/10};
   }
   // Alert
@@ -970,8 +976,9 @@ function renderPiano(){
   if(over.length)n('kal-txt').textContent=`Giorni ${over.map(([g])=>GIORNI[+g-1]).join(', ')} superano il target.`;
   let vegWarnFound=false;
   outer:for(let g=1;g<=7;g++)for(const m of MOMENTI){
-    const p=S.piano[s]?.[g]?.[m.id];if(!p)continue;
-    const a=S.aliIdx[p.alimento_id];if(a&&vegWarn(a.categoria)){vegWarnFound=true;break outer;}
+    for(const p of(S.piano[s]?.[g]?.[m.id]||[])){
+      const a=S.aliIdx[p.alimento_id];if(a&&vegWarn(a.categoria)){vegWarnFound=true;break outer;}
+    }
   }
   n('veg-alert').classList.toggle('show',vegWarnFound);
   if(vegWarnFound)n('veg-txt').textContent=`Alcuni alimenti potrebbero non essere compatibili con la dieta ${S.vegTipo} del paziente.`;
@@ -981,23 +988,23 @@ function renderPiano(){
   MOMENTI.forEach(mom=>{
     html+=`<div class="mom-lbl">${mom.icon}<br>${mom.label}</div>`;
     for(let g=1;g<=7;g++){
-      const p=S.piano[s]?.[g]?.[mom.id];
+      const voci=S.piano[s]?.[g]?.[mom.id]||[];
       const isOver=tot[g].kcal>target*1.05;
-      const clip=S.clipboard&&JSON.stringify(S.clipboard);
-      if(p){
-        const a=S.aliIdx[p.alimento_id];
-        const ci=a?chkCI(p.alimento_id):[];
-        html+=`<div class="pc has${isOver?' over':''}${ci.length?' warn':''}" data-s="${s}" data-g="${g}" data-m="${mom.id}">
-          <div class="pc-nome">${p.alimento_nome.length>22?p.alimento_nome.slice(0,20)+'…':p.alimento_nome}</div>
-          <div class="pc-kcal">${Math.round(p.quantita_g)}g · ${p.kcal||0}k</div>
-          <div class="pc-macro">P${p.prot||0} C${p.carb||0} L${p.lip||0}</div>
-          ${p.sostituti_ids?.length?`<div class="pc-sost">↔${p.sostituti_ids.length}</div>`:''}
-          ${p.note?`<div class="pc-note">📝</div>`:''}
-          ${ci.length?`<div class="pc-ci">⚠CI</div>`:''}
+      const totSlot=voci.reduce((a,v)=>a+(v.kcal||0),0);
+      const hasCI=voci.some(v=>{const a=S.aliIdx[v.alimento_id];return a&&chkCI(v.alimento_id).length>0;});
+      if(voci.length>0){
+        const items=voci.map(v=>{
+          const nm=v.alimento_nome.length>20?v.alimento_nome.slice(0,18)+'…':v.alimento_nome;
+          return `<div class="pc-voce">${nm} <span class="pc-qty">${Math.round(v.quantita_g)}g</span></div>`;
+        }).join('');
+        html+=`<div class="pc has${isOver?' over':''}${hasCI?' warn':''}" data-s="${s}" data-g="${g}" data-m="${mom.id}">
+          ${items}
+          <div class="pc-slot-tot">${totSlot}k &nbsp;<span class="pc-add-inline">＋</span></div>
+          ${hasCI?'<div class="pc-ci">⚠CI</div>':''}
         </div>`;
       } else {
         html+=`<div class="pc" data-s="${s}" data-g="${g}" data-m="${mom.id}">
-          ${S.clipboard?`<div style="font-size:.6rem;text-align:center;padding:.2rem;color:var(--sage-400);">📋 Incolla</div>`:''}<div class="pc-add">+</div>
+          ${S.clipboard?`<div class="pc-paste">📋 Incolla</div>`:''}<div class="pc-add">＋</div>
         </div>`;
       }
     }
@@ -1017,9 +1024,9 @@ function renderPiano(){
   n('piano-cont').addEventListener('click',e=>{
     const cell=e.target.closest('.pc');if(!cell)return;
     const cs=+cell.dataset.s,cg=+cell.dataset.g,cm=cell.dataset.m;
-    const p=S.piano[cs]?.[cg]?.[cm];
-    if(p) openPastoDetail(cs,cg,cm,p);
-    else if(S.clipboard) incollaPasto(cs,cg,cm);
+    const voci=S.piano[cs]?.[cg]?.[cm]||[];
+    if(S.clipboard&&voci.length===0) incollaPasto(cs,cg,cm);
+    else openSlotDetail(cs,cg,cm);
     else openFp(cs,cg,cm);
   });
   renderWeekSummary(tot,target);
@@ -1058,48 +1065,46 @@ function renderDayView(){
   const s=S.settimana,g=S.giornoVista,target=S.dieta.target_kcal;
   let totalK=0;
   const html=MOMENTI.map(mom=>{
-    const p=S.piano[s]?.[g]?.[mom.id];
-    if(!p)return`<div class="day-sec">
+    const voci=S.piano[s]?.[g]?.[mom.id]||[];
+    if(voci.length===0)return`<div class="day-sec">
       <div class="day-sec-hdr"><span class="day-mom">${mom.icon} ${mom.label}</span>
         <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;">— vuoto —</span>
         <button class="btn btn-ghost btn-sm" data-add-s="${s}" data-add-g="${g}" data-add-m="${mom.id}" style="margin-left:.5rem;">+</button>
       </div></div>`;
-    totalK+=p.kcal||0;
-    const a=S.aliIdx[p.alimento_id];
-    const ci=a?chkCI(p.alimento_id):[];
-    const sosts=(p.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
+    const slotK=voci.reduce((a,v)=>a+(v.kcal||0),0);
+    totalK+=slotK;
+    const hasCI=voci.some(v=>{const a=S.aliIdx[v.alimento_id];return a&&chkCI(v.alimento_id).some(c=>c.livello==='vietato');});
+    const vociHtml=voci.map((p,vIdx)=>{
+      const sosts=(p.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
+      return`<div class="day-main" style="margin-bottom:.3rem;">
+        <div style="flex:1;">
+          <div class="day-nome">${p.alimento_nome}</div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            <span class="day-qty">${Math.round(p.quantita_g)}g · ${p.kcal||0}kcal</span>
+            <span class="day-mac">P${p.prot||0} C${p.carb||0} L${p.lip||0}</span>
+          </div>
+          ${p.note?`<div class="day-note-txt">📝 ${p.note}</div>`:''}
+          ${sosts.map(alt=>{
+            const qIso=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);
+            const mcIso=cKcal(alt,qIso);
+            return`<div class="day-sost"><div style="flex:1;"><div class="day-nome" style="font-size:.76rem;">↔ ${alt.nome}</div>
+              <span class="day-qty">${qIso}g (iso) · ${mcIso.kcal}k</span></div></div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
     return`<div class="day-sec">
       <div class="day-sec-hdr">
         <span class="day-mom">${mom.icon} ${mom.label}</span>
-        <span class="day-k" style="margin-left:.5rem;">${p.kcal||0} kcal</span>
-        ${ci.some(c=>c.livello==='vietato')?'<span style="font-size:.65rem;font-weight:700;color:#c53030;margin-left:.5rem;">⚠ CI</span>':''}
+        <span class="day-k" style="margin-left:.5rem;">${slotK} kcal</span>
+        ${hasCI?'<span style="font-size:.65rem;font-weight:700;color:#c53030;margin-left:.5rem;">⚠CI</span>':''}
         <div style="flex:1;"></div>
-        <button class="btn btn-ghost btn-sm" data-det-s="${s}" data-det-g="${g}" data-det-m="${mom.id}">✏️</button>
-        <button class="btn btn-ghost btn-sm" data-copy-s="${s}" data-copy-g="${g}" data-copy-m="${mom.id}" title="Copia pasto">📋</button>
+        <button class="btn btn-ghost btn-sm" data-det-s="${s}" data-det-g="${g}" data-det-m="${mom.id}" title="Gestisci pasto">✏️</button>
+        <button class="btn btn-ghost btn-sm" data-copy-s="${s}" data-copy-g="${g}" data-copy-m="${mom.id}" title="Copia">📋</button>
       </div>
-      <div class="day-body">
-        <div class="day-main">
-          <div style="flex:1;">
-            <div class="day-nome">${p.alimento_nome}</div>
-            <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
-              <span class="day-qty">${Math.round(p.quantita_g)}g · ${p.kcal||0}kcal</span>
-              <span class="day-mac">P${p.prot||0} C${p.carb||0} L${p.lip||0}</span>
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-sm" data-add-sost-s="${s}" data-add-sost-g="${g}" data-add-sost-m="${mom.id}">+ Sostituto</button>
-        </div>
-        ${p.note?`<div class="day-note-txt">📝 ${p.note}</div>`:''}
-        ${sosts.map(alt=>{
-          const mc=cKcal(alt,p.quantita_g*(alt.energia_kcal?p.kcal/(alt.energia_kcal*p.quantita_g/100):1));
-          // Calcola grammi isocalorici
-          const qIso=alt.energia_kcal?(p.kcal||0)/(alt.energia_kcal/100):p.quantita_g;
-          const mcIso=cKcal(alt,qIso);
-          return`<div class="day-sost">
-            <div style="flex:1;">
-              <div class="day-nome" style="font-size:.78rem;">↔ ${alt.nome}</div>
-              <div style="display:flex;gap:.6rem;"><span class="day-qty">${Math.round(qIso)}g (iso) · ${mcIso.kcal}k</span><span class="day-mac">P${mcIso.prot} C${mcIso.carb} L${mcIso.lip}</span></div>
-            </div></div>`;
-        }).join('')}
+      <div class="day-body">${vociHtml}
+        <button class="btn btn-ghost btn-sm" data-add-s="${s}" data-add-g="${g}" data-add-m="${mom.id}"
+          style="margin-top:.3rem;font-size:.72rem;">＋ Aggiungi alimento</button>
       </div>
     </div>`;
   }).join('');
@@ -1118,7 +1123,7 @@ function renderDayView(){
   // Event delegation
   n('day-view-cont').addEventListener('click',e=>{
     const ab=e.target.closest('[data-add-s]');if(ab){openFp(+ab.dataset.addS,+ab.dataset.addG,ab.dataset.addM);return;}
-    const db=e.target.closest('[data-det-s]');if(db){const p=S.piano[+db.dataset.detS]?.[+db.dataset.detG]?.[db.dataset.detM];if(p)openPastoDetail(+db.dataset.detS,+db.dataset.detG,db.dataset.detM,p);return;}
+    const db=e.target.closest('[data-det-s]');if(db){openSlotDetail(+db.dataset.detS,+db.dataset.detG,db.dataset.detM);return;}
     const cp=e.target.closest('[data-copy-s]');if(cp){copiaPasto(+cp.dataset.copyS,+cp.dataset.copyG,cp.dataset.copyM);return;}
     const sb2=e.target.closest('[data-add-sost-s]');if(sb2){openFpSost(+sb2.dataset.addSostS,+sb2.dataset.addSostG,sb2.dataset.addSostM);}
   });
@@ -1126,23 +1131,24 @@ function renderDayView(){
 
 // ─── COPY / PASTE ─────────────────────────────────────
 function copiaPasto(s,g,m){
-  const p=S.piano[s]?.[g]?.[m]; if(!p)return;
-  S.clipboard=JSON.parse(JSON.stringify(p));
+  const voci=S.piano[s]?.[g]?.[m]; if(!voci||voci.length===0)return;
+  S.clipboard=JSON.parse(JSON.stringify(voci));
+  const nomi=voci.map(v=>v.alimento_nome).join(', ');
   n('clip-bar').classList.add('show');
-  n('clip-txt').textContent=`Copiato: ${p.alimento_nome}`;
+  n('clip-txt').textContent=`Copiati: ${nomi.length>40?nomi.slice(0,38)+'…':nomi}`;
   toast('Pasto copiato — clicca su una cella vuota per incollare');
   renderPiano();
 }
 async function incollaPasto(s,g,m){
   if(!S.clipboard)return;
-  S.piano[s][g][m]={...S.clipboard,id:undefined};
+  S.piano[s][g][m]=S.clipboard.map(v=>({...v,id:undefined}));
   renderPiano();renderDayView();
   await autoSave();
 }
 
 // ─── FOOD PICKER ──────────────────────────────────────
 function openFp(s,g,m){
-  S._fpMode='pasto';S._fpCtx={s,g,m};S._fpSelId=null;
+  S._fpMode='pasto';S._fpCtx={s,g,m,vIdx:null};S._fpSelId=null; // vIdx=null=nuova voce
   n('fpk-title').textContent=`${GIORNI[g-1]} — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
   n('fpk-qty-row').style.display='flex';
   n('fpk-g').value=100;n('fpk-k').value='';n('fpk-q').value='';
@@ -1150,8 +1156,8 @@ function openFp(s,g,m){
   const fpkOv=document.getElementById('fpk-overlay');if(fpkOv)fpkOv.style.display='block';
   n('fpk').style.display='flex';
 }
-function openFpSost(s,g,m){
-  S._fpMode='sostituto';S._fpCtx={s,g,m};S._fpSelId=null;
+function openFpSost(s,g,m,vIdx=0){
+  S._fpMode='sostituto';S._fpCtx={s,g,m,vIdx};S._fpSelId=null;
   n('fpk-title').textContent=`Sostituto — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
   n('fpk-qty-row').style.display='none'; // isocalorico: no quantità
   n('fpk-q').value='';renderFpList();
@@ -1254,16 +1260,18 @@ async function confirmFp(){
     closeFp();renderPiano();renderDayView();await autoSave();return;
   }
 
-  // Pasto principale
+  // Aggiunge voce all'array dello slot
   const qg=parseFloat(n('fpk-g').value)||100;
   const mc=cKcal(alimento,qg);
-  S.piano[s][g][m]={
-    alimento_id:aid,alimento_nome:alimento.nome,quantita_g:qg,
-    kcal:mc.kcal,prot:mc.prot,carb:mc.carb,lip:mc.lip,
-    sostituti_ids:[],note:null,
-  };
+  const nuovaVoce={alimento_id:aid,alimento_nome:alimento.nome,quantita_g:qg,
+    kcal:mc.kcal,prot:mc.prot,carb:mc.carb,lip:mc.lip,sostituti_ids:[],note:null};
+  if(!S.piano[s][g][m]) S.piano[s][g][m]=[];
+  if(S._fpCtx.vIdx!=null){
+    S.piano[s][g][m][S._fpCtx.vIdx]=nuovaVoce; // modifica voce esistente
+  } else {
+    S.piano[s][g][m].push(nuovaVoce); // aggiunge nuova voce
+  }
   closeFp();renderPiano();renderDayView();
-  // AUTO-SALVA
   await autoSave();
 }
 
@@ -1282,11 +1290,14 @@ async function salvaPiano(showToast=true){
   for(let s=1;s<=S.dieta.numero_settimane;s++)
     for(let g=1;g<=7;g++)
       MOMENTI.forEach(mom=>{
-        const p=S.piano[s]?.[g]?.[mom.id];if(!p)return;
-        rows.push({user_id:S.user.id,dieta_id:S.dieta.id,settimana:s,giorno:g,momento:mom.id,
-          alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
-          kcal_calcolate:p.kcal,proteine_calcolate:p.prot,carboidrati_calcolati:p.carb,
-          lipidi_calcolati:p.lip,sostituti_ids:p.sostituti_ids||[],note:p.note||null});
+        const voci=S.piano[s]?.[g]?.[mom.id]||[];
+        voci.forEach((p,ordine)=>{
+          rows.push({user_id:S.user.id,dieta_id:S.dieta.id,settimana:s,giorno:g,momento:mom.id,
+            ordine,
+            alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
+            kcal_calcolate:p.kcal,proteine_calcolate:p.prot,carboidrati_calcolati:p.carb,
+            lipidi_calcolati:p.lip,sostituti_ids:p.sostituti_ids||[],note:p.note||null});
+        });
       });
   await sb.from('pasti_dieta').delete().eq('dieta_id',S.dieta.id);
   if(rows.length>0)await sb.from('pasti_dieta').insert(rows);
@@ -1294,70 +1305,113 @@ async function salvaPiano(showToast=true){
 }
 
 // ─── PASTO DETAIL ──────────────────────────────────────
-function openPastoDetail(s,g,m,pasto){
+// Apre il dettaglio di uno SLOT (lista di voci, non una sola)
+function openSlotDetail(s,g,m){
   const mom=MOMENTI.find(mo=>mo.id===m);
+  const voci=S.piano[s]?.[g]?.[m]||[];
+  const totK=voci.reduce((a,v)=>a+(v.kcal||0),0);
+
   n('mp-title').textContent=`${GIORNI[g-1]} — ${mom?.label}`;
-  const a=S.aliIdx[pasto.alimento_id];
-  const ci=a?chkCI(pasto.alimento_id):[];
-  const sosts=(pasto.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
 
-  const ciHtml=ci.length?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-md);padding:.5rem .75rem;margin-top:.5rem;font-size:.77rem;color:#92400e;">
-    ⚠ ${ci.map(c=>S.patPaziente.find(p=>p.patologia_id===c.patologia_id)?.patologie_catalogo?.nome||'').join(', ')}</div>`:'';
-
-  const sostHtml=sosts.length?`<div style="margin-top:.75rem;">
-    <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-600);margin-bottom:.35rem;">↔ Sostituti isocalorici</div>
-    ${sosts.map(alt=>{
-      const qIso=alt.energia_kcal?Math.round((pasto.kcal||0)/(alt.energia_kcal/100)):pasto.quantita_g;
-      const mc=cKcal(alt,qIso);
-      const diff=mc.kcal-(pasto.kcal||0);
-      return`<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px dotted var(--border);">
-        <div style="flex:1;"><div style="font-size:.82rem;font-weight:500;">${alt.nome}</div>
-          <div style="font-size:.68rem;color:var(--text-muted);">${qIso}g · ${mc.kcal}kcal
-            <span style="color:${Math.abs(diff)<=5?'var(--text-muted)':diff>0?'#c53030':'#16a34a'};">(${diff>0?'+':''}${diff} kcal)</span>
-          </div></div>
-        <button class="btn btn-ghost btn-sm" data-rm-sost="${alt.id}">✕</button>
+  function buildVoceHtml(voce,vIdx){
+    const a=S.aliIdx[voce.alimento_id];
+    const ci=a?chkCI(voce.alimento_id):[];
+    const sosts=(voce.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
+    const ciTag=ci.length?`<span style="font-size:.62rem;font-weight:700;color:#b45309;background:#fef3c7;border-radius:9999px;padding:.1rem .4rem;">⚠CI</span>`:'';
+    const sostHtml=sosts.map(alt=>{
+      const qIso=alt.energia_kcal?Math.round((voce.kcal||0)/(alt.energia_kcal/100)):Math.round(voce.quantita_g);
+      return`<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0 .25rem 1rem;border-bottom:1px dotted var(--border);">
+        <div style="flex:1;font-size:.76rem;color:var(--text-muted);">↔ ${alt.nome} — ${qIso}g (iso)</div>
+        <button class="btn btn-ghost btn-sm" data-rm-sost="${alt.id}" data-vidx="${vIdx}" style="padding:.1rem .4rem;">✕</button>
       </div>`;
-    }).join('')}</div>`
-    :'<p class="text-muted text-sm" style="margin-top:.5rem;">Nessun sostituto.</p>';
+    }).join('');
+    return`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:.5rem;overflow:hidden;" data-voce-card="${vIdx}">
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;background:var(--sage-50);">
+        <div style="flex:1;">
+          <span style="font-weight:700;font-size:.9rem;">${voce.alimento_nome}</span> ${ciTag}
+          <span style="font-size:.75rem;color:var(--sage-600);margin-left:.5rem;">${Math.round(voce.quantita_g)}g · ${voce.kcal||0} kcal</span>
+          <span style="font-size:.68rem;color:var(--text-muted);">P${voce.prot||0} C${voce.carb||0} L${voce.lip||0}</span>
+        </div>
+        <div style="display:flex;gap:.3rem;">
+          <button class="btn btn-ghost btn-sm" data-edit-voce="${vIdx}" title="Cambia alimento">✏️</button>
+          <button class="btn btn-ghost btn-sm" data-add-sost="${vIdx}" title="Aggiungi sostituto">↔</button>
+          <button class="btn btn-danger btn-sm" data-rm-voce="${vIdx}" title="Rimuovi">✕</button>
+        </div>
+      </div>
+      ${voce.note?`<div style="padding:.3rem .75rem;font-size:.73rem;color:var(--stone-600);font-style:italic;">📝 ${voce.note}</div>`:''}
+      ${sostHtml?`<div style="padding:0 0 .25rem;">${sostHtml}</div>`:''}
+    </div>`;
+  }
 
-  n('mp-body').innerHTML=`
-    <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem;background:var(--sage-50);border-radius:var(--r-md);margin-bottom:.65rem;">
-      <div style="flex:1;"><div style="font-weight:700;font-size:.95rem;">${pasto.alimento_nome}</div>
-        <div style="font-size:.76rem;color:var(--text-muted);">${Math.round(pasto.quantita_g)}g</div></div>
-      <div style="text-align:right;"><div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--sage-600);">${pasto.kcal||0}kcal</div>
-        <div style="font-size:.68rem;color:var(--text-muted);">P${pasto.prot} C${pasto.carb} L${pasto.lip}</div></div>
-    </div>
-    ${ciHtml}
-    <div class="form-group" style="margin-top:.65rem;">
-      <label>Nota al pasto</label>
-      <textarea id="mp-note" style="min-height:65px;" placeholder="Es: Preferire cottura al vapore…">${pasto.note||''}</textarea>
-    </div>
-    <div style="display:flex;gap:.4rem;margin-bottom:.5rem;flex-wrap:wrap;">
-      <button class="btn btn-secondary btn-sm" id="mp-change">🔄 Cambia</button>
-      <button class="btn btn-ghost btn-sm" id="mp-add-sost">+ Sostituto</button>
-      <button class="btn btn-ghost btn-sm" id="mp-copy">📋 Copia</button>
-      <div style="flex:1;"></div>
-      <button class="btn btn-danger btn-sm" id="mp-remove">✕ Rimuovi</button>
-    </div>
-    ${sostHtml}`;
+  function render(){
+    const vociCur=S.piano[s]?.[g]?.[m]||[];
+    const tot=vociCur.reduce((a,v)=>a+(v.kcal||0),0);
+    const listHtml=vociCur.map((v,i)=>buildVoceHtml(v,i)).join('');
+    n('mp-body').innerHTML=`
+      ${listHtml}
+      <button class="btn btn-secondary" id="mp-add-voce" style="width:100%;margin-top:.25rem;">＋ Aggiungi alimento a questo pasto</button>
+      <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" id="mp-copy-slot">📋 Copia slot</button>
+        <div style="flex:1;"></div>
+        <div style="font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;">
+          Totale slot: <strong style="color:var(--sage-600);margin-left:.3rem;">${tot} kcal</strong>
+        </div>
+      </div>`;
 
-  n('mp-ftr').innerHTML=`<button class="btn btn-ghost" data-modal-close="modal-pasto">Chiudi</button>
-    <button class="btn btn-primary btn-sm" id="mp-save-note">💾 Salva nota</button>`;
+    // Event delegation
+    n('mp-body').addEventListener('click',async e=>{
+      // Aggiungi nuova voce
+      if(e.target.closest('#mp-add-voce')){
+        ModalManager.forceClose('modal-pasto');
+        openFp(s,g,m);return;
+      }
+      // Copia slot
+      if(e.target.closest('#mp-copy-slot')){
+        copiaPasto(s,g,m);ModalManager.forceClose('modal-pasto');return;
+      }
+      // Modifica voce (cambia alimento)
+      const editBtn=e.target.closest('[data-edit-voce]');
+      if(editBtn){
+        const vIdx=+editBtn.dataset.editVoce;
+        ModalManager.forceClose('modal-pasto');
+        S._fpCtx={s,g,m,vIdx};S._fpMode='pasto';
+        S._fpSelId=null;
+        n('fpk-title').textContent=`Cambia: ${(S.piano[s]?.[g]?.[m]||[])[vIdx]?.alimento_nome||''}`;
+        n('fpk-qty-row').style.display='flex';
+        n('fpk-g').value=(S.piano[s]?.[g]?.[m]||[])[vIdx]?.quantita_g||100;
+        n('fpk-k').value='';n('fpk-q').value='';
+        renderFpList();
+        const ov=document.getElementById('fpk-overlay');if(ov)ov.style.display='block';
+        n('fpk').style.display='flex';
+        return;
+      }
+      // Aggiungi sostituto a voce
+      const sostBtn=e.target.closest('[data-add-sost]');
+      if(sostBtn){
+        const vIdx=+sostBtn.dataset.addSost;
+        ModalManager.forceClose('modal-pasto');
+        openFpSost(s,g,m,vIdx);return;
+      }
+      // Rimuovi sostituto
+      const rmSost=e.target.closest('[data-rm-sost]');
+      if(rmSost){
+        const vIdx=+rmSost.dataset.vidx;
+        const voce=(S.piano[s]?.[g]?.[m]||[])[vIdx];
+        if(voce){voce.sostituti_ids=(voce.sostituti_ids||[]).filter(x=>x!==rmSost.dataset.rmSost);}
+        render();renderPiano();await autoSave();return;
+      }
+      // Rimuovi voce
+      const rmVoce=e.target.closest('[data-rm-voce]');
+      if(rmVoce){
+        const vIdx=+rmVoce.dataset.rmVoce;
+        S.piano[s][g][m].splice(vIdx,1);
+        render();renderPiano();renderDayView();await autoSave();
+      }
+    });
+  }
 
-  n('mp-body').addEventListener('click',async e=>{
-    const rm=e.target.closest('[data-rm-sost]');
-    if(rm){pasto.sostituti_ids=(pasto.sostituti_ids||[]).filter(x=>x!==rm.dataset.rmSost);
-      ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();await autoSave();}
-  });
-  n('mp-change').onclick=()=>{ModalManager.forceClose('modal-pasto');S.piano[s][g][m]=null;openFp(s,g,m);};
-  n('mp-add-sost').onclick=()=>{ModalManager.forceClose('modal-pasto');openFpSost(s,g,m);};
-  n('mp-copy').onclick=()=>{copiaPasto(s,g,m);ModalManager.forceClose('modal-pasto');};
-  n('mp-remove').onclick=async()=>{S.piano[s][g][m]=null;ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();await autoSave();};
-  n('mp-save-note').onclick=async()=>{
-    pasto.note=n('mp-note').value.trim()||null;
-    ModalManager.forceClose('modal-pasto');renderPiano();renderDayView();
-    await autoSave();toast('Nota salvata');
-  };
+  render();
+  n('mp-ftr').innerHTML=`<button class="btn btn-ghost" data-modal-close="modal-pasto">Chiudi</button>`;
   ModalManager.openClean('modal-pasto');
 }
 
@@ -1431,16 +1485,18 @@ async function cloneVerso(targetPzId){
       alimenti_consigliati:S.dieta.alimenti_consigliati,alimenti_sconsigliati:S.dieta.alimenti_sconsigliati,
     }).select().single();
     if(de)throw de;
-    // 2. Clona pasti
+    // 2. Clona pasti (array voci per slot)
     const rows=[];
     for(let s=1;s<=S.dieta.numero_settimane;s++)
       for(let g=1;g<=7;g++)
         MOMENTI.forEach(mom=>{
-          const p=S.piano[s]?.[g]?.[mom.id];if(!p)return;
-          rows.push({user_id:S.user.id,dieta_id:nuovaDieta.id,settimana:s,giorno:g,momento:mom.id,
-            alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
-            kcal_calcolate:p.kcal,proteine_calcolate:p.prot,carboidrati_calcolati:p.carb,
-            lipidi_calcolati:p.lip,sostituti_ids:p.sostituti_ids||[],note:p.note||null});
+          (S.piano[s]?.[g]?.[mom.id]||[]).forEach((p,ordine)=>{
+            rows.push({user_id:S.user.id,dieta_id:nuovaDieta.id,settimana:s,giorno:g,momento:mom.id,
+              ordine,
+              alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
+              kcal_calcolate:p.kcal,proteine_calcolate:p.prot,carboidrati_calcolati:p.carb,
+              lipidi_calcolati:p.lip,sostituti_ids:p.sostituti_ids||[],note:p.note||null});
+          });
         });
     if(rows.length>0)await sb.from('pasti_dieta').insert(rows);
     const dest=S._allPz.find(p=>p.id===targetPzId);
