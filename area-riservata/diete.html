@@ -882,14 +882,19 @@ async function openEditor(dietaId){
     for(let g=1;g<=7;g++){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=[]);}
   }
   const{data:pasti}=await sb.from('pasti_dieta').select('*').eq('dieta_id',dietaId);
-  (pasti||[]).forEach(p=>{
-    if(S.piano[p.settimana]?.[p.giorno]!==undefined)
-      S.piano[p.settimana][p.giorno][p.momento]={
+  // Ordina per campo ordine per mantenere sequenza alimenti nel pasto
+  const pastiSorted=[...(pasti||[])].sort((a,b)=>(a.ordine||0)-(b.ordine||0));
+  pastiSorted.forEach(p=>{
+    if(S.piano[p.settimana]?.[p.giorno]!==undefined){
+      if(!Array.isArray(S.piano[p.settimana][p.giorno][p.momento]))
+        S.piano[p.settimana][p.giorno][p.momento]=[];
+      S.piano[p.settimana][p.giorno][p.momento].push({
         id:p.id,alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,
         quantita_g:p.quantita_g,kcal:p.kcal_calcolate,
         prot:p.proteine_calcolate,carb:p.carboidrati_calcolati,lip:p.lipidi_calcolati,
         sostituti_ids:p.sostituti_ids||[],note:p.note||null,
-      };
+      });
+    }
   });
   n('txt-intro').value=d.intestazione||'';
   n('txt-linee').value=d.linee_guida||'';
@@ -967,7 +972,7 @@ function renderPiano(){
   const tot={};
   for(let g=1;g<=7;g++){
     let k=0,p=0,c=0,l=0;
-    MOMENTI.forEach(m=>{(S.piano[s]?.[g]?.[m.id]||[]).forEach(ps=>{k+=ps.kcal||0;p+=ps.prot||0;c+=ps.carb||0;l+=ps.lip||0;});});
+    MOMENTI.forEach(m=>{const _sl=S.piano[s]?.[g]?.[m.id];(Array.isArray(_sl)?_sl:[]).forEach(ps=>{k+=ps.kcal||0;p+=ps.prot||0;c+=ps.carb||0;l+=ps.lip||0;});});
     tot[g]={kcal:Math.round(k),prot:Math.round(p*10)/10,carb:Math.round(c*10)/10,lip:Math.round(l*10)/10};
   }
   // Alert
@@ -976,7 +981,7 @@ function renderPiano(){
   if(over.length)n('kal-txt').textContent=`Giorni ${over.map(([g])=>GIORNI[+g-1]).join(', ')} superano il target.`;
   let vegWarnFound=false;
   outer:for(let g=1;g<=7;g++)for(const m of MOMENTI){
-    for(const p of(S.piano[s]?.[g]?.[m.id]||[])){
+    const _vv=S.piano[s]?.[g]?.[m.id];for(const p of(Array.isArray(_vv)?_vv:[])){
       const a=S.aliIdx[p.alimento_id];if(a&&vegWarn(a.categoria)){vegWarnFound=true;break outer;}
     }
   }
