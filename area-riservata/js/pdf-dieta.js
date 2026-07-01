@@ -137,7 +137,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
       let maxLines = 1;
       for (let g = 1; g <= 7; g++) {
         const p = piano[sett]?.[g]?.[mom];
-        if (!p) continue;
+        if (!p || p.length === 0) continue;
         const lines = wrapText(doc, p.alimento_nome, colW - 3);
         let n = lines.length + 1; // +1 per grammi/kcal
         if (p.sostituti_ids?.length) n += p.sostituti_ids.length;
@@ -208,7 +208,7 @@ function buildPage(jsPDF, piano, sett, dieta, paziente, aliIdx, logoPdf) {
         const x = ML + labelW + (g - 1) * colW;
         const p = piano[sett]?.[g]?.[mom];
         drawRect(doc, x, y, colW, rowH, WHITE, BORDER);
-        if (!p) continue;
+        if (!p || p.length === 0) continue;
         let ty = y + 3;
         const mainLines = wrapText(doc, p.alimento_nome, colW - 3);
         doc.setFont('helvetica', 'bold');
