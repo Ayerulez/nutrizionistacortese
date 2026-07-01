@@ -1150,7 +1150,7 @@ function renderDayView(){
     const ab=e.target.closest('[data-add-s]');if(ab){openFp(+ab.dataset.addS,+ab.dataset.addG,ab.dataset.addM);return;}
     const db=e.target.closest('[data-det-s]');if(db){openSlotDetail(+db.dataset.detS,+db.dataset.detG,db.dataset.detM);return;}
     const cp=e.target.closest('[data-copy-s]');if(cp){copiaPasto(+cp.dataset.copyS,+cp.dataset.copyG,cp.dataset.copyM);return;}
-    const sb2=e.target.closest('[data-add-sost-s]');if(sb2){openFpSost(+sb2.dataset.addSostS,+sb2.dataset.addSostG,sb2.dataset.addSostM);}
+    const sb2=e.target.closest('[data-add-sost-s]');if(sb2){openFpSost(+sb2.dataset.addSostS,+sb2.dataset.addSostG,sb2.dataset.addSostM,0);}
   });
 }
 
@@ -1272,15 +1272,16 @@ async function confirmFp(){
   const{s,g,m}=S._fpCtx;
 
   if(S._fpMode==='sostituto'){
-    // Isocalorico: calcola grammi per avere stesse kcal dell'alimento principale
-    const pasto=S.piano[s]?.[g]?.[m];
-    if(pasto&&alimento.energia_kcal){
-      const qIso=Math.round((pasto.kcal||0)/(alimento.energia_kcal/100));
-      if(!pasto.sostituti_ids)pasto.sostituti_ids=[];
-      if(!pasto.sostituti_ids.includes(aid))pasto.sostituti_ids.push(aid);
-      // Salva anche la quantità iso per riferimento
-      if(!pasto.sostituti_qty)pasto.sostituti_qty={};
-      pasto.sostituti_qty[aid]=qIso;
+    // S.piano[s][g][m] è un ARRAY — prendo la voce indicata da vIdx
+    const voci=S.piano[s]?.[g]?.[m]||[];
+    const vIdx=S._fpCtx.vIdx??0;
+    const voce=voci[vIdx];
+    if(voce){
+      if(!voce.sostituti_ids) voce.sostituti_ids=[];
+      if(!voce.sostituti_ids.includes(aid)) voce.sostituti_ids.push(aid);
+      toast('Sostituto aggiunto: '+alimento.nome);
+    } else {
+      toast('Voce non trovata','error');
     }
     closeFp();renderPiano();renderDayView();await autoSave();return;
   }
@@ -1563,7 +1564,7 @@ async function saveAlimInline(){
     markClean('modal-alim-inline');ModalManager.forceClose('modal-alim-inline');
     // Riapre il food picker nel contesto precedente
     if(S._fpMode==='pasto')openFp(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m);
-    else if(S._fpMode==='sostituto')openFpSost(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m);
+    else if(S._fpMode==='sostituto')openFpSost(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m,S._fpCtx.vIdx??0);
     else if(S._fpMode==='cons'||S._fpMode==='scons')openFpForList(S._fpMode);
     // Pre-seleziona il nuovo alimento
     setTimeout(()=>{
