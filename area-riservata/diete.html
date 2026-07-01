@@ -1027,7 +1027,6 @@ function renderPiano(){
     const voci=S.piano[cs]?.[cg]?.[cm]||[];
     if(S.clipboard&&voci.length===0) incollaPasto(cs,cg,cm);
     else openSlotDetail(cs,cg,cm);
-    else openFp(cs,cg,cm);
   });
   renderWeekSummary(tot,target);
 }
