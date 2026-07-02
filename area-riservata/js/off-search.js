@@ -10,7 +10,8 @@
 
 import { sb } from './supabase.js';
 
-const OFF_BASE = 'https://world.openfoodfacts.org/cgi/search.pl';
+// API v2 di OFF: supporta CORS dal browser
+const OFF_BASE   = 'https://api.prod.openfoodfacts.org/v2/search';
 const OFF_FIELDS = 'code,product_name,brands,categories_tags,nutriments,serving_size,image_small_url';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ore
 
@@ -109,7 +110,7 @@ async function getCached(query) {
   const { data } = await sb.from('off_search_cache')
     .select('risultati,created_at')
     .eq('query', query)
-    .single();
+    .maybeSingle();  // maybeSingle: null se non trovato, non 406
 
   if (data) {
     const age = Date.now() - new Date(data.created_at).getTime();
@@ -146,20 +147,16 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
   if (cached) return cached;
 
   const params = new URLSearchParams({
-    search_terms:  query,
-    search_simple: 1,
-    action:        'process',
-    json:          1,
-    page_size:     maxResults,
-    fields:        OFF_FIELDS,
-    lc:            'it',
-    cc:            'it',
+    search_terms: query,
+    page_size:    maxResults,
+    fields:       OFF_FIELDS,
+    lc:           'it',
+    cc:           'it',
   });
 
   try {
     const res = await fetch(`${OFF_BASE}?${params}`, {
-      headers: { 'User-Agent': 'StudioCortese-NutrizionistaCortese/1.0' },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
