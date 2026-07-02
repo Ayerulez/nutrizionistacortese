@@ -645,27 +645,25 @@ window.openAlimentoFormEsterno = (callback) => {
 // ─── OPEN FOOD FACTS ─────────────────────────────────────────────────────────
 
 async function runOffSearch(query) {
-  const spinner = document.getElementById('off-spinner');
-  const status  = document.getElementById('off-status');
-  spinner.style.display = 'block';
-  status.textContent = 'Ricerca su Open Food Facts…';
+  const spinner = () => document.getElementById('off-spinner');
+  const status  = () => document.getElementById('off-status');
+  if (spinner()) spinner().style.display = 'block';
+  if (status())  status().textContent = 'Ricerca su Open Food Facts…';
   try {
     const results = await searchOpenFoodFacts(query, 15);
     offResults = results;
-    // Deduplicazione: segna quali sono già nel DB
     for (const r of offResults) {
-      const dup = await checkDuplicate(r, S.tutti);
-      r._dup = dup; // null o {alimento, metodo}
+      r._dup = await checkDuplicate(r, S.tutti);
     }
     renderOffResults(offResults);
-    status.textContent = results.length
+    if (status()) status().textContent = results.length
       ? `${results.length} risultat${results.length===1?'o':'i'} da Open Food Facts`
       : 'Nessun risultato esterno';
   } catch(e) {
-    status.textContent = 'OFF non disponibile';
+    if (status()) status().textContent = 'OFF non disponibile';
     console.warn('OFF error:', e);
   } finally {
-    spinner.style.display = 'none';
+    if (spinner()) spinner().style.display = 'none';
   }
 }
 
