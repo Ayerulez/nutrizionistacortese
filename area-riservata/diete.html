@@ -136,6 +136,23 @@
     .at-no{display:inline-flex;align-items:center;gap:.3rem;font-size:.73rem;font-weight:500;
       padding:.18rem .55rem;border-radius:9999px;margin:.18rem;
       background:#fef2f2;color:#c53030;border:1px solid #fecaca;}
+
+    /* ── OFF nel food picker ── */
+    .fpk-off-sep{padding:.3rem .9rem;font-size:.6rem;font-weight:700;letter-spacing:.1em;
+      text-transform:uppercase;color:#c2410c;background:#fff7ed;
+      border-top:1px solid #fed7aa;border-bottom:1px solid #fed7aa;
+      display:flex;align-items:center;gap:.4rem;}
+    .fpk-off-item{border-left:3px solid #fed7aa !important;background:#fff9f5;}
+    .fpk-off-item:hover{background:#fff3e8 !important;}
+    .off-import-mini{font-size:.62rem;padding:.15rem .45rem;border-radius:var(--r-sm);
+      border:1px solid var(--sage-300);background:var(--sage-50);
+      color:var(--sage-700);cursor:pointer;font-weight:600;white-space:nowrap;}
+    .off-import-mini:hover{background:var(--sage-600);color:white;}
+    .fpk-off-spinner{width:12px;height:12px;border:1.5px solid #fed7aa;
+      border-top-color:#c2410c;border-radius:50%;
+      animation:spin .7s linear infinite;display:none;}
+    .fpk-off-status{font-size:.68rem;color:var(--text-muted);
+      padding:.3rem .9rem;display:none;}
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -154,6 +171,7 @@
     </div>
   </div>
   <div class="fpk-list" id="fpk-list"></div>
+  <div class="fpk-off-status" id="fpk-off-status"></div>
   <div class="fpk-ftr">
     <div class="qty-row" id="fpk-qty-row">
       <label style="color:var(--text-muted);font-size:.72rem;">Grammi</label>
@@ -508,6 +526,7 @@
 
 <script type="module">
 import { sb, requireAuth, logout } from './js/supabase.js';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js';
 import { esportaPianoPDF } from './js/pdf-dieta.js';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
@@ -1596,6 +1615,121 @@ async function handleEsportaPDF() {
     setBtn('btn-pdf', false);
   }
 }
+
+// ─── OFF nel FOOD PICKER ─────────────────────────────────────────────────────
+let _fpkOffTimer = null;
+
+function startOffPickerSearch(query) {
+  clearTimeout(_fpkOffTimer);
+  const status = document.getElementById('fpk-off-status');
+  if (!status) return;
+  if (query.length < 3) {
+    // Rimuovi risultati OFF dal picker
+    document.querySelectorAll('.fpk-off-sep,.fpk-off-item').forEach(e=>e.remove());
+    status.style.display = 'none';
+    return;
+  }
+  status.textContent = '🌐 Ricerca su Open Food Facts…';
+  status.style.display = 'block';
+  _fpkOffTimer = setTimeout(async () => {
+    try {
+      const results = await searchOpenFoodFacts(query, 10);
+      if (!results.length) {
+        status.textContent = 'Nessun risultato esterno';
+        return;
+      }
+      // Deduplicazione rapida in memoria
+      const dupes = new Set(S.alimenti.filter(a=>a.off_code).map(a=>a.off_code));
+      const nuovi = results.filter(r => !r.off_code || !dupes.has(r.off_code));
+      renderOffInPicker(nuovi, results.length - nuovi.length);
+      status.textContent = `${nuovi.length} nuovi da Open Food Facts`;
+    } catch(e) {
+      status.textContent = 'OFF non disponibile';
+    }
+  }, 900);
+}
+
+function renderOffInPicker(prodotti, dupCount) {
+  // Rimuovi risultati OFF precedenti
+  document.querySelectorAll('.fpk-off-sep,.fpk-off-item').forEach(e=>e.remove());
+  if (!prodotti.length) return;
+
+  const list = document.getElementById('fpk-list');
+  if (!list) return;
+
+  // Separatore
+  const sep = document.createElement('div');
+  sep.className = 'fpk-off-sep';
+  sep.innerHTML = `🌐 Open Food Facts
+    <span style="font-weight:400;opacity:.7;">(${prodotti.length} nuovi${dupCount?' · '+dupCount+' già nel DB':''}</span>`;
+  list.appendChild(sep);
+
+  // Items
+  prodotti.forEach((p, idx) => {
+    const item = document.createElement('div');
+    item.className = 'fpk-item fpk-off-item';
+    item.dataset.offIdx = idx;
+    const kcal = p.energia_kcal != null ? Math.round(p.energia_kcal) : '—';
+    item.innerHTML = `
+      <div style="flex:1;">
+        <div class="fi-nome">${p.nome}</div>
+        <div class="fi-macro">P${(+p.proteine_g||0).toFixed(1)} C${(+p.carboidrati_g||0).toFixed(1)} L${(+p.lipidi_g||0).toFixed(1)} /100g · ${p.categoria}</div>
+      </div>
+      <div class="fi-kcal">${kcal}kcal</div>
+      <button class="off-import-mini" data-off-import="${idx}">⬇ Importa e usa</button>`;
+    list.appendChild(item);
+
+    // Click sull'item: importa poi seleziona
+    item.addEventListener('click', async e => {
+      if (e.target.closest('[data-off-import]')) return; // gestito dal btn
+      // Seleziona senza importare (usa dati locali temporanei)
+      // Non possiamo usarlo senza id DB — forziamo import
+      e.target.closest('[data-off-import]')?.click();
+    });
+
+    // Click sul bottone importa
+    item.querySelector('[data-off-import]').addEventListener('click', async e => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = 'Importazione…';
+      try {
+        const nuovoAlimento = await importOffProdotto(p, S.user.id);
+        // Aggiunge al DB locale e all'indice
+        S.alimenti.push(nuovoAlimento);
+        S.aliIdx[nuovoAlimento.id] = nuovoAlimento;
+        toast(`✓ "${nuovoAlimento.nome}" importato!`);
+        // Seleziona automaticamente l'alimento appena importato
+        n('fpk-list').querySelectorAll('.fpk-item').forEach(i=>i.classList.remove('fp-selected'));
+        S._fpSelId = nuovoAlimento.id;
+        // Aggiorna il picker con i dati locali ora disponibili
+        n('fpk-q').value = nuovoAlimento.nome;
+        renderFpList();
+        // Pre-seleziona
+        setTimeout(() => {
+          const el = document.querySelector(`[data-faid="${nuovoAlimento.id}"]`);
+          if (el) {
+            el.classList.add('fp-selected');
+            n('fpk-g').value = nuovoAlimento.porzione_default_g || 100;
+            syncKfromG();
+          }
+        }, 50);
+        // Rimuovi sezione OFF
+        document.querySelectorAll('.fpk-off-sep,.fpk-off-item').forEach(e=>e.remove());
+        document.getElementById('fpk-off-status').style.display = 'none';
+      } catch(err) {
+        btn.disabled = false;
+        btn.textContent = '⬇ Importa e usa';
+        toast('Errore: ' + err.message, 'error');
+      }
+    });
+  });
+}
+
+// Aggancia OFF al campo ricerca del picker
+document.getElementById('fpk-q')?.addEventListener('input', e => {
+  startOffPickerSearch(e.target.value.trim());
+});
 
 init();
 </script>

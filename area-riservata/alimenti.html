@@ -48,7 +48,43 @@
     .macro-card__label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);}
     .macro-card__value{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--sage-600);}
     .pag-info{font-size:.82rem;color:var(--text-muted);}
-  </style>
+  
+  /* ── Open Food Facts badge e risultati ── */
+  .off-section { margin-top: 1.25rem; }
+  .off-section-header {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: .5rem; padding-bottom: .4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .off-badge {
+    display: inline-flex; align-items: center; gap: .25rem;
+    font-size: .58rem; font-weight: 700; padding: .15rem .45rem;
+    border-radius: 9999px; background: #fff7ed;
+    color: #c2410c; border: 1px solid #fed7aa;
+    white-space: nowrap;
+  }
+  .off-import-btn {
+    font-size: .68rem; padding: .2rem .6rem;
+    border-radius: var(--r-sm); cursor: pointer;
+    border: 1.5px solid var(--sage-300);
+    background: var(--sage-50); color: var(--sage-700);
+    font-weight: 600; transition: all .15s;
+  }
+  .off-import-btn:hover { background: var(--sage-600); color: white; border-color: var(--sage-600); }
+  .off-import-btn:disabled { opacity: .5; cursor: default; }
+  .off-dup-badge {
+    font-size: .6rem; padding: .1rem .4rem; border-radius: 9999px;
+    background: #fef3c7; color: #b45309; border: 1px solid #fcd34d;
+  }
+  tr.off-row { background: #fff9f5 !important; }
+  tr.off-row:hover td { background: #fff3e8 !important; }
+  #off-status { font-size: .75rem; color: var(--text-muted); margin-top: .35rem; min-height: 1rem; }
+  #off-spinner { display:none; width:14px; height:14px; border:2px solid var(--border);
+    border-top-color: var(--sage-600); border-radius:50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -261,6 +297,10 @@ import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, initUI, n, val, flt, emptyState } from './js/ui.js';
 
 const PAGE_SIZE = 50;
+// ── Stato OFF ────────────────────────────────────────────────────────────────
+let offResults = [];       // risultati OFF correnti
+let offSearchTimer = null; // debounce
+
 const S = {
   user: null, tutti: [], filtrati: [], pagina: 0,
   catalogo: [],           // patologie_catalogo
@@ -601,6 +641,144 @@ window.openAlimentoFormEsterno = (callback) => {
     S._afterSaveCallback=callback;
   });
 };
+
+// ─── OPEN FOOD FACTS ─────────────────────────────────────────────────────────
+
+async function runOffSearch(query) {
+  const spinner = document.getElementById('off-spinner');
+  const status  = document.getElementById('off-status');
+  spinner.style.display = 'block';
+  status.textContent = 'Ricerca su Open Food Facts…';
+  try {
+    const results = await searchOpenFoodFacts(query, 15);
+    offResults = results;
+    // Deduplicazione: segna quali sono già nel DB
+    for (const r of offResults) {
+      const dup = await checkDuplicate(r, S.tutti);
+      r._dup = dup; // null o {alimento, metodo}
+    }
+    renderOffResults(offResults);
+    status.textContent = results.length
+      ? `${results.length} risultat${results.length===1?'o':'i'} da Open Food Facts`
+      : 'Nessun risultato esterno';
+  } catch(e) {
+    status.textContent = 'OFF non disponibile';
+    console.warn('OFF error:', e);
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+function renderOffResults(prodotti) {
+  // Rimuovi sezione OFF precedente
+  document.getElementById('off-results-section')?.remove();
+  if (!prodotti.length) return;
+
+  const sect = document.createElement('div');
+  sect.id = 'off-results-section';
+  sect.className = 'card mt-md off-section';
+
+  const rows = prodotti.map((p, idx) => {
+    const isDup  = !!p._dup;
+    const dupTag = isDup
+      ? `<span class="off-dup-badge" title="Già presente come: ${p._dup.alimento.nome}">✓ già nel DB</span>`
+      : '';
+    const importBtn = isDup
+      ? `<button class="off-import-btn" disabled title="Già presente nel database">Nel DB</button>`
+      : `<button class="off-import-btn" data-off-import="${idx}">⬇ Importa</button>`;
+
+    const kcal = p.energia_kcal != null ? Math.round(p.energia_kcal) : '—';
+    const prot = p.proteine_g  != null ? (+p.proteine_g).toFixed(1)  : '—';
+    const carb = p.carboidrati_g != null ? (+p.carboidrati_g).toFixed(1) : '—';
+    const lip  = p.lipidi_g    != null ? (+p.lipidi_g).toFixed(1)    : '—';
+
+    return `<tr class="off-row">
+      <td class="td-nome">
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+          <span class="off-badge">🌐 OFF</span>
+          ${p.nome}
+          ${dupTag}
+        </div>
+        <div style="font-size:.68rem;color:var(--text-muted);">${p.categoria}</div>
+      </td>
+      <td><span class="cat-chip">${p.categoria}</span></td>
+      <td class="td-num hl">${kcal}</td>
+      <td class="td-num">${prot}</td>
+      <td class="td-num">${carb}</td>
+      <td class="td-num">${lip}</td>
+      <td class="td-num">—</td>
+      <td>${macroBar(p.proteine_g, p.carboidrati_g, p.lipidi_g)}</td>
+      <td><div class="td-actions">${importBtn}</div></td>
+    </tr>`;
+  }).join('');
+
+  sect.innerHTML = `
+    <div class="off-section-header">
+      🌐 Risultati Open Food Facts
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">
+        — questi prodotti non sono ancora nel tuo database
+      </span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="alimenti-table" style="margin:0;">
+        <thead><tr>
+          <th>Nome prodotto</th><th>Categoria</th>
+          <th>Kcal</th><th>Prot</th><th>Carb</th><th>Lip</th><th>Fibra</th>
+          <th>Macro</th><th>Azione</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+
+  // Inserisci dopo la tabella locale
+  const tableWrap = document.querySelector('.card.mt-md') || document.querySelector('main .card');
+  tableWrap ? tableWrap.after(sect) : document.querySelector('main').appendChild(sect);
+
+  // Event delegation import
+  sect.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-off-import]');
+    if (!btn) return;
+    const idx = +btn.dataset.offImport;
+    const prod = offResults[idx];
+    if (!prod) return;
+    btn.disabled = true;
+    btn.textContent = 'Importazione…';
+    try {
+      const nuovoAlimento = await importOffProdotto(prod, S.userId);
+      S.tutti.push(nuovoAlimento);
+      btn.textContent = '✓ Importato';
+      btn.style.background = 'var(--sage-600)';
+      btn.style.color = 'white';
+      // Segna come duplicato negli altri risultati con stesso codice
+      offResults.forEach(r => {
+        if (r.off_code && r.off_code === prod.off_code) r._dup = { alimento: nuovoAlimento, metodo: 'import' };
+      });
+      toast(`✓ "${nuovoAlimento.nome}" aggiunto al database!`);
+      applyFilters(); // aggiorna lista locale
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = '⬇ Importa';
+      toast('Errore importazione: ' + e.message, 'error');
+    }
+  });
+}
+
+// Estendi il listener search per triggerare OFF
+const _origInput = n('search-alimento');
+let _offTimer = null;
+_origInput.addEventListener('input', () => {
+  clearTimeout(_offTimer);
+  const q = _origInput.value.trim();
+  if (q.length < 3) {
+    document.getElementById('off-results-section')?.remove();
+    n('off-status').textContent = '';
+    n('off-spinner').style.display = 'none';
+    return;
+  }
+  n('off-spinner').style.display = 'block';
+  n('off-status').textContent = 'Attendere…';
+  _offTimer = setTimeout(() => runOffSearch(q), 900);
+});
 
 init();
 </script>
