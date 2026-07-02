@@ -763,24 +763,28 @@ function renderOffResults(prodotti) {
   });
 }
 
-// Estendi il listener search per triggerare OFF
-const _origInput = n('search-alimento');
-let _offTimer = null;
-_origInput.addEventListener('input', () => {
-  clearTimeout(_offTimer);
-  const q = _origInput.value.trim();
-  if (q.length < 3) {
-    document.getElementById('off-results-section')?.remove();
-    n('off-status').textContent = '';
-    n('off-spinner').style.display = 'none';
-    return;
+init().then(() => {
+  // Listener OFF: attaccato DOPO init() quando il DOM è completo e visibile
+  let _offTimer = null;
+  const _origInput = n('search-alimento');
+  if (_origInput) {
+    _origInput.addEventListener('input', () => {
+      clearTimeout(_offTimer);
+      const q = _origInput.value.trim();
+      document.getElementById('off-results-section')?.remove();
+      const statusEl  = document.getElementById('off-status');
+      const spinnerEl = document.getElementById('off-spinner');
+      if (q.length < 3) {
+        if (statusEl)  statusEl.textContent  = '';
+        if (spinnerEl) spinnerEl.style.display = 'none';
+        return;
+      }
+      if (spinnerEl) spinnerEl.style.display = 'block';
+      if (statusEl)  statusEl.textContent  = 'Attendere…';
+      _offTimer = setTimeout(() => runOffSearch(q), 900);
+    });
   }
-  n('off-spinner').style.display = 'block';
-  n('off-status').textContent = 'Attendere…';
-  _offTimer = setTimeout(() => runOffSearch(q), 900);
 });
-
-init();
 </script>
 </body>
 </html>
