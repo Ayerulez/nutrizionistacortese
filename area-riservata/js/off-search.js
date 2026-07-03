@@ -105,33 +105,15 @@ export function mapOffToAlimento(product) {
 const memCache = new Map();
 
 async function getCached(query) {
-  // L1: memoria
+  // Solo cache L1 in memoria (evita chiamate Supabase senza apikey)
   const mem = memCache.get(query);
   if (mem && Date.now() - mem.ts < CACHE_TTL_MS) return mem.data;
-
-  // L2: Supabase
-  const { data } = await sb.from('off_search_cache')
-    .select('risultati,created_at')
-    .eq('query', query)
-    .maybeSingle();  // maybeSingle: null se non trovato, non 406
-
-  if (data) {
-    const age = Date.now() - new Date(data.created_at).getTime();
-    if (age < CACHE_TTL_MS) {
-      memCache.set(query, { data: data.risultati, ts: Date.now() - age });
-      return data.risultati;
-    }
-  }
   return null;
 }
 
 async function setCache(query, risultati) {
+  // Solo memoria — semplice e senza dipendenze
   memCache.set(query, { data: risultati, ts: Date.now() });
-  // Scrivi su Supabase in background (upsert)
-  sb.from('off_search_cache')
-    .upsert({ query, risultati, created_at: new Date().toISOString() })
-    .then(() => {})
-    .catch(() => {});
 }
 
 // ─── RICERCA OFF ─────────────────────────────────────────────────────────────
@@ -141,7 +123,10 @@ async function setCache(query, risultati) {
  * Usa cache L1 (memoria) + L2 (Supabase).
  */
 export async function searchOpenFoodFacts(query, maxResults = 25) {
-  if (!query || query.length < 2) return [];
+  // OFF usa Elasticsearch con ricerca a parola intera.
+  // "pomodoro" viene trovato scrivendo "pomodoro" o "pomodo" (parola quasi completa)
+  // ma non "pomo" che è una parola diversa. Soglia minima: 3 caratteri.
+  if (!query || query.length < 3) return [];
 
   const cacheKey = `off:${query.toLowerCase().trim()}`;
 
