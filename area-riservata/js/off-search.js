@@ -158,8 +158,14 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
   });
 
   try {
+    // Ottieni il token di sessione dell'utente loggato
+    const { data: sessionData } = await sb.auth.getSession();
+    const token = sessionData?.session?.access_token || SUPABASE_ANON_KEY;
     const res = await fetch(`${proxyUrl}?${params}`, {
-      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
