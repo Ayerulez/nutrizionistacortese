@@ -140,7 +140,7 @@ async function setCache(query, risultati) {
  * Restituisce array di prodotti già mappati con campo _off_source=true.
  * Usa cache L1 (memoria) + L2 (Supabase).
  */
-export async function searchOpenFoodFacts(query, maxResults = 15) {
+export async function searchOpenFoodFacts(query, maxResults = 25) {
   if (!query || query.length < 2) return [];
 
   const cacheKey = `off:${query.toLowerCase().trim()}`;
@@ -153,8 +153,8 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
   const params = new URLSearchParams({
     q:         query,
     page_size: String(maxResults),
-    lc:        'it',
-    cc:        'it',
+    // Nessun filtro lc/cc: cerca globalmente per non perdere prodotti italiani
+    // distribuiti senza tag paese specifico
   });
 
   try {
@@ -165,8 +165,9 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
     const data = await res.json();
 
     const prodotti = (data.products || [])
-      .filter(p => p.product_name && p.nutriments?.['energy-kcal_100g'] != null)
-      .map(p => ({ ...mapOffToAlimento(p), _off_source: true, _off_raw: p }));
+      .filter(p => p.product_name && p.product_name.trim().length > 0)
+      .map(p => ({ ...mapOffToAlimento(p), _off_source: true, _off_raw: p }))
+      .slice(0, maxResults);
 
     await setCache(cacheKey, prodotti);
     return prodotti;
