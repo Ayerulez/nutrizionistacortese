@@ -9,7 +9,7 @@
  * - Import prodotto esterno nel DB locale
  */
 
-import { sb, SUPABASE_URL } from './supabase.js';
+import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js';
 
 // Proxy Supabase Edge Function — evita CORS
 function getOffProxyUrl() {
@@ -159,6 +159,7 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
 
   try {
     const res = await fetch(`${proxyUrl}?${params}`, {
+      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
