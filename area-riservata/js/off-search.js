@@ -1,3 +1,4 @@
+// v=202607022054 — cache bust
 /**
  * off-search.js — Integrazione Open Food Facts API
  *
@@ -8,10 +9,12 @@
  * - Import prodotto esterno nel DB locale
  */
 
-import { sb } from './supabase.js';
+import { sb, SUPABASE_URL } from './supabase.js';
 
-// API v2 di OFF: supporta CORS dal browser
-const OFF_BASE   = 'https://api.prod.openfoodfacts.org/v2/search';
+// Proxy Supabase Edge Function — evita CORS
+function getOffProxyUrl() {
+  return SUPABASE_URL.replace(/\/$/, '') + '/functions/v1/off-proxy';
+}
 const OFF_FIELDS = 'code,product_name,brands,categories_tags,nutriments,serving_size,image_small_url';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ore
 
@@ -146,17 +149,17 @@ export async function searchOpenFoodFacts(query, maxResults = 15) {
   const cached = await getCached(cacheKey);
   if (cached) return cached;
 
+  const proxyUrl = getOffProxyUrl();
   const params = new URLSearchParams({
-    search_terms: query,
-    page_size:    maxResults,
-    fields:       OFF_FIELDS,
-    lc:           'it',
-    cc:           'it',
+    q:         query,
+    page_size: String(maxResults),
+    lc:        'it',
+    cc:        'it',
   });
 
   try {
-    const res = await fetch(`${OFF_BASE}?${params}`, {
-      signal: AbortSignal.timeout(10000),
+    const res = await fetch(`${proxyUrl}?${params}`, {
+      signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
