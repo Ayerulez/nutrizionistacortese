@@ -211,13 +211,21 @@ function similarity(a, b) {
  * Restituisce il nuovo record alimento.
  */
 export async function importOffProdotto(offProdotto, userId) {
-  const payload = { ...offProdotto };
-  // Rimuovi campi non DB
-  delete payload._off_source;
-  delete payload._off_raw;
-  delete payload._off_image;
+  // Campi DB validi nella tabella alimenti
+  const DB_FIELDS = [
+    'off_code','nome','categoria','energia_kcal','proteine_g','carboidrati_g',
+    'zuccheri_g','lipidi_g','grassi_saturi_g','fibra_g','sodio_mg','sale_g',
+    'porzione_default_g','note_porzione','abilitato','user_id'
+  ];
 
-  payload.user_id = userId; // alimento custom dell'utente
+  // Costruisci payload con SOLO i campi DB — esclude _dup, _off_source, _off_raw, _off_image, ecc.
+  const payload = { user_id: userId };
+  for (const field of DB_FIELDS) {
+    if (field === 'user_id') continue;
+    if (offProdotto[field] !== undefined && offProdotto[field] !== null) {
+      payload[field] = offProdotto[field];
+    }
+  }
 
   const { data, error } = await sb.from('alimenti').insert(payload).select().single();
   if (error) throw error;
