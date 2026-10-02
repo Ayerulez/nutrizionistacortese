@@ -1,3 +1,4 @@
+import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js';
 /**
  * supabase.js — Client + Auth + DB functions
  *
@@ -7,7 +8,7 @@
  *   logout()    = sempre → login.html
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from './vendor/supabase.js';
 
 // ─── CONFIG — sostituire con i valori reali ───────────────────────────────
 export const SUPABASE_URL      = 'https://lzxkfknqzvmykuumorwy.supabase.co';
@@ -20,13 +21,15 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // ─── AUTH ─────────────────────────────────────────────────────────────────
 
 export async function requireAuth() {
-  const { data: { session } } = await sb.auth.getSession();
+  const { data: { session }, error } = await sb.auth.getSession();
+  if (error) throw error;
   if (!session) { window.location.replace('./login.html'); return null; }
   return session.user;
 }
 
 export async function redirectIfAuth() {
-  const { data: { session } } = await sb.auth.getSession();
+  const { data: { session }, error } = await sb.auth.getSession();
+  if (error) throw error;
   if (session) window.location.replace('./index.html');
 }
 
@@ -37,7 +40,8 @@ export async function login(email, password) {
 }
 
 export async function logout() {
-  await sb.auth.signOut();
+  const { error } = await sb.auth.signOut({ scope: 'local' });
+  if (error) throw error;
   window.location.replace('./login.html');
 }
 
@@ -45,15 +49,15 @@ export async function logout() {
 
 export async function getKpiMensili() {
   const now = new Date();
-  const inizioMeseCorr = new Date(now.getFullYear(), now.getMonth(),     1).toISOString().split('T')[0];
-  const inizioMesePrec = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-  const fineRicerca    = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  const inizioMeseCorr = localDateISO(new Date(now.getFullYear(), now.getMonth(), 1));
+  const inizioMesePrec = localDateISO(new Date(now.getFullYear(), now.getMonth()-1, 1));
+  const fineRicerca    = localDateISO(new Date(now.getFullYear(), now.getMonth()+1, 0));
 
   const { data, error } = await sb
     .from('visite')
     .select('id, data_visita, prestazioni(id, nome)')
     .gte('data_visita', inizioMesePrec)
-    .lte('data_visita', fineRicerca);
+    .lte('data_visita', fineRicerca).throwOnError();
   if (error) throw error;
 
   const meseCorr = new Date(now.getFullYear(), now.getMonth(),     1);
@@ -64,7 +68,7 @@ export async function getKpiMensili() {
       const d = new Date(v.data_visita);
       return d.getFullYear() === mese.getFullYear() && d.getMonth() === mese.getMonth();
     });
-    const map = {};
+    const map = Object.create(null);
     filtered.forEach(v => {
       const nome = v.prestazioni?.nome ?? 'Non specificata';
       map[nome] = (map[nome] ?? 0) + 1;
@@ -80,11 +84,12 @@ export async function getKpiMensili() {
 
 export async function getStatGlobali() {
   const [r1, r2, r3, r4] = await Promise.all([
-    sb.from('pazienti').select('*',    { count: 'exact', head: true }),
-    sb.from('visite').select('*',      { count: 'exact', head: true }),
-    sb.from('strutture').select('*',   { count: 'exact', head: true }).eq('abilitato', true),
-    sb.from('prestazioni').select('*', { count: 'exact', head: true }).eq('abilitato', true),
+    sb.from('pazienti').select('*',    { count: 'exact', head: true }).throwOnError(),
+    sb.from('visite').select('*',      { count: 'exact', head: true }).throwOnError(),
+    sb.from('strutture').select('*',   { count: 'exact', head: true }).eq('abilitato', true).throwOnError(),
+    sb.from('prestazioni').select('*', { count: 'exact', head: true }).eq('abilitato', true).throwOnError(),
   ]);
+  for (const result of [r1,r2,r3,r4]) if (result.error) throw result.error;
   return {
     pazienti:    r1.count ?? 0,
     visite:      r2.count ?? 0,
@@ -97,55 +102,55 @@ export async function getStatGlobali() {
 
 export async function searchPazienti({
   search = '', sesso = '', citta = '',
-  eta_min = null, eta_max = null, order = 'cognome',
+  eta_min = null, eta_max = null, order = 'cognome', patologia_id = null,
 } = {}) {
   let q = sb.from('pazienti').select(
     'id, nome, cognome, data_nascita, codice_fiscale, sesso, citta, created_at, altezza_cm'
-  );
+  ).throwOnError();
 
   if (search.trim()) {
-    q = q.or(`cognome.ilike.%${search}%,nome.ilike.%${search}%,codice_fiscale.ilike.%${search.toUpperCase()}%`);
+    const quotedPattern = value => '"%' + value.replace(/[\\%_]/g, '\\$&').replace(/"/g, '\\"') + '%"';
+    const pattern = quotedPattern(search.trim());
+    q = q.or(`cognome.ilike.${pattern},nome.ilike.${pattern},codice_fiscale.ilike.${quotedPattern(search.trim().toUpperCase())}`);
+  }
+  if(patologia_id){
+    const ids=await getAllRows(()=>sb.from('pazienti_patologie').select('paziente_id').eq('patologia_id',patologia_id).order('id'));
+    if(!ids.length)return [];
+    q=q.in('id',ids.map(x=>x.paziente_id));
   }
   if (sesso) q = q.eq('sesso', sesso);
   if (citta) q = q.ilike('citta', `%${citta}%`);
 
   if (eta_min != null) {
     const d = new Date(); d.setFullYear(d.getFullYear() - eta_min);
-    q = q.lte('data_nascita', d.toISOString().split('T')[0]);
+    q = q.lte('data_nascita', localDateISO(d));
   }
   if (eta_max != null) {
     const d = new Date(); d.setFullYear(d.getFullYear() - eta_max - 1);
-    q = q.gte('data_nascita', d.toISOString().split('T')[0]);
+    q = q.gt('data_nascita', localDateISO(d));
   }
 
   q = order === 'data_creazione'
     ? q.order('created_at', { ascending: false })
     : q.order('cognome').order('nome');
 
-  const { data, error } = await q;
-  if (error) throw error;
-  return data;
+  q=q.order('id');
+  return getAllRows(()=>q);
 }
 
 export async function getPaziente(id) {
-  const { data, error } = await sb.from('pazienti').select('*').eq('id', id).single();
+  const { data, error } = await sb.from('pazienti').select('*').eq('id', id).single().throwOnError();
   if (error) throw error;
   return data;
 }
 
-export async function savePaziente(payload, editingId = null) {
-  if (editingId) {
-    const { user_id, ...upd } = payload;
-    const { data, error } = await sb.from('pazienti').update(upd).eq('id', editingId).select().single();
-    if (error) throw error;
-    return data;
-  }
-  const { data, error } = await sb.from('pazienti').insert(payload).select().single();
-  if (error) throw error;
+export async function savePaziente(payload, editingId = null, patologiaIds = [], note = {}) {
+  const { data } = await sb.rpc('nutri_save_paziente', {
+    p_id: editingId, p_payload: payload,
+    p_patologie: patologiaIds.map(id => ({ patologia_id: id, note: note[id] || null })),
+  }).throwOnError();
   return data;
 }
-
-// NESSUN deletePaziente — soft delete non applicato ai pazienti per policy
 
 // ─── VISITE ───────────────────────────────────────────────────────────────
 
@@ -158,7 +163,7 @@ export async function getListaVisite({
       { count: 'exact' }
     )
     .order('data_visita', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .range(offset, offset + limit - 1).throwOnError();
 
   if (struttura_id)   q = q.eq('struttura_id',   struttura_id);
   if (prestazione_id) q = q.eq('prestazione_id', prestazione_id);
@@ -172,7 +177,7 @@ export async function getVisitePaziente(pazienteId) {
   const { data, error } = await sb.from('visite')
     .select('*, strutture(nome), prestazioni(id, nome)')
     .eq('paziente_id', pazienteId)
-    .order('data_visita', { ascending: false });
+    .order('data_visita', { ascending: false }).throwOnError();
   if (error) throw error;
   return data;
 }
@@ -192,7 +197,7 @@ export async function getUltimaVisita(pazienteId) {
     .eq('paziente_id', pazienteId)
     .order('data_visita', { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle().throwOnError();
   if (error) throw error;
   return data;
 }
@@ -200,11 +205,11 @@ export async function getUltimaVisita(pazienteId) {
 export async function saveVisita(payload, editingId = null) {
   if (editingId) {
     const { user_id, paziente_id, ...upd } = payload;
-    const { data, error } = await sb.from('visite').update(upd).eq('id', editingId).select().single();
+    const { data, error } = await sb.from('visite').update(upd).eq('id', editingId).select().single().throwOnError();
     if (error) throw error;
     return data;
   }
-  const { data, error } = await sb.from('visite').insert(payload).select().single();
+  const { data, error } = await sb.from('visite').insert(payload).select().single().throwOnError();
   if (error) throw error;
   return data;
 }
@@ -218,7 +223,7 @@ export async function saveVisita(payload, editingId = null) {
  *   false = solo disabilitate, null = tutte
  */
 export async function getStrutture(soloAbilitate = true) {
-  let q = sb.from('strutture').select('*').order('nome');
+  let q = sb.from('strutture').select('*').order('nome').throwOnError();
   if (soloAbilitate === true)  q = q.eq('abilitato', true);
   if (soloAbilitate === false) q = q.eq('abilitato', false);
   const { data, error } = await q;
@@ -229,14 +234,14 @@ export async function getStrutture(soloAbilitate = true) {
 export async function saveStruttura({ nome, indirizzo }, userId) {
   const { data, error } = await sb.from('strutture')
     .insert({ user_id: userId, nome, indirizzo: indirizzo || null, abilitato: true })
-    .select().single();
+    .select().single().throwOnError();
   if (error) throw error;
   return data;
 }
 
 /** Soft disable/enable struttura (mai eliminazione fisica) */
 export async function toggleStruttura(id, abilitato) {
-  const { error } = await sb.from('strutture').update({ abilitato }).eq('id', id);
+  const { error } = await sb.from('strutture').update({ abilitato }).eq('id', id).select('id').single().throwOnError();
   if (error) throw error;
 }
 
@@ -248,7 +253,7 @@ export async function toggleStruttura(id, abilitato) {
 export async function getPrestazioni(soloAbilitate = true) {
   let q = sb.from('prestazioni')
     .select('*, prestazioni_strutture(struttura_id, prezzo_override)')
-    .order('nome');
+    .order('nome').throwOnError();
   if (soloAbilitate === true)  q = q.eq('abilitato', true);
   if (soloAbilitate === false) q = q.eq('abilitato', false);
   const { data, error } = await q;
@@ -261,63 +266,17 @@ export async function getPrestazioni(soloAbilitate = true) {
  * struttura_ids è array di { id: string, prezzo_override: number|null }
  * Usiamo String() esplicito per garantire che struttura_id sia sempre una stringa UUID.
  */
-export async function savePrestazione({
-  nome, descrizione, durata_minuti, prezzo, struttura_ids = [],
-}, userId, editingId = null) {
-
-  let prestazioneId;
-
-  if (editingId) {
-    const { error } = await sb.from('prestazioni')
-      .update({
-        nome,
-        descrizione:    descrizione    || null,
-        durata_minuti:  durata_minuti  || null,
-        prezzo:         prezzo         || null,
-      })
-      .eq('id', editingId);
-    if (error) throw error;
-    prestazioneId = editingId;
-    // Rimuovi vecchie associazioni
-    const { error: delErr } = await sb.from('prestazioni_strutture')
-      .delete().eq('prestazione_id', editingId);
-    if (delErr) throw delErr;
-  } else {
-    const { data, error } = await sb.from('prestazioni')
-      .insert({
-        user_id:       userId,
-        nome,
-        descrizione:   descrizione   || null,
-        durata_minuti: durata_minuti || null,
-        prezzo:        prezzo        || null,
-        abilitato:     true,
-      })
-      .select().single();
-    if (error) throw error;
-    prestazioneId = data.id;
-  }
-
-  // Inserisci nuove associazioni strutture
-  // FIX: conversione esplicita a stringa UUID per evitare "invalid input syntax for type uuid"
-  if (struttura_ids.length > 0) {
-    const rows = struttura_ids.map(item => ({
-      user_id:         String(userId),
-      prestazione_id:  String(prestazioneId),
-      struttura_id:    String(item.id),           // ← String() esplicito, bug fix
-      prezzo_override: item.prezzo_override != null
-        ? parseFloat(item.prezzo_override)
-        : null,
-    }));
-    const { error } = await sb.from('prestazioni_strutture').insert(rows);
-    if (error) throw error;
-  }
-
-  return prestazioneId;
+export async function savePrestazione({ nome, descrizione, durata_minuti, prezzo, struttura_ids = [] }, userId, editingId = null) {
+  const { data } = await sb.rpc('nutri_save_prestazione', {
+    p_id: editingId,
+    p_payload: { nome, descrizione: descrizione || null, durata_minuti: durata_minuti ?? null, prezzo: prezzo ?? null },
+    p_strutture: struttura_ids,
+  }).throwOnError();
+  return data.id;
 }
 
-/** Soft disable/enable prestazione (mai eliminazione fisica) */
 export async function togglePrestazione(id, abilitato) {
-  const { error } = await sb.from('prestazioni').update({ abilitato }).eq('id', id);
+  const { error } = await sb.from('prestazioni').update({ abilitato }).eq('id', id).select('id').single().throwOnError();
   if (error) throw error;
 }
 
@@ -327,7 +286,7 @@ export async function togglePrestazione(id, abilitato) {
 export async function getPatologieCatalogo() {
   const { data, error } = await sb.from('patologie_catalogo')
     .select('id, codice, nome, categoria')
-    .order('categoria').order('nome');
+    .order('categoria').order('nome').throwOnError();
   if (error) throw error;
   return data;
 }
@@ -336,26 +295,27 @@ export async function getPatologieCatalogo() {
 export async function getPatologiePaziente(pazienteId) {
   const { data, error } = await sb.from('pazienti_patologie')
     .select('id, patologia_id, note, patologie_catalogo(id, codice, nome, categoria)')
-    .eq('paziente_id', pazienteId);
+    .eq('paziente_id', pazienteId).throwOnError();
   if (error) throw error;
   return data;
 }
 
 /** Sostituisce le patologie di un paziente con il nuovo set */
 export async function savePatologiePaziente(pazienteId, userId, patologiaIds, note = {}) {
-  // Elimina le esistenti
-  const { error: delErr } = await sb.from('pazienti_patologie')
-    .delete().eq('paziente_id', pazienteId);
-  if (delErr) throw delErr;
+  await savePaziente({}, pazienteId, patologiaIds, note);
+}
 
-  if (patologiaIds.length === 0) return;
+// Date locali: toISOString() a mezzanotte spostava il giorno in UTC.
+export function localDateISO(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
 
-  const rows = patologiaIds.map(pid => ({
-    user_id:     String(userId),
-    paziente_id: String(pazienteId),
-    patologia_id: String(pid),
-    note:        note[pid] || null,
-  }));
-  const { error } = await sb.from('pazienti_patologie').insert(rows);
-  if (error) throw error;
+// Legge tutte le pagine, anche se il catalogo supera il limite REST di Supabase.
+export async function getAllRows(buildQuery) {
+  const rows=[];
+  for(let offset=0;;){
+    const {data}=await buildQuery().range(offset,offset+499).throwOnError();
+    if(!data?.length)return rows;
+    rows.push(...data);offset+=data.length;
+  }
 }

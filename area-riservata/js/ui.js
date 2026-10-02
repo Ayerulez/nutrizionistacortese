@@ -1,3 +1,4 @@
+import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js';
 /**
  * ui.js — Helper UI condivisi
  *
@@ -132,10 +133,10 @@ function _showConfirmBanner(modalId) {
     banner = document.createElement('div');
     banner.id = '_confirm-close-banner';
     banner.className = 'confirm-close-banner';
-    banner.innerHTML = `
+    setHTML(banner, `
       <p>⚠ Hai modifiche non salvate. Uscire senza salvare?</p>
       <button class="btn btn-ghost btn-sm" id="_ccb-stay" style="border-color:rgba(255,255,255,.3);color:white;">Rimani</button>
-      <button class="btn btn-danger btn-sm" id="_ccb-leave">Esci senza salvare</button>`;
+      <button class="btn btn-danger btn-sm" id="_ccb-leave">Esci senza salvare</button>`);
     document.body.appendChild(banner);
   }
   banner.classList.add('show');
@@ -217,17 +218,21 @@ export function fmtDate(iso, opts = { day: '2-digit', month: 'long', year: 'nume
 export function fmtDateShort(iso) {
   return fmtDate(iso, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-export function calcEta(dataNascita) {
-  if (!dataNascita) return null;
-  return Math.floor((Date.now() - new Date(dataNascita)) / (365.25 * 24 * 3600 * 1000));
+export function calcEta(dataNascita, today = new Date()) {
+  if(!dataNascita)return null;
+  const birth=new Date(dataNascita+'T12:00:00');
+  if(Number.isNaN(birth.getTime()))return null;
+  let years=today.getFullYear()-birth.getFullYear();
+  if(today.getMonth()<birth.getMonth()||(today.getMonth()===birth.getMonth()&&today.getDate()<birth.getDate()))years--;
+  return years<0?null:years;
 }
 
 // ─── EMPTY STATE ──────────────────────────────────────────────────────────
 export function emptyState(icon, title, text = '') {
   return `<div class="empty-state">
-    <div class="empty-state__icon">${icon}</div>
-    <h3>${title}</h3>
-    ${text ? `<p>${text}</p>` : ''}
+    <div class="empty-state__icon">${escapeHtml(icon)}</div>
+    <h3>${escapeHtml(title)}</h3>
+    ${text ? `<p>${escapeHtml(text)}</p>` : ''}
   </div>`;
 }
 
@@ -266,9 +271,9 @@ export function showValoriPrecedenti(ultimaVisita) {
 
     const hint = document.createElement('div');
     hint.className = 'prec-hint';
-    hint.innerHTML = dataPrec
-      ? `<span class="prec-hint__date">${dataPrec}</span><span class="prec-hint__sep">—</span><span class="prec-hint__val">${v}${u ? '\u00a0' + u : ''}</span>`
-      : `<span class="prec-hint__val">Prec: ${v}${u ? '\u00a0' + u : ''}</span>`;
+    setHTML(hint, dataPrec
+      ? `<span class="prec-hint__date">${escapeHtml(dataPrec)}</span><span class="prec-hint__sep">—</span><span class="prec-hint__val">${escapeHtml(v)}${escapeHtml(u ? '\u00a0' + u : '')}</span>`
+      : `<span class="prec-hint__val">Prec: ${escapeHtml(v)}${escapeHtml(u ? '\u00a0' + u : '')}</span>`);
     label.insertAdjacentElement('afterend', hint);
     input.placeholder = `Es: ${v}`;
     input.dataset.precVal = String(v);
