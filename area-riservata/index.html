@@ -18,7 +18,7 @@
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -99,8 +99,10 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="./js/vendor/chart.umd.js"></script>
 <script type="module">
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
 import { sb, requireAuth, logout, getKpiMensili, getStatGlobali } from './js/supabase.js';
 import { loading, toast, n } from './js/ui.js';
 
@@ -112,7 +114,7 @@ async function init() {
   if (!user) return;
   n('topbar-email').textContent = user.email;
   n('app').style.display = 'block';
-  n('btn-logout').addEventListener('click', logout);
+  n('btn-logout').onclick = guard(logout);
   loading(false);
   await Promise.all([loadStats(), loadKpi()]);
 }
@@ -144,7 +146,7 @@ async function loadKpi() {
     function renderKpiCard(containerId, kpiData) {
       const cont = n(containerId);
       if (kpiData.totale === 0) {
-        cont.innerHTML = '<p class="text-muted text-sm" style="padding:1rem 0;">Nessuna visita registrata</p>';
+        setHTML(cont, '<p class="text-muted text-sm" style="padding:1rem 0;">Nessuna visita registrata</p>');
         return;
       }
       const breakdown = Object.entries(kpiData.breakdown)
@@ -152,20 +154,20 @@ async function loadKpi() {
         .map(([nome, count]) => {
           const pct = Math.round((count / kpiData.totale) * 100);
           return `<div class="kpi-row">
-            <span class="kpi-row__nome">${nome}</span>
+            <span class="kpi-row__nome">${escapeHtml(nome)}</span>
             <div class="kpi-bar-wrap">
-              <div class="kpi-bar" style="width:${pct}%"></div>
+              <div class="kpi-bar" style="width:${escapeHtml(pct)}%"></div>
             </div>
-            <span class="kpi-row__count">${count}</span>
+            <span class="kpi-row__count">${escapeHtml(count)}</span>
           </div>`;
         }).join('');
 
-      cont.innerHTML = `
+      setHTML(cont, `
         <div class="kpi-totale">
-          <span class="kpi-totale__num">${kpiData.totale}</span>
+          <span class="kpi-totale__num">${escapeHtml(kpiData.totale)}</span>
           <span class="kpi-totale__label">visite totali</span>
         </div>
-        <div class="kpi-breakdown">${breakdown}</div>`;
+        <div class="kpi-breakdown">${breakdown}</div>`);
     }
 
     renderKpiCard('kpi-mese-corr', kpi.corrente);
@@ -218,7 +220,7 @@ function renderKpiChart(kpi) {
   });
 }
 
-init();
+init().catch(reportError);
 </script>
 </body>
 </html>

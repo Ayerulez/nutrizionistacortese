@@ -56,7 +56,7 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -227,6 +227,8 @@
 </div>
 
 <script type="module">
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
 import { sb, requireAuth, logout,
          getStrutture, saveStruttura, toggleStruttura,
          getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js';
@@ -248,17 +250,17 @@ async function init() {
   n('account-email').value      = S.user.email;
   n('app').style.display = 'block';
 
-  n('btn-logout').addEventListener('click', logout);
-  n('btn-change-pwd').addEventListener('click', changePassword);
-  n('btn-save-str').addEventListener('click', saveStrutturaHandler);
-  n('btn-save-prest').addEventListener('click', savePrestazioneHandler);
-  n('btn-nuova-struttura').addEventListener('click', openNuovaStruttura);
-  n('btn-nuova-prestazione').addEventListener('click', openNuovaPrestazione);
-  n('show-disabled-str').addEventListener('change', loadStrutture);
-  n('show-disabled-prest').addEventListener('change', loadPrestazioni);
+  n('btn-logout').onclick = guard(logout);
+  n('btn-change-pwd').onclick = guard(changePassword);
+  n('btn-save-str').onclick = guard(saveStrutturaHandler);
+  n('btn-save-prest').onclick = guard(savePrestazioneHandler);
+  n('btn-nuova-struttura').onclick = guard(openNuovaStruttura);
+  n('btn-nuova-prestazione').onclick = guard(openNuovaPrestazione);
+  n('show-disabled-str').onchange = guard(loadStrutture);
+  n('show-disabled-prest').onchange = guard(loadPrestazioni);
 
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn =>
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn))
+    btn.onclick = guard(() => switchTab(btn.dataset.tab, btn))
   );
 
   loading(false);
@@ -280,39 +282,39 @@ async function loadStrutture() {
   const cont = n('strutture-list');
 
   if (!S.strutture.length) {
-    cont.innerHTML = emptyState('🏥', 'Nessuna struttura', showDis
+    setHTML(cont, emptyState('🏥', 'Nessuna struttura', showDis
       ? 'Non esistono strutture disabilitate.'
-      : 'Aggiungi i luoghi dove effettui le visite.');
+      : 'Aggiungi i luoghi dove effettui le visite.'));
     return;
   }
 
-  cont.innerHTML = S.strutture.map(s => `
-    <div class="item-card${s.abilitato ? '' : ' disabled-row'}" data-str-id="${s.id}">
+  setHTML(cont, S.strutture.map(s => `
+    <div class="item-card${escapeHtml(s.abilitato ? '' : ' disabled-row')}" data-str-id="${escapeHtml(s.id)}">
       <div class="item-icon">🏥</div>
       <div class="item-info">
         <div class="item-name">
-          ${s.nome}
+          ${escapeHtml(s.nome)}
           ${!s.abilitato ? '<span class="disabled-badge">Disabilitata</span>' : ''}
         </div>
-        ${s.indirizzo ? `<div class="item-meta">${s.indirizzo}</div>` : ''}
+        ${s.indirizzo ? `<div class="item-meta">${escapeHtml(s.indirizzo)}</div>` : ''}
       </div>
       <div class="item-actions">
-        <label class="toggle-wrap" title="${s.abilitato ? 'Disabilita' : 'Riabilita'}">
+        <label class="toggle-wrap" title="${escapeHtml(s.abilitato ? 'Disabilita' : 'Riabilita')}">
           <span class="toggle">
-            <input type="checkbox" ${s.abilitato ? 'checked' : ''}
-              data-toggle-str="${s.id}" />
+            <input type="checkbox" ${escapeHtml(s.abilitato ? 'checked' : '')}
+              data-toggle-str="${escapeHtml(s.id)}" />
             <span class="toggle-slider"></span>
           </span>
         </label>
-        <button class="btn btn-secondary btn-sm" data-edit-str="${s.id}">✏️</button>
+        <button class="btn btn-secondary btn-sm" data-edit-str="${escapeHtml(s.id)}">✏️</button>
       </div>
-    </div>`).join('');
+    </div>`).join(''));
 
-  cont.addEventListener('click', e => {
+  cont.onclick = guard(e => {
     const editBtn = e.target.closest('[data-edit-str]');
     if (editBtn) { openEditStruttura(editBtn.dataset.editStr); return; }
   });
-  cont.addEventListener('change', async e => {
+  cont.onchange = guard(async e => {
     const toggle = e.target.closest('[data-toggle-str]');
     if (toggle) {
       const id        = toggle.dataset.toggleStr;
@@ -354,7 +356,7 @@ async function saveStrutturaHandler() {
     if (editId) {
       const { error } = await sb.from('strutture')
         .update({ nome, indirizzo: val('str-indirizzo') || null })
-        .eq('id', editId);
+        .eq('id', editId).select().single().throwOnError();
       if (error) throw error;
       toast('Struttura aggiornata');
     } else {
@@ -379,58 +381,58 @@ async function loadPrestazioni() {
   const cont = n('prestazioni-list');
 
   if (!S.prestazioni.length) {
-    cont.innerHTML = emptyState('💊', 'Nessuna prestazione', showDis
+    setHTML(cont, emptyState('💊', 'Nessuna prestazione', showDis
       ? 'Non esistono prestazioni disabilitate.'
-      : 'Aggiungi le tipologie di visita che eroghi.');
+      : 'Aggiungi le tipologie di visita che eroghi.'));
     return;
   }
 
-  cont.innerHTML = S.prestazioni.map(p => {
+  setHTML(cont, S.prestazioni.map(p => {
     const assoc = p.prestazioni_strutture || [];
     const strNomi = assoc.map(ps => {
       const s = tutteStrutture.find(x => x.id === ps.struttura_id);
       if (!s) return '';
       const pz = ps.prezzo_override != null
-        ? `€ ${parseFloat(ps.prezzo_override).toFixed(2)} <em style="opacity:.6;">(override)</em>`
+        ? `€ ${escapeHtml(parseFloat(ps.prezzo_override).toFixed(2))} <em style="opacity:.6;">(override)</em>`
         : (p.prezzo ? `€ ${parseFloat(p.prezzo).toFixed(2)}` : '');
       return `<span style="font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:9999px;
         background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);">
-        📍 ${s.nome}${pz ? ' · ' + pz : ''}</span>`;
+        📍 ${escapeHtml(s.nome)}${pz ? ' · ' + pz : ''}</span>`;
     }).join(' ');
 
-    return `<div class="item-card${p.abilitato ? '' : ' disabled-row'}" data-prest-id="${p.id}">
+    return `<div class="item-card${escapeHtml(p.abilitato ? '' : ' disabled-row')}" data-prest-id="${escapeHtml(p.id)}">
       <div class="item-icon">💊</div>
       <div class="item-info">
         <div class="item-name">
-          ${p.nome}
+          ${escapeHtml(p.nome)}
           ${!p.abilitato ? '<span class="disabled-badge">Disabilitata</span>' : ''}
         </div>
         <div class="item-meta">
-          ${p.durata_minuti ? p.durata_minuti + ' min' : ''}
-          ${p.durata_minuti && p.prezzo ? ' · ' : ''}
-          ${p.prezzo ? '€ ' + parseFloat(p.prezzo).toFixed(2) + ' (base)' : ''}
+          ${escapeHtml(p.durata_minuti ? p.durata_minuti + ' min' : '')}
+          ${escapeHtml(p.durata_minuti && p.prezzo ? ' · ' : '')}
+          ${escapeHtml(p.prezzo ? '€ ' + parseFloat(p.prezzo).toFixed(2) + ' (base)' : '')}
         </div>
-        ${p.descrizione ? `<div class="item-meta">${p.descrizione}</div>` : ''}
+        ${p.descrizione ? `<div class="item-meta">${escapeHtml(p.descrizione)}</div>` : ''}
         ${strNomi ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.35rem;">${strNomi}</div>` : ''}
       </div>
       <div class="item-actions">
-        <label class="toggle-wrap" title="${p.abilitato ? 'Disabilita' : 'Riabilita'}">
+        <label class="toggle-wrap" title="${escapeHtml(p.abilitato ? 'Disabilita' : 'Riabilita')}">
           <span class="toggle">
-            <input type="checkbox" ${p.abilitato ? 'checked' : ''}
-              data-toggle-prest="${p.id}" />
+            <input type="checkbox" ${escapeHtml(p.abilitato ? 'checked' : '')}
+              data-toggle-prest="${escapeHtml(p.id)}" />
             <span class="toggle-slider"></span>
           </span>
         </label>
-        <button class="btn btn-secondary btn-sm" data-edit-prest="${p.id}">✏️</button>
+        <button class="btn btn-secondary btn-sm" data-edit-prest="${escapeHtml(p.id)}">✏️</button>
       </div>
     </div>`;
-  }).join('');
+  }).join(''));
 
-  cont.addEventListener('click', e => {
+  cont.onclick = guard(e => {
     const editBtn = e.target.closest('[data-edit-prest]');
     if (editBtn) { openEditPrestazione(editBtn.dataset.editPrest); }
   });
-  cont.addEventListener('change', async e => {
+  cont.onchange = guard(async e => {
     const toggle = e.target.closest('[data-toggle-prest]');
     if (toggle) {
       const id        = toggle.dataset.togglePrest;
@@ -455,24 +457,24 @@ function buildStruttureRows(assocEsistenti = []) {
     s.abilitato || assocEsistenti.some(a => a.struttura_id === s.id)
   );
   if (!visibili.length) {
-    wrap.innerHTML = '<span class="text-muted text-sm">Nessuna struttura configurata.</span>';
+    setHTML(wrap, '<span class="text-muted text-sm">Nessuna struttura configurata.</span>');
     return;
   }
-  wrap.innerHTML = visibili.map(s => {
+  setHTML(wrap, visibili.map(s => {
     const assoc    = assocEsistenti.find(a => a.struttura_id === s.id);
     const checked  = assoc ? 'checked' : '';
     const override = assoc?.prezzo_override != null ? assoc.prezzo_override : '';
     return `<div class="struttura-row">
-      <input type="checkbox" id="ps-${s.id}" data-str-uuid="${s.id}" ${checked}
+      <input type="checkbox" id="ps-${escapeHtml(s.id)}" data-str-uuid="${escapeHtml(s.id)}" ${escapeHtml(checked)}
         style="width:16px;height:16px;accent-color:var(--sage-600);flex-shrink:0;cursor:pointer;" />
-      <label for="ps-${s.id}" class="struttura-row-label">
-        📍 ${s.nome}${!s.abilitato ? ' <span class="disabled-badge">Disab.</span>' : ''}
+      <label for="ps-${escapeHtml(s.id)}" class="struttura-row-label">
+        📍 ${escapeHtml(s.nome)}${!s.abilitato ? ' <span class="disabled-badge">Disab.</span>' : ''}
       </label>
       <span class="price-label">Override €</span>
-      <input type="number" class="override-input" id="ps-price-${s.id}"
-        placeholder="— base —" step=".01" min="0" value="${override}" />
+      <input type="number" class="override-input" id="ps-price-${escapeHtml(s.id)}"
+        placeholder="— base —" step=".01" min="0" value="${escapeHtml(override)}" />
     </div>`;
-  }).join('');
+  }).join(''));
 }
 
 function openNuovaPrestazione() {
@@ -557,7 +559,7 @@ async function changePassword() {
   finally { setBtn('btn-change-pwd', false); }
 }
 
-init();
+init().catch(reportError);
 </script>
 </body>
 </html>

@@ -124,6 +124,8 @@
   </div>
 
 <script type="module">
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
 import { sb, redirectIfAuth, login } from './js/supabase.js';
 
 // Se già autenticato → vai alla dashboard
@@ -148,7 +150,7 @@ async function doLogin() {
   if (!email || !pass) { showError('Inserisci email e password.'); return; }
 
   btnLogin.disabled = true;
-  btnLogin.innerHTML = '<span class="btn-spinner"></span>Accesso in corso…';
+  setHTML(btnLogin, '<span class="btn-spinner"></span>Accesso in corso…');
 
   try {
     await login(email, pass);
@@ -160,13 +162,13 @@ async function doLogin() {
       : (e.message || 'Errore durante il login.');
     showError(msg);
     btnLogin.disabled = false;
-    btnLogin.innerHTML = 'Accedi';
+    setHTML(btnLogin, 'Accedi');
     passEl.value = '';
     passEl.focus();
   }
 }
 
-btnLogin.addEventListener('click', doLogin);
+btnLogin.onclick = guard(doLogin);
 passEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
 </script>

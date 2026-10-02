@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="./js/vendor/chart.umd.js"></script>
+  <script src="./js/vendor/html2pdf.bundle.min.js"></script>
   <style>
     /* ── Visita card ── */
     .visit-timeline{display:flex;flex-direction:column;gap:.6rem;}
@@ -77,7 +77,7 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -434,11 +434,13 @@
 </div>
 
 <script type="module">
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
 import { sb, requireAuth, logout,
          searchPazienti, getPaziente, savePaziente,
          getVisitePaziente, getUltimaVisita, saveVisita,
          getStrutture, getPrestazioni,
-         getPatologieCatalogo, getPatologiePaziente, savePatologiePaziente } from './js/supabase.js';
+         getPatologieCatalogo, getPatologiePaziente, localDateISO } from './js/supabase.js';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, initUI,
@@ -452,6 +454,7 @@ const S = {
   patientId: null,
   patientAltezza: null,   // altezza da anagrafica, usata come default per BMI
   editingPatientId: null,
+  patientPathNotes: {},
   editingVisitId: null,
   ultimaVisita: null,
   charts: {},
@@ -470,19 +473,19 @@ async function init() {
   n('topbar-email').textContent = S.user.email;
   n('app').style.display = 'block';
 
-  n('btn-logout').addEventListener('click', logout);
-  n('btn-nuovo-paziente').addEventListener('click', openPatientModal);
-  n('btn-toggle-adv').addEventListener('click', toggleAdvanced);
-  n('btn-reset-search').addEventListener('click', resetSearch);
-  n('btn-save-patient').addEventListener('click', savePatient);
-  n('btn-save-visit').addEventListener('click', saveVisit);
-  n('btn-back').addEventListener('click', backToList);
-  n('btn-edit-patient').addEventListener('click', editCurrentPatient);
+  n('btn-logout').onclick = guard(logout);
+  n('btn-nuovo-paziente').onclick = guard(openPatientModal);
+  n('btn-toggle-adv').onclick = guard(toggleAdvanced);
+  n('btn-reset-search').onclick = guard(resetSearch);
+  n('btn-save-patient').onclick = guard(savePatient);
+  n('btn-save-visit').onclick = guard(saveVisit);
+  n('btn-back').onclick = guard(backToList);
+  n('btn-edit-patient').onclick = guard(editCurrentPatient);
   // Diete sono ora nel tab inline
-  n('btn-nuova-visita').addEventListener('click', openVisitModal);
+  n('btn-nuova-visita').onclick = guard(openVisitModal);
 
   n('search-base').addEventListener('input', debouncedSearch);
-  ['adv-sesso','adv-order','adv-patologia'].forEach(id => n(id).addEventListener('change', debouncedSearch));
+  ['adv-sesso','adv-order','adv-patologia'].forEach(id => n(id).onchange = guard(debouncedSearch));
   ['adv-citta','adv-eta-min','adv-eta-max'].forEach(id => n(id).addEventListener('input', debouncedSearch));
 
   n('v-peso').addEventListener('input', calcIndici);
@@ -491,15 +494,15 @@ async function init() {
   n('v-fianchi').addEventListener('input', calcIndici);
 
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn =>
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn))
+    btn.onclick = guard(() => switchTab(btn.dataset.tab, btn))
   );
 
   // Carica catalogo patologie (una sola volta)
-  S.catalogoPatologie = await getPatologieCatalogo().catch(() => []);
+  S.catalogoPatologie = await getPatologieCatalogo();
   // Popola select patologia nella ricerca avanzata
   if (n('adv-patologia') && S.catalogoPatologie.length) {
-    n('adv-patologia').innerHTML = '<option value="">Tutte</option>' +
-      S.catalogoPatologie.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+    setHTML(n('adv-patologia'), '<option value="">Tutte</option>' +
+      S.catalogoPatologie.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.nome)}</option>`).join(''));
   }
 
   await loadPazienti();
@@ -529,6 +532,7 @@ function getFilters() {
     eta_min:  n('adv-eta-min')?.value ? parseInt(n('adv-eta-min').value) : null,
     eta_max:  n('adv-eta-max')?.value ? parseInt(n('adv-eta-max').value) : null,
     order:    n('adv-order')?.value || 'cognome',
+    patologia_id: n('adv-patologia')?.value || null,
   };
 }
 
@@ -538,21 +542,21 @@ async function loadPazienti() {
     n('lista-count').textContent = `${pazienti.length} pazient${pazienti.length === 1 ? 'e' : 'i'}`;
     const cont = n('patient-list-container');
     if (!pazienti.length) {
-      cont.innerHTML = emptyState('👥', 'Nessun paziente', 'Nessun risultato.'); return;
+      setHTML(cont, emptyState('👥', 'Nessun paziente', 'Nessun risultato.')); return;
     }
-    cont.innerHTML = '<div class="patient-list">' + pazienti.map(p => {
+    setHTML(cont, '<div class="patient-list">' + pazienti.map(p => {
       const eta = calcEta(p.data_nascita);
-      return `<div class="patient-item" data-patient-id="${p.id}">
-        <div class="patient-avatar">${initials(p)}</div>
-        <span class="patient-name">${p.cognome} ${p.nome}</span>
-        <span style="font-size:.85rem;">${p.data_nascita ? fmtDateShort(p.data_nascita) + (eta ? ' · '+eta+'a' : '') : '—'}</span>
-        <span style="font-size:.82rem;color:var(--text-muted);">${p.codice_fiscale || '—'}</span>
-        <span style="font-size:.85rem;">${p.citta || '—'}</span>
+      return `<div class="patient-item" data-patient-id="${escapeHtml(p.id)}">
+        <div class="patient-avatar">${escapeHtml(initials(p))}</div>
+        <span class="patient-name">${escapeHtml(p.cognome)} ${escapeHtml(p.nome)}</span>
+        <span style="font-size:.85rem;">${escapeHtml(p.data_nascita ? fmtDateShort(p.data_nascita) + (eta ? ' · '+eta+'a' : '') : '—')}</span>
+        <span style="font-size:.82rem;color:var(--text-muted);">${escapeHtml(p.codice_fiscale || '—')}</span>
+        <span style="font-size:.85rem;">${escapeHtml(p.citta || '—')}</span>
         <span style="color:var(--text-muted);">›</span>
       </div>`;
-    }).join('') + '</div>';
+    }).join('') + '</div>');
 
-    cont.addEventListener('click', e => {
+    cont.onclick = guard(e => {
       const item = e.target.closest('[data-patient-id]');
       if (item) openPatient(item.dataset.patientId);
     });
@@ -563,7 +567,7 @@ let debTimer;
 function debouncedSearch() { clearTimeout(debTimer); debTimer = setTimeout(loadPazienti, 280); }
 function resetSearch() {
   ['search-base','adv-citta','adv-eta-min','adv-eta-max'].forEach(id => { const el=n(id); if(el) el.value=''; });
-  n('adv-sesso').value=''; n('adv-order').value='cognome';
+  n('adv-sesso').value=''; n('adv-order').value='cognome';n('adv-patologia').value='';
   loadPazienti();
 }
 function toggleAdvanced() {
@@ -620,11 +624,11 @@ function switchTab(tabId, btn) {
 }
 
 // ─── ANAGRAFICA DISPLAY ──────────────────────────────────
-function r(l, v) { return `<tr><td>${l}</td><td>${v || '—'}</td></tr>`; }
+function r(l, v) { return `<tr><td>${escapeHtml(l)}</td><td>${escapeHtml(v || '—')}</td></tr>`; }
 
 async function renderAnagraficaDisplay(p) {
   // Carica patologie associate
-  const patAssoc = await getPatologiePaziente(p.id).catch(() => []);
+  const patAssoc = await getPatologiePaziente(p.id);
   const patNomi  = patAssoc.map(pa => pa.patologie_catalogo?.nome).filter(Boolean);
 
   const blocks = [
@@ -638,7 +642,7 @@ async function renderAnagraficaDisplay(p) {
       ${r('Canale contatto', p.canale_contatto)}
     </table>` },
     { title: '🏥 Patologie', html: patNomi.length
-      ? `<div class="pat-grid">${patNomi.map(n => `<span class="pat-chip selected">${n}</span>`).join('')}</div>`
+      ? `<div class="pat-grid">${patNomi.map(n => `<span class="pat-chip selected">${escapeHtml(n)}</span>`).join('')}</div>`
       : '<p class="text-muted text-sm">Nessuna patologia registrata.</p>' },
     { title: '⚖️ Anamnesi', html: `<table class="detail-table">
       ${r('Motivo visita', p.motivo_visita)} ${r('Storia ponderale', p.storia_ponderale)}
@@ -646,36 +650,36 @@ async function renderAnagraficaDisplay(p) {
       ${r('Tipo dieta', p.vegetariano_vegano)} ${r('Obiettivo', p.obiettivo)}
     </table>` },
   ];
-  n('anagrafica-container').innerHTML = blocks.map(b =>
-    `<div class="card mb-md"><div class="card-title">${b.title}</div>${b.html}</div>`
-  ).join('');
+  setHTML(n('anagrafica-container'), blocks.map(b =>
+    `<div class="card mb-md"><div class="card-title">${escapeHtml(b.title)}</div>${b.html}</div>`
+  ).join(''));
 }
 
 // ─── PATOLOGIE SELECTOR (nel modal paziente) ─────────────
 function buildPatologieSelector(selectedIds = []) {
   const wrap = n('patologie-selector');
   if (!S.catalogoPatologie.length) {
-    wrap.innerHTML = '<p class="text-muted text-sm">Catalogo patologie non disponibile.</p>'; return;
+    setHTML(wrap, '<p class="text-muted text-sm">Catalogo patologie non disponibile.</p>'); return;
   }
   // Raggruppa per categoria
-  const gruppi = {};
+  const gruppi = Object.create(null);
   S.catalogoPatologie.forEach(pat => {
     const cat = pat.categoria || 'Altro';
     if (!gruppi[cat]) gruppi[cat] = [];
     gruppi[cat].push(pat);
   });
-  wrap.innerHTML = Object.entries(gruppi).map(([cat, pats]) =>
-    `<div class="pat-categoria">${cat}</div>
+  setHTML(wrap, Object.entries(gruppi).map(([cat, pats]) =>
+    `<div class="pat-categoria">${escapeHtml(cat)}</div>
      <div class="pat-grid">
        ${pats.map(pat =>
-         `<span class="pat-chip${selectedIds.includes(pat.id) ? ' selected' : ''}"
-           data-pat-id="${pat.id}">${pat.nome}</span>`
+         `<span class="pat-chip${escapeHtml(selectedIds.includes(pat.id) ? ' selected' : '')}"
+           data-pat-id="${escapeHtml(pat.id)}">${escapeHtml(pat.nome)}</span>`
        ).join('')}
      </div>`
-  ).join('');
+  ).join(''));
 
   // Toggle click
-  wrap.addEventListener('click', e => {
+  wrap.onclick = guard(e => {
     const chip = e.target.closest('[data-pat-id]');
     if (!chip) return;
     chip.classList.toggle('selected');
@@ -688,7 +692,7 @@ function getSelectedPatologie() {
 
 // ─── MODAL PAZIENTE ──────────────────────────────────────
 const P_FIELDS = [
-  'p-nome','p-cognome','p-cf','p-altezza','p-indirizzo','p-citta','p-tel','p-email',
+  'p-nome','p-cognome','p-nascita','p-cf','p-altezza','p-indirizzo','p-citta','p-tel','p-email',
   'p-motivo','p-storia-pond','p-ultime-diete','p-note-pond','p-lavoro','p-sport',
   'p-ciclo','p-allergie','p-familiarita','p-farmaci',
   'p-colazione','p-spuntini','p-pranzo','p-cena','p-extra',
@@ -697,6 +701,7 @@ const P_FIELDS = [
 
 async function openPatientModal() {
   S.editingPatientId = null;
+  S.patientPathNotes = {};
   n('modal-patient-title').textContent = 'Nuovo paziente';
   hideAlert('patient-error');
   resetFields(P_FIELDS);
@@ -709,13 +714,15 @@ async function openPatientModal() {
 async function editCurrentPatient() {
   if (!S.patientId) return;
   const p = await getPaziente(S.patientId);
-  const patAssoc = await getPatologiePaziente(S.patientId).catch(() => []);
+  const patAssoc = await getPatologiePaziente(S.patientId);
   const patIds = patAssoc.map(pa => pa.patologia_id);
+  S.patientPathNotes = Object.fromEntries(patAssoc.map(pa => [pa.patologia_id, pa.note]));
   S.editingPatientId = p.id;
   n('modal-patient-title').textContent = 'Modifica anagrafica';
   hideAlert('patient-error');
   const map = {
     'p-nome': p.nome, 'p-cognome': p.cognome, 'p-cf': p.codice_fiscale||'',
+    'p-nascita': p.data_nascita||'',
     'p-altezza': p.altezza_cm||'',
     'p-indirizzo': p.indirizzo||'', 'p-citta': p.citta||'',
     'p-tel': p.telefono||'', 'p-email': p.email||'',
@@ -734,8 +741,9 @@ async function editCurrentPatient() {
   n('p-canale').value   = p.canale_contatto||'';
   n('p-alvo').value     = p.alvo||'';
   n('p-obiettivo').value = p.obiettivo||'';
+  document.querySelectorAll('[name=dieta]').forEach(r => r.checked = false);
   if (p.vegetariano_vegano) {
-    const r = document.querySelector(`[name=dieta][value="${p.vegetariano_vegano}"]`);
+    const r = document.querySelector(`[name=dieta][value="${CSS.escape(p.vegetariano_vegano)}"]`);
     if (r) r.checked = true;
   }
   buildPatologieSelector(patIds);
@@ -773,10 +781,7 @@ async function savePatient() {
   };
   setBtn('btn-save-patient', true);
   try {
-    const saved = await savePaziente(payload, S.editingPatientId);
-    const pid = S.editingPatientId || saved.id;
-    // Salva patologie (sostituisce il set)
-    await savePatologiePaziente(pid, S.user.id, patIds);
+    const saved = await savePaziente(payload, S.editingPatientId, patIds, S.patientPathNotes);
     toast(S.editingPatientId ? 'Anagrafica aggiornata' : 'Paziente salvato');
     ModalManager.forceClose('modal-patient');
     if (S.patientId) { S.patientAltezza = flt('p-altezza'); openPatient(S.patientId); }
@@ -790,45 +795,45 @@ async function loadVisite() {
   const visite = await getVisitePaziente(S.patientId);
   const cont = n('visit-list-container');
   if (!visite.length) {
-    cont.innerHTML = emptyState('📋', 'Nessuna visita', 'Clicca "+ Nuova visita" per iniziare.'); return;
+    setHTML(cont, emptyState('📋', 'Nessuna visita', 'Clicca "+ Nuova visita" per iniziare.')); return;
   }
-  cont.innerHTML = '<div class="visit-timeline">' + visite.map((v, i) => {
+  setHTML(cont, '<div class="visit-timeline">' + visite.map((v, i) => {
     const deltaCls = v.delta_peso < 0 ? 'delta-neg' : 'delta-pos';
     const deltaStr = v.delta_peso != null
-      ? `<span class="${deltaCls}">${v.delta_peso > 0 ? '+' : ''}${v.delta_peso} kg</span>`
+      ? `<span class="${escapeHtml(deltaCls)}">${escapeHtml(v.delta_peso > 0 ? '+' : '')}${escapeHtml(v.delta_peso)} kg</span>`
       : '';
-    return `<div class="visit-card" id="vcard-${v.id}">
-      <div class="visit-summary" data-toggle="${v.id}">
+    return `<div class="visit-card" id="vcard-${escapeHtml(v.id)}">
+      <div class="visit-summary" data-toggle="${escapeHtml(v.id)}">
         <div style="flex-shrink:0;">
-          <div class="visit-date">${fmtDate(v.data_visita)}</div>
+          <div class="visit-date">${escapeHtml(fmtDate(v.data_visita))}</div>
           <div style="display:flex;gap:.35rem;margin-top:.3rem;flex-wrap:wrap;">
-            <span class="visit-badge">Visita ${visite.length - i}</span>
-            ${v.prestazioni?.nome  ? `<span class="visit-badge visit-badge-prest">${v.prestazioni.nome}</span>`       : ''}
-            ${v.strutture?.nome    ? `<span class="visit-badge visit-badge-prest">📍 ${v.strutture.nome}</span>`      : ''}
-            ${v.prossima_visita_data ? `<span class="visit-badge visit-badge-next">📅 ${fmtDateShort(v.prossima_visita_data)}</span>` : ''}
+            <span class="visit-badge">Visita ${escapeHtml(visite.length - i)}</span>
+            ${v.prestazioni?.nome  ? `<span class="visit-badge visit-badge-prest">${escapeHtml(v.prestazioni.nome)}</span>`       : ''}
+            ${v.strutture?.nome    ? `<span class="visit-badge visit-badge-prest">📍 ${escapeHtml(v.strutture.nome)}</span>`      : ''}
+            ${v.prossima_visita_data ? `<span class="visit-badge visit-badge-next">📅 ${escapeHtml(fmtDateShort(v.prossima_visita_data))}</span>` : ''}
           </div>
         </div>
 
         <div class="visit-metrics-row">
-          ${v.peso_kg ? `<div class="vm"><span class="vm__l">Peso</span><span class="vm__v">${v.peso_kg}<span class="vm__u"> kg</span></span>${deltaStr}</div>` : ''}
-          ${v.bmi     ? `<div class="vm"><span class="vm__l">BMI</span><span class="vm__v">${v.bmi}</span></div>` : ''}
-          ${v.vita_cm ? `<div class="vm"><span class="vm__l">Vita</span><span class="vm__v">${v.vita_cm}<span class="vm__u"> cm</span></span></div>` : ''}
+          ${v.peso_kg ? `<div class="vm"><span class="vm__l">Peso</span><span class="vm__v">${escapeHtml(v.peso_kg)}<span class="vm__u"> kg</span></span>${deltaStr}</div>` : ''}
+          ${v.bmi     ? `<div class="vm"><span class="vm__l">BMI</span><span class="vm__v">${escapeHtml(v.bmi)}</span></div>` : ''}
+          ${v.vita_cm ? `<div class="vm"><span class="vm__l">Vita</span><span class="vm__v">${escapeHtml(v.vita_cm)}<span class="vm__u"> cm</span></span></div>` : ''}
         </div>
 
         <!-- Azioni SEMPRE a destra, stopPropagation impedisce toggle body -->
         <div class="visit-actions" data-no-toggle>
-          <button class="btn btn-gold btn-sm"      data-pdf="${v.id}">📄 PDF</button>
-          <button class="btn btn-secondary btn-sm" data-edit="${v.id}">✏️</button>
+          <button class="btn btn-gold btn-sm"      data-pdf="${escapeHtml(v.id)}">📄 PDF</button>
+          <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(v.id)}">✏️</button>
         </div>
-        <span class="visit-chevron" id="chev-${v.id}">›</span>
+        <span class="visit-chevron" id="chev-${escapeHtml(v.id)}">›</span>
       </div>
 
-      <div class="visit-body" id="vbody-${v.id}">${renderVisitBody(v)}</div>
+      <div class="visit-body" id="vbody-${escapeHtml(v.id)}">${renderVisitBody(v)}</div>
     </div>`;
-  }).join('') + '</div>';
+  }).join('') + '</div>');
 
   // Event delegation unica sulla container
-  cont.addEventListener('click', e => {
+  cont.onclick = guard(e => {
     // Se il click è dentro .visit-actions, non fare toggle
     if (e.target.closest('[data-no-toggle]')) {
       const pdf  = e.target.closest('[data-pdf]');
@@ -853,8 +858,8 @@ function renderVisitBody(v) {
   const blk = (title, rows) => {
     const filled = rows.filter(r => r[1] != null && r[1] !== '');
     if (!filled.length) return '';
-    return `<div class="section-block"><div class="section-block-title">${title}</div>
-      <table class="detail-table">${filled.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div>`;
+    return `<div class="section-block"><div class="section-block-title">${escapeHtml(title)}</div>
+      <table class="detail-table">${filled.map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join('')}</table></div>`;
   };
   return `
     ${blk('📏 Antropometria', [
@@ -875,10 +880,10 @@ function renderVisitBody(v) {
       ['Glicemia', v.glicemia], ['Insulinemia', v.insulinemia], ['Hb glicata', v.hb_glicata],
       ['Col. TOT', v.colesterolo_tot], ['HDL', v.colesterolo_hdl], ['TSH', v.tsh], ['Vit D', v.vitamina_d],
     ])}
-    ${v.andamento  ? `<div class="section-block"><div class="section-block-title">Andamento</div><p class="text-sm">${v.andamento}</p></div>` : ''}
-    ${v.note_visita ? `<div class="section-block"><div class="section-block-title">Note visita</div><p class="text-sm">${v.note_visita}</p></div>` : ''}
-    ${v.indicazioni_terapeutiche ? `<div class="section-block"><div class="section-block-title">Indicazioni</div><p class="text-sm">${v.indicazioni_terapeutiche}</p></div>` : ''}
-    ${v.prossimi_obiettivi ? `<div class="section-block"><div class="section-block-title">Prossimi obiettivi</div><p class="text-sm">${v.prossimi_obiettivi}</p></div>` : ''}
+    ${v.andamento  ? `<div class="section-block"><div class="section-block-title">Andamento</div><p class="text-sm">${escapeHtml(v.andamento)}</p></div>` : ''}
+    ${v.note_visita ? `<div class="section-block"><div class="section-block-title">Note visita</div><p class="text-sm">${escapeHtml(v.note_visita)}</p></div>` : ''}
+    ${v.indicazioni_terapeutiche ? `<div class="section-block"><div class="section-block-title">Indicazioni</div><p class="text-sm">${escapeHtml(v.indicazioni_terapeutiche)}</p></div>` : ''}
+    ${v.prossimi_obiettivi ? `<div class="section-block"><div class="section-block-title">Prossimi obiettivi</div><p class="text-sm">${escapeHtml(v.prossimi_obiettivi)}</p></div>` : ''}
   `;
 }
 
@@ -894,7 +899,7 @@ const V_TXT = ['v-note-ema','v-andamento','v-note','v-variazioni','v-indicazioni
 async function openVisitModal() {
   S.editingVisitId = null;
   n('modal-visit-title').textContent = 'Nuova visita';
-  n('v-data').value    = new Date().toISOString().split('T')[0];
+  n('v-data').value    = localDateISO();
   n('v-prossima').value = '';
   resetFields(V_NUM); resetFields(V_TXT);
   hideAlert('visit-error');
@@ -922,7 +927,7 @@ async function openVisitModal() {
 }
 
 async function editVisit(id) {
-  const { data: v, error } = await sb.from('visite').select('*').eq('id', id).single();
+  const { data: v, error } = await sb.from('visite').select('*').eq('id', id).single().throwOnError();
   if (error || !v) { toast('Errore caricamento', 'error'); return; }
   S.editingVisitId = id;
   n('modal-visit-title').textContent = 'Modifica visita';
@@ -965,10 +970,10 @@ async function populateVisitSelects(selStr=null, selPrest=null) {
     getStrutture(true), getPrestazioni(true),  // solo abilitate
   ]);
   const ss=n('v-struttura'), sp=n('v-prestazione');
-  ss.innerHTML = '<option value="">— Struttura —</option>' +
-    strutture.map(s => `<option value="${s.id}" data-nome="${s.nome}"${selStr===s.id?' selected':''}>${s.nome}</option>`).join('');
-  sp.innerHTML = '<option value="">— Prestazione —</option>' +
-    prestazioni.map(p => `<option value="${p.id}"${selPrest===p.id?' selected':''}>${p.nome}${p.durata_minuti?" ("+p.durata_minuti+"')":''}</option>`).join('');
+  setHTML(ss, '<option value="">— Struttura —</option>' +
+    strutture.map(s => `<option value="${escapeHtml(s.id)}" data-nome="${escapeHtml(s.nome)}"${escapeHtml(selStr===s.id?' selected':'')}>${escapeHtml(s.nome)}</option>`).join(''));
+  setHTML(sp, '<option value="">— Prestazione —</option>' +
+    prestazioni.map(p => `<option value="${escapeHtml(p.id)}"${escapeHtml(selPrest===p.id?' selected':'')}>${escapeHtml(p.nome)}${escapeHtml(p.durata_minuti?" ("+p.durata_minuti+"')":'')}</option>`).join(''));
 }
 
 function calcIndici() {
@@ -1060,41 +1065,42 @@ async function renderCharts() {
 // ─── PDF ────────────────────────────────────────────────
 async function exportPDF(visitId) {
   loading(true, 'Generazione PDF…');
+  let wrap;
   try {
     const [{data:v},{data:p}] = await Promise.all([
-      sb.from('visite').select('*,strutture(nome),prestazioni(nome)').eq('id',visitId).single(),
-      sb.from('pazienti').select('nome,cognome,data_nascita,codice_fiscale,sesso,altezza_cm').eq('id',S.patientId).single(),
+      sb.from('visite').select('*,strutture(nome),prestazioni(nome)').eq('id',visitId).single().throwOnError(),
+      sb.from('pazienti').select('nome,cognome,data_nascita,codice_fiscale,sesso,altezza_cm').eq('id',S.patientId).single().throwOnError(),
     ]);
     if (!v||!p) { toast('Errore dati','error'); return; }
     const m=(val,u='')=>val!=null?`${val}${u}`:'—';
     const rf=(l,val)=>val&&val!=='—'?`<div style="display:flex;gap:6px;padding:3px 0;font-size:9pt;border-bottom:1px dotted #f0e9d8;">
-      <span style="color:#7a6a58;min-width:130px;">${l}</span><strong style="color:#251e16;">${val}</strong></div>`:'';
+      <span style="color:#7a6a58;min-width:130px;">${escapeHtml(l)}</span><strong style="color:#251e16;">${escapeHtml(val)}</strong></div>`:'';
     const dataF=new Date(v.data_visita).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
 
-    const html=`<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:10pt;color:#251e16;background:white;width:780px;">
+    const html=`<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:10pt;color:#251e16;background:white;width:100%;max-width:100%;overflow-wrap:anywhere;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 12px;border-bottom:3px solid #5a8260;margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <img src="images/logo.png" style="height:50px;" onerror="this.style.display='none'" />
+          <img src="../images/logo.png" style="height:50px;" onerror="this.style.display='none'" />
           <div><h1 style="font-size:13pt;font-weight:700;margin:0;">Dott.ssa Giulia Cortese</h1>
             <p style="font-size:8pt;color:#7a6a58;margin:2px 0 0;">Biologa Nutrizionista &amp; Erborista · Tel. 320 145 9853</p></div>
         </div>
         <div style="text-align:right;font-size:8pt;color:#7a6a58;line-height:1.7;">
-          <strong style="color:#251e16;">SCHEDA VISITA</strong><br>${dataF}<br>
-          ${v.strutture?.nome||'—'}<br>${v.prestazioni?.nome||''}
+          <strong style="color:#251e16;">SCHEDA VISITA</strong><br>${escapeHtml(dataF)}<br>
+          ${escapeHtml(v.strutture?.nome||'—')}<br>${escapeHtml(v.prestazioni?.nome||'')}
         </div>
       </div>
       <div style="background:#5a8260;color:white;padding:8px 24px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
-        <h2 style="font-size:12pt;font-weight:700;margin:0;">${p.cognome} ${p.nome}</h2>
-        <span style="font-size:9pt;opacity:.8;">CF: ${p.codice_fiscale||'—'} · ${p.altezza_cm?p.altezza_cm+' cm':''}</span>
+        <h2 style="font-size:12pt;font-weight:700;margin:0;">${escapeHtml(p.cognome)} ${escapeHtml(p.nome)}</h2>
+        <span style="font-size:9pt;opacity:.8;">CF: ${escapeHtml(p.codice_fiscale||'—')} · ${escapeHtml(p.altezza_cm?p.altezza_cm+' cm':'')}</span>
       </div>
       <div style="margin:0 24px 12px;border:1px solid #e8e2d9;border-radius:6px;overflow:hidden;">
-        <div style="background:#f6f9f6;padding:7px 12px;font-size:8.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a8260;">📏 Misurazioni principali</div>
+        <div style="background:#f6f9f6;padding:7px 12px;font-size:8.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a8260;">Misurazioni principali</div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px;">
           ${[[m(v.peso_kg),'PESO','kg'],[m(v.bmi),'BMI','kg/m²'],[m(v.delta_peso),'Δ PESO','kg'],[m(v.vita_cm),'VITA','cm'],[m(v.ffm_kg),'FFM','kg']]
             .map(([val,l,u])=>`<div style="background:white;border:1px solid #d8e8d8;border-radius:4px;padding:8px;text-align:center;">
-              <div style="font-size:7pt;font-weight:700;text-transform:uppercase;color:#7a6a58;margin-bottom:3px;">${l}</div>
-              <div style="font-size:15pt;font-weight:700;color:#5a8260;">${val}</div>
-              <div style="font-size:7pt;color:#a89880;">${u}</div></div>`).join('')}
+              <div style="font-size:7pt;font-weight:700;text-transform:uppercase;color:#7a6a58;margin-bottom:3px;">${escapeHtml(l)}</div>
+              <div style="font-size:15pt;font-weight:700;color:#5a8260;">${escapeHtml(val)}</div>
+              <div style="font-size:7pt;color:#a89880;">${escapeHtml(u)}</div></div>`).join('')}
         </div>
       </div>
       <div style="margin:0 24px 12px;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -1102,7 +1108,7 @@ async function exportPDF(visitId) {
         <div>${rf('FM',m(v.fm_kg,' kg'))}${rf('Ang. fase',m(v.bia_angolo_fase,'°'))}${rf('ECW',m(v.ecw_l,' L'))}${rf('TBW',m(v.tbw_l,' L'))}${rf('MB ideale',m(v.mb_ideale,' kcal'))}</div>
       </div></div>
       ${(v.glicemia||v.tsh||v.colesterolo_tot)?`<div style="margin:0 24px 12px;">
-        <div style="font-size:8.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a8260;margin-bottom:6px;">🩸 Analisi ematologiche</div>
+        <div style="font-size:8.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a8260;margin-bottom:6px;">Analisi ematologiche</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;">
           ${rf('Glicemia',v.glicemia)}${rf('Insulinemia',v.insulinemia)}${rf('Hb glicata',v.hb_glicata)}
           ${rf('Col. TOT',v.colesterolo_tot)}${rf('HDL',v.colesterolo_hdl)}${rf('LDL',v.colesterolo_ldl)}
@@ -1110,18 +1116,18 @@ async function exportPDF(visitId) {
         </div></div>`:''}
       ${[['ANDAMENTO',v.andamento],['NOTE VISITA',v.note_visita],['INDICAZIONI TERAPEUTICHE',v.indicazioni_terapeutiche],['PROSSIMI OBIETTIVI',v.prossimi_obiettivi]]
         .filter(([,t])=>t).map(([l,t])=>`<div style="margin:0 24px 10px;">
-          <div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">${l}</div>
-          <div style="background:#fdfbf7;border-left:3px solid #5a8260;padding:8px 10px;font-size:9pt;line-height:1.6;border-radius:0 4px 4px 0;">${t}</div></div>`).join('')}
+          <div style="font-size:8pt;font-weight:700;color:#5a8260;margin-bottom:4px;">${escapeHtml(l)}</div>
+          <div style="background:#fdfbf7;border-left:3px solid #5a8260;padding:8px 10px;font-size:9pt;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:0 4px 4px 0;">${escapeHtml(t)}</div></div>`).join('')}
       <div style="margin-top:18px;padding:10px 24px;border-top:1px solid #e8e2d9;display:flex;justify-content:space-between;font-size:7.5pt;color:#a89880;">
-        <span>Generato il ${new Date().toLocaleDateString('it-IT')}</span>
-        <span style="background:#ecf3ec;color:#5a8260;border:1px solid #d8e8d8;border-radius:9999px;padding:3px 10px;font-weight:600;">🔒 Dati sanitari riservati</span>
+        <span>Generato il ${escapeHtml(new Date().toLocaleDateString('it-IT'))}</span>
+        <span style="background:#ecf3ec;color:#5a8260;border:1px solid #d8e8d8;border-radius:9999px;padding:3px 10px;font-weight:600;">Dati sanitari riservati</span>
         <span>nutrizionistacortese.it</span>
       </div>
     </div>`;
 
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:white;';
-    wrap.innerHTML=html; document.body.appendChild(wrap);
+    wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:white;width:194mm;';
+    setHTML(wrap, html); document.body.appendChild(wrap);
     await html2pdf().set({
       margin:[8,8,8,8],
       filename:`Visita_${p.cognome}_${p.nome}_${v.data_visita.replace(/-/g,'')}.pdf`,
@@ -1131,8 +1137,8 @@ async function exportPDF(visitId) {
     }).from(wrap.firstChild).save();
     document.body.removeChild(wrap);
     toast('PDF generato!');
-  } catch (e) { console.error(e); toast('Errore PDF','error'); }
-  finally { loading(false); }
+  } catch (e) { console.error(e); toast('Errore PDF: ' + e.message,'error'); }
+  finally { wrap?.remove();loading(false); }
 }
 
 // ─── TAB DIETE ────────────────────────────────────────────────────
@@ -1146,20 +1152,20 @@ const SCHEMI_DIETA = {
 async function renderDieteTab() {
   if (!S.patientId) return;
   const cont = n('tab-diete-content');
-  cont.innerHTML = '<div class="loading-inline" style="text-align:center;padding:2rem;color:var(--text-muted);">Caricamento diete…</div>';
+  setHTML(cont, '<div class="loading-inline" style="text-align:center;padding:2rem;color:var(--text-muted);">Caricamento diete…</div>');
 
   const { data: diete, error } = await sb.from('diete')
     .select('id,nome,target_kcal,schema_macro,numero_settimane,attiva,created_at,updated_at')
     .eq('paziente_id', S.patientId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }).throwOnError();
 
-  if (error) { cont.innerHTML = '<p class="text-muted" style="padding:1rem;">Errore caricamento.</p>'; return; }
+  if (error) { setHTML(cont, '<p class="text-muted" style="padding:1rem;">Errore caricamento.</p>'); return; }
 
   let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
     <p class="text-muted text-sm">Piani alimentari di questo paziente.</p>
     <div style="display:flex;gap:.5rem;">
       <button class="btn btn-ghost btn-sm" id="dt-apri-completa"
-        onclick="window.open('diete.html?paziente=${S.patientId}','_blank')">
+        data-open-complete="true">
         🔗 Apri in Diete
       </button>
       <button class="btn btn-primary btn-sm" id="dt-nuova">+ Nuova dieta</button>
@@ -1173,38 +1179,39 @@ async function renderDieteTab() {
       <div style="display:flex;align-items:center;gap:.85rem;padding:.9rem 1.25rem;
         background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
         margin-bottom:.45rem;cursor:pointer;transition:all .2s;"
-        class="dg-card-inline" data-diet-id="${d.id}"
+        class="dg-card-inline" data-diet-id="${escapeHtml(d.id)}"
         onmouseover="this.style.borderColor='var(--sage-300)'"
         onmouseout="this.style.borderColor='var(--border)'">
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;color:var(--text-primary);font-size:.92rem;">
-            ${d.nome}
+            ${escapeHtml(d.nome)}
             ${d.attiva ? '<span style="font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.35rem;">✓ Attiva</span>' : ''}
           </div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem;">
-            🎯 ${Math.round(d.target_kcal)} kcal/g · ${SCHEMI_DIETA[d.schema_macro] || 'Libera'} · ${d.numero_settimane} sett.
-            · ${fmtDateShort(d.created_at)}
+            🎯 ${escapeHtml(Math.round(d.target_kcal))} kcal/g · ${escapeHtml(SCHEMI_DIETA[d.schema_macro] || 'Libera')} · ${escapeHtml(d.numero_settimane)} sett.
+            · ${escapeHtml(fmtDateShort(d.created_at))}
           </div>
         </div>
         <div style="display:flex;gap:.4rem;flex-shrink:0;">
-          <button class="btn btn-secondary btn-sm" data-open-diet="${d.id}">Apri →</button>
-          <button class="btn btn-ghost btn-sm" data-toggle-diet="${d.id}" data-att="${d.attiva}">
-            ${d.attiva ? '⏸' : '▶'}
+          <button class="btn btn-secondary btn-sm" data-open-diet="${escapeHtml(d.id)}">Apri →</button>
+          <button class="btn btn-ghost btn-sm" data-toggle-diet="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}">
+            ${escapeHtml(d.attiva ? '⏸' : '▶')}
           </button>
         </div>
       </div>`).join('');
   }
 
-  cont.innerHTML = html;
+  setHTML(cont, html);
 
   // Listeners
-  n('dt-nuova')?.addEventListener('click', openNuovaDietaInline);
-  cont.addEventListener('click', async e => {
+  n('dt-nuova').onclick = guard(openNuovaDietaInline);
+  cont.onclick = guard(async e => {
+    if(e.target.closest('[data-open-complete]')) { window.open('diete.html?paziente='+encodeURIComponent(S.patientId),'_blank','noopener'); return; }
     const ob = e.target.closest('[data-open-diet]');
     if (ob) { window.location.href = 'diete.html?paziente=' + S.patientId + '&dieta=' + ob.dataset.openDiet; return; }
     const tb = e.target.closest('[data-toggle-diet]');
     if (tb) {
-      await sb.from('diete').update({ attiva: tb.dataset.att !== 'true' }).eq('id', tb.dataset.toggleDiet);
+      await sb.from('diete').update({ attiva: tb.dataset.att !== 'true' }).eq('id', tb.dataset.toggleDiet).select().single().throwOnError();
       await renderDieteTab();
     }
   });
@@ -1216,7 +1223,7 @@ function openNuovaDietaInline() {
   window.location.href = 'diete.html?paziente=' + S.patientId + '&new=1';
 }
 
-init();
+init().catch(reportError);
 </script>
 </body>
 </html>

@@ -50,7 +50,7 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -114,8 +114,11 @@
 </div>
 
 <script type="module">
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
 import { requireAuth, logout } from './js/supabase.js';
 import { loading, toast, n, initUI } from './js/ui.js';
+import { loadJsPDF } from './js/pdf-dieta.js';
 
 // ─── DATI TABELLA ─────────────────────────────────────────────────────────
 // Struttura: ogni entry ha id, nome, note, crudo, cotto, fc
@@ -253,27 +256,27 @@ function renderTable() {
 
   rows.forEach(row => {
     if (row.cat) {
-      html += `<tr class="cat-row"><td colspan="6">${row.cat}</td></tr>`;
+      html += `<tr class="cat-row"><td colspan="6">${escapeHtml(row.cat)}</td></tr>`;
       return;
     }
 
     const isBase = !!row.baseField;
     const crudoVal = row.crudoTxt
-      ? `<span class="unit-lbl">${row.crudoTxt}</span>`
+      ? `<span class="unit-lbl">${escapeHtml(row.crudoTxt)}</span>`
       : row.crudo != null
         ? `<div class="input-group">
-             <input type="number" class="td-input ${isBase ? 'base' : 'computed'}"
-               id="inp-${row.id}"
-               value="${fmt(row.crudo)}"
+             <input type="number" class="td-input ${escapeHtml(isBase ? 'base' : 'computed')}"
+               id="inp-${escapeHtml(row.id)}"
+               value="${escapeHtml(fmt(row.crudo))}"
                min="0" step="1"
-               ${isBase ? `data-base="${row.baseField}"` : 'readonly tabindex="-1"'} />
+               ${escapeHtml(isBase ? `data-base="${row.baseField}"` : 'readonly tabindex="-1"')} />
              <span class="unit-lbl">g</span>
            </div>`
         : '<span style="color:var(--text-muted)">—</span>';
 
     const cottoVal = row.cotto != null
       ? `<div class="input-group">
-           <input type="number" class="td-input computed" value="${fmt(row.cotto)}"
+           <input type="number" class="td-input computed" value="${escapeHtml(fmt(row.cotto))}"
              readonly tabindex="-1" />
            <span class="unit-lbl">g</span>
          </div>`
@@ -281,17 +284,17 @@ function renderTable() {
 
     const fcVal = row.fc != null ? row.fc : '—';
 
-    html += `<tr data-rowid="${row.id}">
-      <td class="td-name">${row.nome}</td>
-      <td class="td-note">${row.note || '—'}</td>
+    html += `<tr data-rowid="${escapeHtml(row.id)}">
+      <td class="td-name">${escapeHtml(row.nome)}</td>
+      <td class="td-note">${escapeHtml(row.note || '—')}</td>
       <td>${crudoVal}</td>
       <td>${cottoVal}</td>
-      <td style="text-align:center;color:var(--text-muted);">${fcVal}</td>
+      <td style="text-align:center;color:var(--text-muted);">${escapeHtml(fcVal)}</td>
       <td></td>
     </tr>`;
   });
 
-  tbody.innerHTML = html;
+  setHTML(tbody, html);
 
   // Event listeners sugli input base
   tbody.querySelectorAll('input[data-base]').forEach(inp => {
@@ -312,18 +315,6 @@ function renderTable() {
 }
 
 // ─── EXPORT PDF ───────────────────────────────────────────────────────────
-async function loadJsPDF() {
-  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-  if (window.jsPDF) return window.jsPDF;
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload = () => resolve(window.jspdf?.jsPDF || window.jsPDF);
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
 async function exportPDF() {
   const btn = document.getElementById('btn-pdf');
   btn.disabled = true; btn.textContent = 'Generazione…';
@@ -346,10 +337,12 @@ async function exportPDF() {
 
     // Header logo + titolo
     try {
-      const logoBlob = await fetch('images/logo.png').then(r => r.ok ? r.blob() : null).catch(() => null);
+      const logoBlob = await fetch('../images/logo.png').then(r => r.ok ? r.blob() : null).catch(() => null);
       if (logoBlob) {
         const logoB64 = await new Promise(res => { const rd = new FileReader(); rd.onload=e=>res(e.target.result); rd.readAsDataURL(logoBlob); });
-        doc.addImage(logoB64, 'JPEG', ML, y, 18, 12);
+        const image = doc.getImageProperties(logoB64);
+        const scale = Math.min(18 / image.width, 12 / image.height);
+        doc.addImage(logoB64, 'PNG', ML, y, image.width * scale, image.height * scale);
       }
     } catch(e) {}
 
@@ -370,19 +363,24 @@ async function exportPDF() {
     const hH = 6;
 
     // Header tabella
-    let x = ML;
-    headers.forEach((h, i) => {
-      doc.setFillColor(...LGREEN); doc.setDrawColor(...BORDER);
-      doc.rect(x, y, cols[i], hH, 'FD');
-      doc.setFont('helvetica','bold'); doc.setFontSize(6);
-      doc.setTextColor(...GREEN);
-      doc.text(h, x + cols[i]/2, y + 3.8, { align: 'center' });
-      x += cols[i];
-    });
-    y += hH;
+    const tableHeader = () => {
+      let x = ML;
+      headers.forEach((h, i) => {
+        doc.setFillColor(...LGREEN); doc.setDrawColor(...BORDER);
+        doc.rect(x, y, cols[i], hH, 'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6);
+        doc.setTextColor(...GREEN);
+        doc.text(h, x + cols[i]/2, y + 3.8, { align: 'center' });
+        x += cols[i];
+      });
+      y += hH;
+    };
+    const nextPage = () => { doc.addPage(); y = MT; tableHeader(); };
+    tableHeader();
 
     rows.forEach(row => {
       if (row.cat) {
+        if (y + 12 > 276) nextPage();
         doc.setFillColor(...GREEN); doc.setDrawColor(...GREEN);
         doc.rect(ML, y, W, 5.5, 'FD');
         doc.setFont('helvetica','bold'); doc.setFontSize(7);
@@ -393,8 +391,12 @@ async function exportPDF() {
       }
 
       // Calcola altezza riga in base al testo più lungo
-      const noteLines = doc.splitTextToSize(row.note || '', cols[1] - 2);
-      const rowH = Math.max(6, noteLines.length * 2.8 + 2.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(6);
+      const noteLines = doc.splitTextToSize(row.note || '', cols[1] - 3);
+      doc.setFont('helvetica', row.baseField ? 'bold' : 'normal'); doc.setFontSize(7);
+      const nameLines = doc.splitTextToSize(row.nome, cols[0] - 3);
+      const rowH = Math.max(6, Math.max(noteLines.length, nameLines.length) * 2.8 + 2.5);
+      if (y + rowH > 276) nextPage();
 
       doc.setFillColor(255, 255, 255); doc.setDrawColor(...BORDER);
       let rx = ML;
@@ -404,7 +406,6 @@ async function exportPDF() {
       doc.setFont('helvetica', row.baseField ? 'bold' : 'normal');
       doc.setFontSize(7);
       doc.setTextColor(...(row.baseField ? GOLD : BLACK));
-      const nameLines = doc.splitTextToSize(row.nome, cols[0] - 2);
       nameLines.forEach((l, i) => doc.text(l, ML + 1.5, y + 2.5 + i * 2.8));
 
       // Esempi
@@ -433,19 +434,18 @@ async function exportPDF() {
 
       y += rowH;
 
-      // Nuova pagina se serve
-      if (y > 272) {
-        doc.addPage();
-        y = MT;
-      }
     });
 
     // Footer
-    doc.setDrawColor(...BORDER); doc.setLineWidth(0.2);
-    doc.line(ML, 284, ML + W, 284);
-    doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(180,180,180);
-    doc.text('Generato il ' + new Date().toLocaleDateString('it-IT'), ML, 288);
-    doc.text('nutrizionistacortese.it · Tel. 320 145 9853', ML + W, 288, { align: 'right' });
+    const pageCount = doc.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+      doc.setPage(page);
+      doc.setDrawColor(...BORDER); doc.setLineWidth(0.2);
+      doc.line(ML, 284, ML + W, 284);
+      doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(180,180,180);
+      doc.text('Generato il ' + new Date().toLocaleDateString('it-IT') + ' · Pagina ' + page + '/' + pageCount, ML, 288);
+      doc.text('nutrizionistacortese.it · Tel. 320 145 9853', ML + W, 288, { align: 'right' });
+    }
 
     doc.save('Tabella_Porzioni_Cortese.pdf');
     toast('PDF generato!');
@@ -466,9 +466,9 @@ async function init() {
   if (!user) return;
   document.getElementById('topbar-email').textContent = user.email;
   document.getElementById('app').style.display = 'block';
-  document.getElementById('btn-logout').addEventListener('click', logout);
-  document.getElementById('btn-pdf').addEventListener('click', exportPDF);
-  document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('btn-logout').onclick = guard(logout);
+  document.getElementById('btn-pdf').onclick = guard(exportPDF);
+  document.getElementById('btn-reset').onclick = guard(() => {
     vals = { ...DEFAULTS };
     renderTable();
     toast('Valori ripristinati');
@@ -477,7 +477,7 @@ async function init() {
   loading(false);
 }
 
-init();
+init().catch(reportError);
 </script>
 </body>
 </html>

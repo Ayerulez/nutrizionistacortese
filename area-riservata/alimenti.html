@@ -93,7 +93,7 @@
 <div id="app" style="display:none;">
   <header class="topbar">
     <div class="topbar__logo">
-      <img src="images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
       <span class="topbar__title">Studio Cortese</span>
       <span class="topbar__badge">Area Riservata</span>
     </div>
@@ -141,6 +141,8 @@
           <div class="search-wrap" style="margin:0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="search-alimento" placeholder="Nome alimento…" />
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-search-off">🌐 Cerca su Open Food Facts</button>
+            <span id="off-spinner"></span><div id="off-status" role="status"></div>
           </div>
         </div>
         <div class="form-group">
@@ -292,15 +294,17 @@
 </div>
 
 <script type="module">
-import { sb, requireAuth, logout } from './js/supabase.js';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=202607022054';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, initUI, n, val, flt, emptyState } from './js/ui.js';
 
 const PAGE_SIZE = 50;
 // ── Stato OFF ────────────────────────────────────────────────────────────────
 let offResults = [];       // risultati OFF correnti
-let offSearchTimer = null; // debounce
+let offController=null, offGeneration=0;
 
 const S = {
   user: null, tutti: [], filtrati: [], pagina: 0,
@@ -315,13 +319,13 @@ async function init() {
   if (!S.user) return;
   n('topbar-email').textContent = S.user.email;
   n('app').style.display = 'block';
-  n('btn-logout').addEventListener('click', logout);
-  n('btn-nuovo-alimento').addEventListener('click', () => openAlimentoForm());
-  n('btn-save-alimento').addEventListener('click', saveAlimento);
-  n('detail-btn-edit').addEventListener('click', () => openAlimentoForm(n('detail-btn-edit').dataset.id));
+  n('btn-logout').onclick = guard(logout);
+  n('btn-nuovo-alimento').onclick = guard(() => openAlimentoForm());
+  n('btn-save-alimento').onclick = guard(saveAlimento);
+  n('detail-btn-edit').onclick = guard(() => openAlimentoForm(n('detail-btn-edit').dataset.id));
 
   ['search-alimento','filter-kcal-max'].forEach(id => n(id).addEventListener('input', () => { S.pagina=0; applyFilters(); }));
-  ['filter-categoria','filter-sort'].forEach(id => n(id).addEventListener('change', () => { S.pagina=0; applyFilters(); }));
+  ['filter-categoria','filter-sort'].forEach(id => n(id).onchange = guard(() => { S.pagina=0; applyFilters(); }));
   ['a-kcal','a-prot','a-carb','a-lip'].forEach(id => n(id).addEventListener('input', updateMacroPreview));
 
   await Promise.all([loadAlimenti(), loadCatalogo()]);
@@ -329,20 +333,19 @@ async function init() {
 }
 
 async function loadCatalogo() {
-  const {data} = await sb.from('patologie_catalogo').select('id,codice,nome,categoria').order('categoria').order('nome');
+  const {data} = await sb.from('patologie_catalogo').select('id,codice,nome,categoria').order('categoria').order('nome').throwOnError();
   S.catalogo = data || [];
 }
 
 async function loadAlimenti() {
   loading(true, 'Caricamento alimenti…');
-  const {data,error} = await sb.from('alimenti')
-    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,user_id,abilitato')
-    .eq('abilitato',true).order('categoria').order('nome');
-  if (error) { toast('Errore caricamento','error'); loading(false); return; }
+  const data=await getAllRows(()=>sb.from('alimenti')
+    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,user_id,abilitato,off_code')
+    .eq('abilitato',true).order('categoria').order('nome').order('id'));
   S.tutti = data||[];
 
   // Carica controindicazioni aggregate
-  const {data:ci} = await sb.from('alimenti_patologie').select('alimento_id,patologia_id,livello');
+  const ci=await getAllRows(()=>sb.from('alimenti_patologie').select('alimento_id,patologia_id,livello').order('id'));
   S.controindicazioniIdx = {};
   (ci||[]).forEach(r => {
     if (!S.controindicazioniIdx[r.alimento_id]) S.controindicazioniIdx[r.alimento_id]=[];
@@ -350,8 +353,8 @@ async function loadAlimenti() {
   });
 
   const cats = [...new Set(S.tutti.map(a=>a.categoria))].sort();
-  n('filter-categoria').innerHTML = `<option value="">Tutte (${S.tutti.length})</option>` +
-    cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  setHTML(n('filter-categoria'), `<option value="">Tutte (${escapeHtml(S.tutti.length)})</option>` +
+    cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(''));
   n('db-count').textContent = `${S.tutti.length} alimenti · ${cats.length} categorie`;
   applyFilters();
   loading(false);
@@ -380,40 +383,40 @@ function applyFilters() {
 function macroBar(p,c,l) {
   const t=(p||0)*4+(c||0)*4+(l||0)*9; if(!t) return '<div class="macro-bar"></div>';
   const pp=Math.round((p||0)*4/t*100),pc=Math.round((c||0)*4/t*100),pl=100-pp-pc;
-  return `<div class="macro-bar"><div class="mb-p" style="width:${pp}%"></div><div class="mb-c" style="width:${pc}%"></div><div class="mb-l" style="width:${Math.max(pl,0)}%"></div></div>`;
+  return `<div class="macro-bar"><div class="mb-p" style="width:${escapeHtml(pp)}%"></div><div class="mb-c" style="width:${escapeHtml(pc)}%"></div><div class="mb-l" style="width:${escapeHtml(Math.max(pl,0))}%"></div></div>`;
 }
 
 function renderTable() {
   const tbody=n('alimenti-tbody');
   const slice=S.filtrati.slice(S.pagina*PAGE_SIZE,(S.pagina+1)*PAGE_SIZE);
-  if(!slice.length){tbody.innerHTML=`<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted);">Nessun alimento trovato</td></tr>`;return;}
-  tbody.innerHTML=slice.map(a=>{
-    const isCustom=a.user_id!=null;
+  if(!slice.length){setHTML(tbody, `<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted);">Nessun alimento trovato</td></tr>`);return;}
+  setHTML(tbody, slice.map(a=>{
+    const isCustom=a.user_id===S.user.id;
     const ci=S.controindicazioniIdx[a.id]||[];
-    const ciTag=ci.length?`<span style="font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:${ci.some(x=>x.livello==='vietato')?'#fef2f2':'#fef3c7'};color:${ci.some(x=>x.livello==='vietato')?'#c53030':'#b45309'};border:1px solid ${ci.some(x=>x.livello==='vietato')?'#fecaca':'#fcd34d'};">⚠ ${ci.length}</span>`:'';
-    return `<tr class="${isCustom?'custom-food':''}" data-alimento-id="${a.id}">
+    const ciTag=ci.length?`<span style="font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:${escapeHtml(ci.some(x=>x.livello==='vietato')?'#fef2f2':'#fef3c7')};color:${escapeHtml(ci.some(x=>x.livello==='vietato')?'#c53030':'#b45309')};border:1px solid ${escapeHtml(ci.some(x=>x.livello==='vietato')?'#fecaca':'#fcd34d')};">⚠ ${escapeHtml(ci.length)}</span>`:'';
+    return `<tr class="${escapeHtml(isCustom?'custom-food':'')}" data-alimento-id="${escapeHtml(a.id)}">
       <td class="td-nome">
         <div style="display:flex;align-items:center;gap:.4rem;">
           ${isCustom?'<span class="badge-custom">Custom</span>':''}
-          ${a.nome} ${ciTag}
+          ${escapeHtml(a.nome)} ${ciTag}
         </div>
-        ${a.note_porzione?`<div style="font-size:.68rem;color:var(--text-muted);">${a.note_porzione}</div>`:''}
+        ${a.note_porzione?`<div style="font-size:.68rem;color:var(--text-muted);">${escapeHtml(a.note_porzione)}</div>`:''}
       </td>
-      <td><span class="cat-chip">${a.categoria}</span></td>
-      <td class="td-num hl">${a.energia_kcal!=null?Math.round(a.energia_kcal):'—'}</td>
-      <td class="td-num">${a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—'}</td>
-      <td class="td-num">${a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—'}</td>
-      <td class="td-num">${a.lipidi_g!=null?(+a.lipidi_g).toFixed(1):'—'}</td>
-      <td class="td-num">${a.fibra_g!=null?(+a.fibra_g).toFixed(1):'—'}</td>
+      <td><span class="cat-chip">${escapeHtml(a.categoria)}</span></td>
+      <td class="td-num hl">${escapeHtml(a.energia_kcal!=null?Math.round(a.energia_kcal):'—')}</td>
+      <td class="td-num">${escapeHtml(a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—')}</td>
+      <td class="td-num">${escapeHtml(a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—')}</td>
+      <td class="td-num">${escapeHtml(a.lipidi_g!=null?(+a.lipidi_g).toFixed(1):'—')}</td>
+      <td class="td-num">${escapeHtml(a.fibra_g!=null?(+a.fibra_g).toFixed(1):'—')}</td>
       <td>${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}</td>
       <td><div class="td-actions">
-        <button class="btn btn-secondary btn-sm" data-detail="${a.id}">🔍</button>
-        <button class="btn btn-ghost btn-sm" data-edit="${a.id}">✏️</button>
+        <button class="btn btn-secondary btn-sm" data-detail="${escapeHtml(a.id)}">🔍</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${escapeHtml(a.id)}" title="${escapeHtml(isCustom?'Modifica':'Copia personale')}">${escapeHtml(isCustom?'✏️':'📋 Copia')}</button>
       </div></td>
     </tr>`;
-  }).join('');
+  }).join(''));
 
-  tbody.addEventListener('click', e=>{
+  tbody.onclick = guard(e=>{
     const d=e.target.closest('[data-detail]'); if(d){openDetail(d.dataset.detail);return;}
     const ed=e.target.closest('[data-edit]');  if(ed){openAlimentoForm(ed.dataset.edit);return;}
     const row=e.target.closest('[data-alimento-id]');
@@ -425,19 +428,19 @@ function renderPagination() {
   const total=S.filtrati.length, pages=Math.ceil(total/PAGE_SIZE);
   const start=S.pagina*PAGE_SIZE+1, end=Math.min((S.pagina+1)*PAGE_SIZE,total);
   n('pag-info').textContent = total>0?`${start}–${end} di ${total} alimenti`:'';
-  if(pages<=1){n('pag-controls').innerHTML='';return;}
+  if(pages<=1){setHTML(n('pag-controls'), '');return;}
   let html='';
-  if(S.pagina>0) html+=`<button class="page-btn" data-goto="${S.pagina-1}">‹</button>`;
+  if(S.pagina>0) html+=`<button class="page-btn" data-goto="${escapeHtml(S.pagina-1)}">‹</button>`;
   for(let i=0;i<pages;i++){
     if(pages>8&&Math.abs(i-S.pagina)>2&&i!==0&&i!==pages-1){
       if(i===S.pagina-3||i===S.pagina+3) html+='<span style="padding:0 4px;color:var(--text-muted);">…</span>';
       continue;
     }
-    html+=`<button class="page-btn${i===S.pagina?' active':''}" data-goto="${i}">${i+1}</button>`;
+    html+=`<button class="page-btn${escapeHtml(i===S.pagina?' active':'')}" data-goto="${escapeHtml(i)}">${escapeHtml(i+1)}</button>`;
   }
-  if(S.pagina<pages-1) html+=`<button class="page-btn" data-goto="${S.pagina+1}">›</button>`;
-  n('pag-controls').innerHTML=html;
-  n('pag-controls').addEventListener('click',e=>{
+  if(S.pagina<pages-1) html+=`<button class="page-btn" data-goto="${escapeHtml(S.pagina+1)}">›</button>`;
+  setHTML(n('pag-controls'), html);
+  n('pag-controls').onclick = guard(e=>{
     const b=e.target.closest('[data-goto]');
     if(b){S.pagina=+b.dataset.goto;renderTable();renderPagination();window.scrollTo(0,0);}
   });
@@ -445,32 +448,32 @@ function renderPagination() {
 
 // ─── DETTAGLIO ──────────────────────────────────────────
 async function openDetail(id) {
-  const {data:a,error}=await sb.from('alimenti').select('*').eq('id',id).single();
+  const {data:a,error}=await sb.from('alimenti').select('*').eq('id',id).single().throwOnError();
   if(error||!a){toast('Errore','error');return;}
   // Carica controindicazioni con nome patologia
   const {data:ci}=await sb.from('alimenti_patologie')
-    .select('livello,patologie_catalogo(nome)').eq('alimento_id',id);
+    .select('livello,patologie_catalogo(nome)').eq('alimento_id',id).throwOnError();
 
   n('detail-title').textContent=a.nome;
   n('detail-btn-edit').dataset.id=id;
-  n('detail-btn-edit').textContent='✏️ Modifica';
+  n('detail-btn-edit').textContent=a.user_id===S.user.id?'✏️ Modifica':'📋 Copia personale';
   n('detail-btn-edit').style.display='inline-flex';
 
   const tot=(a.proteine_g||0)*4+(a.carboidrati_g||0)*4+(a.lipidi_g||0)*9||1;
   const pp=Math.round((a.proteine_g||0)*4/tot*100),pc=Math.round((a.carboidrati_g||0)*4/tot*100),pl=100-pp-pc;
-  const nv=(v,u='')=>v!=null?`<span class="nutrient-value">${+v%1===0?+v:(+v).toFixed(1)} ${u}</span>`:'<span style="color:var(--text-muted);">—</span>';
+  const nv=(v,u='')=>v!=null?`<span class="nutrient-value">${escapeHtml(+v%1===0?+v:(+v).toFixed(1))} ${escapeHtml(u)}</span>`:'<span style="color:var(--text-muted);">—</span>';
 
   const ciHtml=(ci&&ci.length)?`<div style="margin-top:.75rem;padding:.6rem .75rem;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-md);">
     <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b45309;margin-bottom:.35rem;">⚠ Controindicazioni</div>
-    ${ci.map(c=>`<div style="font-size:.82rem;font-weight:500;color:#92400e;">${c.patologie_catalogo?.nome} — <em>${c.livello}</em></div>`).join('')}
+    ${ci.map(c=>`<div style="font-size:.82rem;font-weight:500;color:#92400e;">${escapeHtml(c.patologie_catalogo?.nome)} — <em>${escapeHtml(c.livello)}</em></div>`).join('')}
   </div>`:'';
 
-  n('detail-body').innerHTML=`
-    <div style="margin-bottom:.5rem;"><span class="cat-chip">${a.categoria}</span>${a.note_porzione?`<span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem;">📌 ${a.note_porzione}</span>`:''}</div>
+  setHTML(n('detail-body'), `
+    <div style="margin-bottom:.5rem;"><span class="cat-chip">${escapeHtml(a.categoria)}</span>${a.note_porzione?`<span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem;">📌 ${escapeHtml(a.note_porzione)}</span>`:''}</div>
     <div class="macro-summary">
-      <div class="macro-card"><div class="macro-card__label">Energia</div><div class="macro-card__value">${a.energia_kcal!=null?Math.round(a.energia_kcal):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">kcal / 100g</div></div>
-      <div class="macro-card" style="background:#fef9ec;"><div class="macro-card__label">Proteine</div><div class="macro-card__value" style="color:#b8923e;">${a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${pp}% kcal</div></div>
-      <div class="macro-card" style="background:#fef2f2;"><div class="macro-card__label">Carboidrati</div><div class="macro-card__value" style="color:#c53030;">${a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—'}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${pc}% kcal</div></div>
+      <div class="macro-card"><div class="macro-card__label">Energia</div><div class="macro-card__value">${escapeHtml(a.energia_kcal!=null?Math.round(a.energia_kcal):'—')}</div><div style="font-size:.7rem;color:var(--text-muted);">kcal / 100g</div></div>
+      <div class="macro-card" style="background:#fef9ec;"><div class="macro-card__label">Proteine</div><div class="macro-card__value" style="color:#b8923e;">${escapeHtml(a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—')}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${escapeHtml(pp)}% kcal</div></div>
+      <div class="macro-card" style="background:#fef2f2;"><div class="macro-card__label">Carboidrati</div><div class="macro-card__value" style="color:#c53030;">${escapeHtml(a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—')}</div><div style="font-size:.7rem;color:var(--text-muted);">g · ${escapeHtml(pc)}% kcal</div></div>
     </div>
     ${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}
     <div class="nutrient-grid" style="margin-top:1rem;">
@@ -497,7 +500,7 @@ async function openDetail(id) {
         <div class="nutrient-row"><span class="nutrient-label">Niacina</span>${nv(a.niacina_mg,'mg')}</div>
       </div>
     </div>
-    ${ciHtml}`;
+    ${ciHtml}`);
   ModalManager.open('modal-detail');
 }
 
@@ -508,33 +511,33 @@ function updateMacroPreview() {
   n('macro-preview').style.display='block';
   const tot=(p||0)*4+(c||0)*4+(l||0)*9||1;
   const pp=Math.round((p||0)*4/tot*100),pc=Math.round((c||0)*4/tot*100),pl=100-pp-pc;
-  n('preview-bar').innerHTML=`<div class="mb-p" style="width:${pp}%;height:100%;"></div><div class="mb-c" style="width:${pc}%;height:100%;"></div><div class="mb-l" style="width:${Math.max(pl,0)}%;height:100%;"></div>`;
+  setHTML(n('preview-bar'), `<div class="mb-p" style="width:${escapeHtml(pp)}%;height:100%;"></div><div class="mb-c" style="width:${escapeHtml(pc)}%;height:100%;"></div><div class="mb-l" style="width:${escapeHtml(Math.max(pl,0))}%;height:100%;"></div>`);
   n('preview-text').textContent=`Prot ${pp}% · Carb ${pc}% · Lip ${Math.max(pl,0)}%`;
 }
 
 function buildPatologieSelector(attuali=[]) {
   const wrap=n('patologie-controindicazioni');
-  if(!S.catalogo.length){wrap.innerHTML='<p class="text-muted text-sm">Catalogo patologie non disponibile.</p>';return;}
+  if(!S.catalogo.length){setHTML(wrap, '<p class="text-muted text-sm">Catalogo patologie non disponibile.</p>');return;}
   // Raggruppa per categoria
-  const gruppi={};
+  const gruppi=Object.create(null);
   S.catalogo.forEach(p=>{const c=p.categoria||'Altro';if(!gruppi[c])gruppi[c]=[];gruppi[c].push(p);});
-  wrap.innerHTML=Object.entries(gruppi).map(([cat,pats])=>`
-    <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 4px;">${cat}</div>
+  setHTML(wrap, Object.entries(gruppi).map(([cat,pats])=>`
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 4px;">${escapeHtml(cat)}</div>
     ${pats.map(p=>{
       const att=attuali.find(a=>a.patologia_id===p.id);
       return `<div class="pat-ctrl-row">
-        <input type="checkbox" id="pc-${p.id}" value="${p.id}" ${att?'checked':''}
+        <input type="checkbox" id="pc-${escapeHtml(p.id)}" value="${escapeHtml(p.id)}" ${escapeHtml(att?'checked':'')}
           style="width:15px;height:15px;accent-color:var(--sage-600);flex-shrink:0;" />
-        <label for="pc-${p.id}" class="pat-ctrl-nome">${p.nome}</label>
-        <select class="pat-level-sel" id="pl-${p.id}" ${!att?'disabled':''}>
-          <option value="attenzione" ${att?.livello==='attenzione'?'selected':''}>⚠ Attenzione</option>
-          <option value="vietato"    ${att?.livello==='vietato'?'selected':''}>🚫 Vietato</option>
+        <label for="pc-${escapeHtml(p.id)}" class="pat-ctrl-nome">${escapeHtml(p.nome)}</label>
+        <select class="pat-level-sel" id="pl-${escapeHtml(p.id)}" ${escapeHtml(!att?'disabled':'')}>
+          <option value="attenzione" ${escapeHtml(att?.livello==='attenzione'?'selected':'')}>⚠ Attenzione</option>
+          <option value="vietato"    ${escapeHtml(att?.livello==='vietato'?'selected':'')}>🚫 Vietato</option>
         </select>
       </div>`;
-    }).join('')}`).join('');
+    }).join('')}`).join(''));
 
   // Abilita/disabilita select quando check cambia
-  wrap.addEventListener('change',e=>{
+  wrap.onchange = guard(e=>{
     const cb=e.target.closest('input[type=checkbox]');
     if(!cb)return;
     const sel=document.getElementById('pl-'+cb.value);
@@ -560,25 +563,31 @@ async function openAlimentoForm(id=null) {
     'a-amido','a-acqua','a-sodio','a-potassio','a-calcio','a-ferro','a-fosforo',
     'a-vitc','a-vita','a-ig','a-sat','a-mono','a-poli','a-colest'];
 
-  let attualiCi=[];
+  let attualiCi=[];S._copyFood=null;
   if(id) {
-    const {data:a}=await sb.from('alimenti').select('*').eq('id',id).single();
+    const {data:a}=await sb.from('alimenti').select('*').eq('id',id).single().throwOnError();
+    if(!a)throw new Error('Alimento non disponibile');
+    if(a.user_id!==S.user.id){
+      S._copyFood=a;
+      n('a-editing-id').value='';
+      n('modal-alimento-title').textContent='Copia personale';
+    }
     if(a){
-      n('a-nome').value=a.nome||''; n('a-categoria').value=a.categoria||'';
-      n('a-porzione').value=a.porzione_default_g||100; n('a-note-porz').value=a.note_porzione||'';
-      n('a-kcal').value=a.energia_kcal||''; n('a-prot').value=a.proteine_g||'';
-      n('a-carb').value=a.carboidrati_g||''; n('a-lip').value=a.lipidi_g||'';
-      n('a-zucc').value=a.zuccheri_g||''; n('a-fibra').value=a.fibra_g||'';
-      n('a-amido').value=a.amido_g||''; n('a-acqua').value=a.acqua_g||'';
-      n('a-sodio').value=a.sodio_mg||''; n('a-potassio').value=a.potassio_mg||'';
-      n('a-calcio').value=a.calcio_mg||''; n('a-ferro').value=a.ferro_mg||'';
-      n('a-fosforo').value=a.fosforo_mg||''; n('a-vitc').value=a.vit_c_mg||'';
-      n('a-vita').value=a.vit_a_mcg||''; n('a-ig').value=a.indice_glicemico||'';
-      n('a-sat').value=a.grassi_saturi_g||''; n('a-mono').value=a.grassi_monoinsaturi_g||'';
-      n('a-poli').value=a.grassi_polinsaturi_g||''; n('a-colest').value=a.colesterolo_mg||'';
+      n('a-nome').value=a.nome??''; n('a-categoria').value=a.categoria??'';
+      n('a-porzione').value=a.porzione_default_g||100; n('a-note-porz').value=a.note_porzione??'';
+      n('a-kcal').value=a.energia_kcal??''; n('a-prot').value=a.proteine_g??'';
+      n('a-carb').value=a.carboidrati_g??''; n('a-lip').value=a.lipidi_g??'';
+      n('a-zucc').value=a.zuccheri_g??''; n('a-fibra').value=a.fibra_g??'';
+      n('a-amido').value=a.amido_g??''; n('a-acqua').value=a.acqua_g??'';
+      n('a-sodio').value=a.sodio_mg??''; n('a-potassio').value=a.potassio_mg??'';
+      n('a-calcio').value=a.calcio_mg??''; n('a-ferro').value=a.ferro_mg??'';
+      n('a-fosforo').value=a.fosforo_mg??''; n('a-vitc').value=a.vit_c_mg??'';
+      n('a-vita').value=a.vit_a_mcg??''; n('a-ig').value=a.indice_glicemico??'';
+      n('a-sat').value=a.grassi_saturi_g??''; n('a-mono').value=a.grassi_monoinsaturi_g??'';
+      n('a-poli').value=a.grassi_polinsaturi_g??''; n('a-colest').value=a.colesterolo_mg??'';
       updateMacroPreview();
     }
-    const {data:ci}=await sb.from('alimenti_patologie').select('patologia_id,livello').eq('alimento_id',id);
+    const {data:ci}=await sb.from('alimenti_patologie').select('patologia_id,livello').eq('alimento_id',id).throwOnError();
     attualiCi=ci||[];
   } else {
     fields.forEach(f=>{const el=n(f);if(el)el.value='';});
@@ -593,7 +602,7 @@ async function saveAlimento() {
   const nome=val('a-nome'), cat=n('a-categoria').value, kcal=flt('a-kcal');
   if(!nome){showAlert('alimento-error','Il nome è obbligatorio.');return;}
   if(!cat){showAlert('alimento-error','Seleziona una categoria.');return;}
-  if(!kcal){showAlert('alimento-error','Le calorie sono obbligatorie.');return;}
+  if(kcal==null||kcal<0){showAlert('alimento-error','Inserisci calorie valide, anche zero.');return;}
 
   const editId=n('a-editing-id').value||null;
   const payload={
@@ -609,24 +618,9 @@ async function saveAlimento() {
 
   setBtn('btn-save-alimento',true);
   try {
-    let alimentoId=editId;
-    if(editId){
-      const{error}=await sb.from('alimenti').update(payload).eq('id',editId);
-      if(error)throw error;
-    } else {
-      payload.user_id=S.user.id;
-      const{data,error}=await sb.from('alimenti').insert(payload).select().single();
-      if(error)throw error;
-      alimentoId=data.id;
-    }
-    // Salva controindicazioni: rimuovi vecchie, inserisci nuove
-    await sb.from('alimenti_patologie').delete().eq('alimento_id',alimentoId);
-    const selPat=getPatologieSelezionate();
-    if(selPat.length>0){
-      const rows=selPat.map(p=>({alimento_id:alimentoId,patologia_id:p.patologia_id,livello:p.livello}));
-      const{error}=await sb.from('alimenti_patologie').insert(rows);
-      if(error)throw error;
-    }
+    await sb.rpc('nutri_save_alimento', {
+      p_id: editId, p_payload: {...(S._copyFood||{}),...payload}, p_patologie: getPatologieSelezionate(),
+    }).throwOnError();
     toast(editId?'Alimento aggiornato':'Alimento salvato');
     ModalManager.forceClose('modal-alimento');
     await loadAlimenti();
@@ -646,26 +640,23 @@ window.openAlimentoFormEsterno = (callback) => {
 // ─── OPEN FOOD FACTS ─────────────────────────────────────────────────────────
 
 async function runOffSearch(query) {
-  const spinner = () => document.getElementById('off-spinner');
-  const status  = () => document.getElementById('off-status');
-  if (spinner()) spinner().style.display = 'block';
-  if (status())  status().textContent = 'Ricerca su Open Food Facts…';
+  offController?.abort(); const generation=++offGeneration;
+  offController=new AbortController();
+  if(query.length<3){n('off-status').textContent='Scrivi almeno 3 caratteri.';return;}
+  n('off-spinner').style.display='block';
+  n('off-status').textContent='Ricerca su Open Food Facts…';
+  n('off-results-section')?.remove();
   try {
-    const results = await searchOpenFoodFacts(query, 15);
-    offResults = results;
-    for (const r of offResults) {
-      r._dup = await checkDuplicate(r, S.tutti);
-    }
+    const results=await searchOpenFoodFacts(query,15,{signal:offController.signal});
+    if(generation!==offGeneration)return;
+    offResults=results;
+    for(const r of offResults)r._dup=await checkDuplicate(r,S.tutti);
+    if(generation!==offGeneration)return;
     renderOffResults(offResults);
-    if (status()) status().textContent = results.length
-      ? `${results.length} risultat${results.length===1?'o':'i'} da Open Food Facts`
-      : 'Nessun risultato esterno';
-  } catch(e) {
-    if (status()) status().textContent = 'OFF non disponibile';
-    console.warn('OFF error:', e);
-  } finally {
-    if (spinner()) spinner().style.display = 'none';
-  }
+    n('off-status').textContent=results.length ? `${results.length} prodotti trovati · Fonte: Open Food Facts` : 'Nessun risultato esterno';
+  } catch(error) {
+    if(generation===offGeneration&&error.name!=='AbortError')n('off-status').textContent=error.message;
+  } finally { if(generation===offGeneration)n('off-spinner').style.display='none'; }
 }
 
 function renderOffResults(prodotti) {
@@ -678,13 +669,13 @@ function renderOffResults(prodotti) {
   sect.className = 'card mt-md off-section';
 
   const rows = prodotti.map((p, idx) => {
-    const isDup  = !!p._dup;
+    const isDup  = p._dup?.metodo === 'barcode';
     const dupTag = isDup
-      ? `<span class="off-dup-badge" title="Già presente come: ${p._dup.alimento.nome}">✓ già nel DB</span>`
+      ? `<span class="off-dup-badge" title="Già presente come: ${escapeHtml(p._dup.alimento.nome)}">✓ già nel DB</span>`
       : '';
     const importBtn = isDup
       ? `<button class="off-import-btn" disabled title="Già presente nel database">Nel DB</button>`
-      : `<button class="off-import-btn" data-off-import="${idx}">⬇ Importa</button>`;
+      : `<button class="off-import-btn" data-off-import="${escapeHtml(idx)}">⬇ Importa</button>`;
 
     const kcal = p.energia_kcal != null ? Math.round(p.energia_kcal) : '—';
     const prot = p.proteine_g  != null ? (+p.proteine_g).toFixed(1)  : '—';
@@ -695,23 +686,23 @@ function renderOffResults(prodotti) {
       <td class="td-nome">
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
           <span class="off-badge">🌐 OFF</span>
-          ${p.nome}
+          ${escapeHtml(p.nome)}
           ${dupTag}
         </div>
-        <div style="font-size:.68rem;color:var(--text-muted);">${p.categoria}</div>
+        <div style="font-size:.68rem;color:var(--text-muted);">${escapeHtml(p.categoria)}</div>
       </td>
-      <td><span class="cat-chip">${p.categoria}</span></td>
-      <td class="td-num hl">${kcal}</td>
-      <td class="td-num">${prot}</td>
-      <td class="td-num">${carb}</td>
-      <td class="td-num">${lip}</td>
+      <td><span class="cat-chip">${escapeHtml(p.categoria)}</span></td>
+      <td class="td-num hl">${escapeHtml(kcal)}</td>
+      <td class="td-num">${escapeHtml(prot)}</td>
+      <td class="td-num">${escapeHtml(carb)}</td>
+      <td class="td-num">${escapeHtml(lip)}</td>
       <td class="td-num">—</td>
       <td>${macroBar(p.proteine_g, p.carboidrati_g, p.lipidi_g)}</td>
       <td><div class="td-actions">${importBtn}</div></td>
     </tr>`;
   }).join('');
 
-  sect.innerHTML = `
+  setHTML(sect, `
     <div class="off-section-header">
       🌐 Risultati Open Food Facts
       <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">
@@ -727,14 +718,14 @@ function renderOffResults(prodotti) {
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
-    </div>`;
+    </div>`);
 
   // Inserisci dopo la tabella locale
   const tableWrap = document.querySelector('.card.mt-md') || document.querySelector('main .card');
   tableWrap ? tableWrap.after(sect) : document.querySelector('main').appendChild(sect);
 
   // Event delegation import
-  sect.addEventListener('click', async e => {
+  sect.onclick = guard(async e => {
     const btn = e.target.closest('[data-off-import]');
     if (!btn) return;
     const idx = +btn.dataset.offImport;
@@ -743,7 +734,7 @@ function renderOffResults(prodotti) {
     btn.disabled = true;
     btn.textContent = 'Importazione…';
     try {
-      const nuovoAlimento = await importOffProdotto(prod, S.userId);
+      const nuovoAlimento = await importOffProdotto(prod, S.user.id);
       S.tutti.push(nuovoAlimento);
       btn.textContent = '✓ Importato';
       btn.style.background = 'var(--sage-600)';
@@ -763,27 +754,15 @@ function renderOffResults(prodotti) {
 }
 
 init().then(() => {
-  // Listener OFF: attaccato DOPO init() quando il DOM è completo e visibile
-  let _offTimer = null;
-  const _origInput = n('search-alimento');
-  if (_origInput) {
-    _origInput.addEventListener('input', () => {
-      clearTimeout(_offTimer);
-      const q = _origInput.value.trim();
-      document.getElementById('off-results-section')?.remove();
-      const statusEl  = document.getElementById('off-status');
-      const spinnerEl = document.getElementById('off-spinner');
-      if (q.length < 3) {
-        if (statusEl)  statusEl.textContent  = '';
-        if (spinnerEl) spinnerEl.style.display = 'none';
-        return;
-      }
-      if (spinnerEl) spinnerEl.style.display = 'block';
-      if (statusEl)  statusEl.textContent  = 'Attendere…';
-      _offTimer = setTimeout(() => runOffSearch(q), 900);
-    });
-  }
-});
+  const input = n('search-alimento');
+  n('btn-search-off').onclick = guard(() => runOffSearch(input.value.trim()));
+  input.addEventListener('keydown', e => { if(e.key==='Enter')runOffSearch(input.value.trim()); });
+  input.addEventListener('input', () => {
+    offController?.abort(); offGeneration++;
+    n('off-results-section')?.remove();
+    n('off-status').textContent=''; n('off-spinner').style.display='none';
+  });
+}).catch(reportError);
 </script>
 </body>
 </html>
