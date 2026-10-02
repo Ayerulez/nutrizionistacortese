@@ -215,6 +215,7 @@
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
       </div>
     </nav>
 
@@ -290,7 +291,8 @@
               <button class="btn btn-ghost btn-sm" id="btn-vai-paziente">👤 Scheda paziente</button>
               <button class="btn btn-ghost btn-sm" id="btn-clone">📋 Clona verso…</button>
               <button class="btn btn-secondary btn-sm" id="btn-edit-meta">✏️ Info</button>
-              <button class="btn btn-gold btn-sm" id="btn-pdf">📄 Esporta PDF</button>
+              <a href="preferenze-pdf.html" class="btn btn-secondary" target="_blank" rel="noopener">Preferenze PDF</a>
+<button class="btn btn-gold btn-sm" id="btn-pdf">📄 Esporta PDF</button>
               <button class="btn btn-primary btn-sm" id="btn-salva">💾 Salva piano</button>
             </div>
           </div>
@@ -529,8 +531,9 @@
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
 import { sb, requireAuth, logout, getAllRows } from './js/supabase.js';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002';
-import { esportaPianoPDF } from './js/pdf-dieta.js';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002-2';
+import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261002-2';
+import { loadPdfPreferences } from './js/pdf-preferences.js';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
          n, val, flt, emptyState, fmtDateShort, calcEta } from './js/ui.js';
@@ -596,8 +599,8 @@ async function init(){
   n('clip-clear').onclick = guard(()=>{S.clipboard=null;n('clip-bar').classList.remove('show');renderPiano();});
   // Food picker
   n('fpk-q').addEventListener('input',renderFpList);
-  n('btn-fpk-off').onclick = guard(()=>startOffPickerSearch(val('fpk-q')));
-  n('fpk-q').addEventListener('keydown',e=>{if(e.key==='Enter')startOffPickerSearch(val('fpk-q'));});
+  n('btn-fpk-off').onclick = guard(()=>startOffPickerSearch(val('fpk-q').trim()));
+  n('fpk-q').addEventListener('keydown',e=>{if(e.key==='Enter')startOffPickerSearch(val('fpk-q').trim());});
   n('fpk-ann').onclick = guard(closeFp);
   n('fpk-ok').onclick = guard(confirmFp);
   n('fpk-nuovo').onclick = guard(openInlineAlim);
@@ -1617,7 +1620,8 @@ async function handleEsportaPDF() {
   try {
     await salvaPiano(false,true);
     toast('Generazione PDF…');
-    await esportaPianoPDF(S.dieta, S.paziente, S.piano, S.aliIdx);
+    const preferences=await loadPdfPreferences(S.user.id);
+    await esportaPianoPDF(S.dieta,S.paziente,S.piano,S.aliIdx,preferences,{currentWeek:S.settimana});
     toast('PDF generato!');
   } catch(e) {
     toast('Errore PDF: ' + e.message, 'error');
@@ -1638,7 +1642,7 @@ async function startOffPickerSearch(query) {
   _fpkOffController=new AbortController();
   status.textContent='Ricerca su Open Food Facts…';status.style.display='block';
   try {
-    const results=await searchOpenFoodFacts(query,10,{signal:_fpkOffController.signal});
+    const results=await searchOpenFoodFacts(query,15,{signal:_fpkOffController.signal});
     if(generation!==_fpkOffGeneration)return;
     const codes=new Set(S.alimenti.filter(a=>a.off_code).map(a=>a.off_code));
     const nuovi=results.filter(r=>!r.off_code||!codes.has(r.off_code));

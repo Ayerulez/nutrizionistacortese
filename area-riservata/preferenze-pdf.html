@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!-- build: 2026-10-02 -->
+<html lang="it">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preferenze PDF – Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pdf-preferences.css" />
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span class="topbar__email" id="topbar-email"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+        <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <a href="index.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <a href="impostazioni.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+        <a href="preferenze-pdf.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-head"><div><h2>Preferenze PDF</h2><p>Personalizza i piani alimentari da consegnare ai pazienti.</p></div><a class="btn btn-secondary" href="diete.html">Vai alle diete</a></div>
+      <div class="pdf-note">Le preferenze si applicano ai PDF dei piani alimentari e sono salvate sul tuo account, anche per gli altri dispositivi.</div>
+      <div class="alert alert-error" id="pdf-error" role="alert"></div>
+      <div class="pdf-layout">
+        <form id="pdf-form">
+          <section class="pdf-card"><h3>Formato di stampa</h3><p>Scegli come organizzare i pasti.</p>
+            <label class="pdf-choice"><input type="radio" name="layout" value="weekly"><span><strong>Settimanale</strong><small>Tabella in A4 orizzontale, con i giorni affiancati.</small></span></label>
+            <label class="pdf-choice"><input type="radio" name="layout" value="daily"><span><strong>Giornaliera</strong><small>Ogni giorno in A4 verticale, con più spazio per gli alimenti.</small></span></label>
+            <label class="pdf-choice"><input type="radio" name="layout" value="both"><span><strong>Settimanale e giornaliera</strong><small>Riepilogo della settimana seguito dalle schede dei giorni.</small></span></label>
+            <div class="form-group" style="margin-top:1rem"><label for="pf-weeks">Settimane</label><select id="pf-weeks"><option value="all">Tutte le settimane del piano</option><option value="current">Solo la settimana aperta nell’editor</option></select></div>
+            <label>Giorni da includere</label><div class="pdf-days" id="pdf-days"></div>
+          </section>
+          <section class="pdf-card"><h3>Valori nutrizionali</h3><p>Decidi quali numeri mostrare al paziente.</p><div class="pdf-checks" id="pdf-nutrition"></div></section>
+          <section class="pdf-card"><h3>Pasti e indicazioni</h3><p>Includi solo le informazioni utili alla consegna.</p><div class="pdf-checks" id="pdf-content"></div></section>
+          <section class="pdf-card"><h3>Aspetto del documento</h3><p>Colori, leggibilità e intestazione.</p>
+            <div class="form-grid"><div class="form-group"><label for="pf-palette">Colori</label><select id="pf-palette"><option value="sage">Verde dello studio</option><option value="grayscale">Bianco e nero</option></select></div>
+            <div class="form-group"><label for="pf-textSize">Dimensione del testo</label><select id="pf-textSize"><option value="standard">Standard</option><option value="large">Più grande</option></select></div></div>
+            <div class="pdf-checks" id="pdf-brand"></div>
+          </section>
+          <div class="pdf-actions"><button type="submit" class="btn btn-primary" id="btn-save-pdf">Salva preferenze</button><button type="button" class="btn btn-secondary" id="btn-reset-pdf">Ripristina predefiniti</button></div>
+          <p class="pdf-status" id="pdf-status" aria-live="polite"></p>
+        </form>
+        <aside class="pdf-card pdf-preview"><h3>Anteprima</h3><p>L’anteprima usa dati fittizi e le opzioni attuali, anche prima di salvarle.</p>
+          <div class="pdf-preview-summary" id="pdf-summary"></div>
+          <div class="pdf-actions"><button class="btn btn-secondary" id="btn-preview-pdf">Genera anteprima</button><button class="btn btn-secondary" id="btn-example-pdf">Scarica esempio</button></div>
+          <iframe id="pdf-preview-frame" title="Anteprima del piano PDF con dati fittizi" hidden></iframe>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+<script type="module" src="js/pdf-preferences-page.js"></script>
+</body>
+</html>
