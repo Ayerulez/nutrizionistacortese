@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261003-4" />
+  <link rel="stylesheet" href="css/app.css?v=20261003-5" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,8 +155,9 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/modelli.css?v=20261003-4" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261003-4" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261003-5" />
+  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261003-5" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261003-5" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -164,14 +165,21 @@
 
 <!-- FOOD PICKER -->
 <div id="fpk-overlay" style="display:none;position:fixed;inset:0;z-index:1999;"></div>
-<div class="fpk" id="fpk" style="display:none;">
+<div class="fpk" id="fpk" style="display:none;" aria-label="Selezione alimenti">
   <div class="fpk-hdr">
     <h4 id="fpk-title">Seleziona alimento</h4>
     <div class="fpk-srow">
-      <input type="text" class="fpk-s" id="fpk-q" placeholder="Cerca alimento…" />
+      <div class="search-field"><input type="search" class="fpk-s" id="fpk-q" placeholder="Cerca alimento…" /></div>
       <button class="btn btn-secondary btn-sm" id="fpk-nuovo">+ Nuovo</button>
     </div>
   </div>
+  <div class="fpk-target" id="fpk-target">
+    <div class="fpk-destination"><div class="form-group"><label for="fpk-week">Settimana</label><select id="fpk-week"></select></div><div class="form-group"><label for="fpk-day">Giorno</label><select id="fpk-day"></select></div></div>
+    <div class="form-group"><label for="fpk-meal">Aggiungi al pasto</label><select id="fpk-meal"></select></div>
+    <button class="btn btn-secondary btn-sm" type="button" id="fpk-slot-details" disabled>Gestisci il pasto</button>
+    <p id="fpk-context" role="status">Scegli un pasto oppure clicca una cella del piano.</p>
+  </div>
+  <div class="fpk-filter"><label class="sr-only" for="fpk-category">Categoria alimento</label><select id="fpk-category"><option value="">Tutte le categorie</option></select><div id="fpk-count" aria-live="polite"></div></div>
   <div class="fpk-list" id="fpk-list"></div>
   <button class="btn btn-ghost btn-sm" type="button" id="btn-fpk-off">Cerca su Open Food Facts</button>
   <div class="fpk-off-status" id="fpk-off-status" role="status"></div>
@@ -279,6 +287,12 @@
           <span style="opacity:.4;">›</span>
           <span id="ed-bc">—</span>
         </div>
+        <div class="diet-workspace">
+          <aside class="diet-food-panel" id="diet-food-panel" aria-label="Catalogo alimenti del piano" hidden>
+            <div class="diet-food-heading"><h3>Alimenti</h3><p>Catalogo e Open Food Facts</p></div>
+            <div id="food-panel-home"></div>
+          </aside>
+          <div class="diet-workspace-main">
         <div class="card mb-md">
           <h3 id="ed-nome" class="record-name" style="font-size:20px;"></h3>
           <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
@@ -355,6 +369,8 @@
           </div>
           <div class="mt-md" style="text-align:right;">
             <button class="btn btn-primary" id="btn-salva-consig">Salva liste</button>
+          </div>
+        </div>
           </div>
         </div>
       </div>
@@ -525,17 +541,17 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-4';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-5';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261003-4';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261003-4';
-import { esportaPianoWord } from './js/word-dieta.js?v=20261003-4';
-import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261003-4';
-import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261003-4';
-import { loadPdfPreferences } from './js/pdf-preferences.js?v=20261003-4';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261003-5';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261003-5';
+import { esportaPianoWord } from './js/word-dieta.js?v=20261003-5';
+import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261003-5';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261003-5';
+import { loadPdfPreferences } from './js/pdf-preferences.js?v=20261003-5';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261003-4';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261003-5';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -567,7 +583,7 @@ const S={
   _schemaModal:'low_carb_leggera',
   _fpMode:'pasto',       // 'pasto'|'sostituto'|'cons'|'scons'
   _fpCtx:{s:1,g:1,m:'colazione'},
-  _fpSelId:null,
+  _fpSelId:null, _fpTargetReady:false, _fpPopupOpen:false, _fpBusy:false, _fpDockContext:null, _fpInlineContext:null,
   _autoSaveTimer:null,
 };
 
@@ -604,6 +620,12 @@ async function init(){
   n('btn-fpk-off').onclick = guard(()=>startOffPickerSearch(val('fpk-q').trim()));
   n('fpk-q').addEventListener('keydown',e=>{if(e.key==='Enter')startOffPickerSearch(val('fpk-q').trim());});
   n('fpk-ann').onclick = guard(closeFp);
+  n('fpk-category').onchange=guard(renderFpList);
+  ['fpk-week','fpk-day','fpk-meal'].forEach(id=>n(id).onchange=guard(changeFpDestination));
+  n('fpk-slot-details').onclick=guard(()=>{if(S._fpTargetReady){const {s,g,m}=S._fpCtx;openSlotDetail(s,g,m);}});
+  desktopFoods.addEventListener('change',()=>{layoutFoodPicker();});
+  window.addEventListener('scroll',scheduleFoodPanelHeight,{passive:true});window.addEventListener('resize',scheduleFoodPanelHeight);
+  new ResizeObserver(scheduleFoodPanelHeight).observe(n('view-editor'));
   n('fpk-ok').onclick = guard(confirmFp);
   n('fpk-nuovo').onclick = guard(openInlineAlim);
   n('fpk-g').addEventListener('input',()=>{if(S._fpSelId)syncKfromG();});
@@ -628,7 +650,7 @@ async function init(){
   ['mpz-sesso','mpz-pat'].forEach(id=>n(id).onchange = guard(renderMpzList));
   ['mpz-q','mpz-emin','mpz-emax'].forEach(id=>n(id)?.addEventListener('input',renderMpzList));
 
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFp();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S._fpPopupOpen)closeFp();});
   // Click fuori dal picker lo chiude
   document.getElementById('fpk-overlay').onclick = guard(closeFp);
 
@@ -657,6 +679,7 @@ async function loadAlimenti(){
   ]);
   S.alimenti=al||[]; S.aliIdx={};
   S.alimenti.forEach(a=>S.aliIdx[a.id]=a);
+  refreshFpCategories();
   S.contrIdx={};
   (ci||[]).forEach(r=>{if(!S.contrIdx[r.alimento_id])S.contrIdx[r.alimento_id]=[];S.contrIdx[r.alimento_id].push(r);});
 }
@@ -779,6 +802,7 @@ async function selectPz(pz,showPzView=true){
     n('view-list').style.display='none';
     n('view-paziente').style.display='block';
     n('view-editor').style.display='none';
+    closeFp();
     await loadPzDiete();
   }
 }
@@ -805,10 +829,12 @@ async function backToGlobal(){
   n('view-list').style.display='block';
   n('view-paziente').style.display='none';
   n('view-editor').style.display='none';
+  closeFp();
 }
 async function backToPzList(){
   await flushPiano();
   n('view-editor').style.display='none';
+  closeFp();
   if(S.paziente){
     n('view-paziente').style.display='block';
     await loadPzDiete(); // ricarica lista diete del paziente
@@ -973,7 +999,10 @@ async function openEditor(dietaId){
   n('ed-bc').textContent=d.nome;
   n('btn-back-pz').textContent=S.paziente?`← ${S.paziente.cognome} ${S.paziente.nome}`:'← Diete';
 
+  S._fpMode='pasto';S._fpTargetReady=false;S._fpPopupOpen=false;S._fpSelId=null;S._fpDockContext=null;
+  S._fpCtx={s:1,g:1,m:'',vIdx:null};n('fpk-q').value='';n('fpk-category').value='';
   renderEditorHeader();renderWeekTabs();renderPiano();buildDaySelector();
+  refreshFpDestination();renderFpList();
   const firstTab=matchMedia('(max-width:760px)').matches?'giorno':'piano';
   switchEtab(firstTab,document.querySelector(`[data-etab="${firstTab}"]`));
   loading(false);
@@ -985,6 +1014,8 @@ function switchEtab(tabId,btn){
   document.getElementById('etab-'+tabId)?.classList.add('active');
   if(btn)btn.classList.add('active');
   if(tabId==='giorno')renderDayView();
+  if(S._fpPopupOpen)closeFp();
+  layoutFoodPicker();
   n('week-sum').style.display=tabId==='piano'?'block':'none';
 }
 
@@ -1007,7 +1038,7 @@ function renderWeekTabs(){
     const wrap=n(id);setHTML(wrap,'');
     for(let s=1;s<=S.dieta.numero_settimane;s++){
       const btn=document.createElement('button');btn.type='button';btn.className='week-tab'+(s===S.settimana?' active':'');btn.textContent='Settimana '+s;btn.setAttribute('aria-pressed',String(s===S.settimana));
-      btn.onclick=guard(()=>{S.settimana=s;renderWeekTabs();renderPiano();if(n('etab-giorno').classList.contains('active'))renderDayView();});wrap.appendChild(btn);
+      btn.onclick=guard(()=>{S.settimana=s;if(S._fpMode==='pasto')S._fpCtx={...S._fpCtx,s,vIdx:null};renderWeekTabs();renderPiano();if(n('etab-giorno').classList.contains('active'))renderDayView();refreshFpDestination();});wrap.appendChild(btn);
     }
   }
 }
@@ -1104,8 +1135,11 @@ function renderPiano(){
     const cs=+cell.dataset.s,cg=+cell.dataset.g,cm=cell.dataset.m;
     const voci=S.piano[cs]?.[cg]?.[cm]||[];
     if(S.clipboard&&voci.length===0) incollaPasto(cs,cg,cm);
+    else if(desktopFoods.matches)openFp(cs,cg,cm);
     else openSlotDetail(cs,cg,cm);
   });
+  n('piano-cont').querySelectorAll('.pc').forEach(cell=>{cell.tabIndex=0;cell.setAttribute('role','button');cell.dataset.rowOpen='';cell.setAttribute('aria-label',`${GIORNI[+cell.dataset.g-1]} — ${MOMENTI.find(m=>m.id===cell.dataset.m)?.label}`);});
+  highlightFpTarget();
   renderWeekSummary(tot,target);
 }
 
@@ -1113,7 +1147,7 @@ function renderWeekSummary(tot,target){
   const avg=f=>Math.round(Object.values(tot).reduce((s,t)=>s+t[f],0)/7*10)/10;
   const avgK=Math.round(Object.values(tot).reduce((s,t)=>s+t.kcal,0)/7);
   const cls=avgK>target*1.05?'#c53030':avgK>target*0.88?'#5a8260':'#b45309';
-  setHTML(n('week-sum-body'), `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+  setHTML(n('week-sum-body'), `<div class="week-summary-values">
     ${[['kcal media/giorno',avgK+'','target: '+Math.round(target),cls],
       ['Prot. media',avg('prot')+'g','','#5a8260'],
       ['Carb. media',avg('carb')+'g','','#d4a853'],
@@ -1133,6 +1167,7 @@ function buildDaySelector(){
   ds.onclick = guard(e=>{
     const btn=e.target.closest('[data-dg]');if(!btn)return;
     S.giornoVista=+btn.dataset.dg;
+    if(S._fpMode==='pasto'){S._fpCtx={...S._fpCtx,g:S.giornoVista,vIdx:null};refreshFpDestination();}
     ds.querySelectorAll('.week-tab').forEach(b=>b.classList.toggle('active',b.dataset.dg===btn.dataset.dg));
     renderDayView();
   });
@@ -1234,35 +1269,80 @@ async function incollaPasto(s,g,m){
 }
 
 // ─── FOOD PICKER ──────────────────────────────────────
-function openFp(s,g,m){
-  S._fpMode='pasto';S._fpCtx={s,g,m,vIdx:null};S._fpSelId=null; // vIdx=null=nuova voce
-  n('fpk-title').textContent=`${GIORNI[g-1]} — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
-  n('fpk-qty-row').style.display='flex';
-  n('fpk-g').value=100;n('fpk-k').value='';n('fpk-q').value='';
-  renderFpList();
-  const fpkOv=document.getElementById('fpk-overlay');if(fpkOv)fpkOv.style.display='block';
-  n('fpk').style.display='flex';
+const desktopFoods=matchMedia('(min-width:1025px)');
+const FULL_DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+function inFoodTab(){return n('etab-piano').classList.contains('active')||n('etab-giorno').classList.contains('active');}
+function foodEditorVisible(){return !!S.dieta&&n('view-editor').style.display!=='none';}
+function refreshFpCategories(){
+ const previous=n('fpk-category').value;
+ setHTML(n('fpk-category'),'<option value="">Tutte le categorie</option>'+[...new Set(S.alimenti.map(a=>a.categoria).filter(Boolean))].sort().map(cat=>`<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join(''));
+ n('fpk-category').value=previous;
 }
+function refreshFpDestination(){
+ const ctx=S._fpCtx;
+ setHTML(n('fpk-week'),Array.from({length:S.dieta?.numero_settimane||1},(_,i)=>`<option value="${i+1}">Settimana ${i+1}</option>`).join(''));
+ setHTML(n('fpk-day'),FULL_DAYS.map((day,i)=>`<option value="${i+1}">${day}</option>`).join(''));
+ setHTML(n('fpk-meal'),'<option value="">Seleziona un pasto…</option>'+MOMENTI.map(m=>`<option value="${m.id}">${escapeHtml(m.label)}</option>`).join(''));
+ n('fpk-week').value=ctx.s;n('fpk-day').value=ctx.g;n('fpk-meal').value=S._fpTargetReady?ctx.m:'';
+ const replacing=S._fpTargetReady&&ctx.vIdx!=null;
+ n('fpk-title').textContent=replacing?'Cambia alimento':S._fpTargetReady?`${FULL_DAYS[ctx.g-1]} — ${MOMENTI.find(m=>m.id===ctx.m)?.label}`:'Cerca nel catalogo';
+ n('fpk-context').textContent=S._fpTargetReady?`Settimana ${ctx.s} · ${replacing?'Cambio alimento nel pasto':'Pasto selezionato'}`:'Scegli un pasto oppure clicca una cella del piano.';
+ n('fpk-slot-details').disabled=!S._fpTargetReady;highlightFpTarget();updateFpButton();
+}
+function changeFpDestination(){
+ S._fpCtx={s:+n('fpk-week').value,g:+n('fpk-day').value,m:n('fpk-meal').value,vIdx:null};S._fpTargetReady=!!S._fpCtx.m;
+ S.settimana=S._fpCtx.s;S.giornoVista=S._fpCtx.g;renderWeekTabs();renderPiano();buildDaySelector();if(n('etab-giorno').classList.contains('active'))renderDayView();
+ refreshFpDestination();
+}
+function highlightFpTarget(){
+ n('piano-cont').querySelectorAll('.pc').forEach(cell=>{const active=S._fpTargetReady&&S._fpMode==='pasto'&&+cell.dataset.s===S._fpCtx.s&&+cell.dataset.g===S._fpCtx.g&&cell.dataset.m===S._fpCtx.m;cell.classList.toggle('fp-target-cell',active);cell.setAttribute('aria-pressed',String(active));});
+}
+function updateFpButton(){
+ const docked=n('fpk').classList.contains('fpk-docked');
+ n('fpk-ok').disabled=S._fpBusy||!S._fpSelId||(docked&&!S._fpTargetReady);
+ n('fpk-ok').textContent=S._fpBusy?'Attendere…':S._fpMode==='pasto'&&S._fpCtx.vIdx!=null?'Sostituisci':'Aggiungi';
+ n('fpk-ann').textContent=docked?'Deseleziona':'Annulla';
+}
+let foodPanelFrame=0;
+function scheduleFoodPanelHeight(){
+ if(foodPanelFrame)return;
+ foodPanelFrame=requestAnimationFrame(()=>{foodPanelFrame=0;const panel=n('diet-food-panel');if(panel.hidden)return;const top=Math.max(84,panel.getBoundingClientRect().top);panel.style.setProperty('--food-panel-height',Math.max(420,innerHeight-top-16)+'px');});
+}
+function layoutFoodPicker(focus=false){
+ const panel=n('diet-food-panel'),picker=n('fpk'),visible=foodEditorVisible()&&inFoodTab(),dock=desktopFoods.matches&&visible&&S._fpMode==='pasto';
+ panel.hidden=!desktopFoods.matches||!visible;
+ n('view-editor').classList.toggle('has-food-panel',!panel.hidden);
+ if(dock){n('food-panel-home').appendChild(picker);picker.classList.add('fpk-docked');picker.style.display='flex';n('fpk-overlay').style.display='none';S._fpPopupOpen=false;picker.removeAttribute('role');picker.removeAttribute('aria-modal');n('fpk-qty-row').style.display='flex';refreshFpDestination();}
+ else{document.body.appendChild(picker);picker.classList.remove('fpk-docked');picker.style.display=S._fpPopupOpen?'flex':'none';n('fpk-overlay').style.display=S._fpPopupOpen?'block':'none';if(S._fpPopupOpen){picker.setAttribute('role','dialog');picker.setAttribute('aria-modal','true');}else{picker.removeAttribute('role');picker.removeAttribute('aria-modal');}}
+ updateFpButton();updateSearchControls();scheduleFoodPanelHeight();if(focus)n('fpk-q').focus();
+}
+function openFp(s,g,m,vIdx=null){
+ S._fpMode='pasto';S._fpCtx={s,g,m,vIdx};S._fpSelId=null;S._fpTargetReady=MOMENTI.some(meal=>meal.id===m);S._fpDockContext=null;
+ n('fpk-title').textContent=`${FULL_DAYS[g-1]} — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
+ n('fpk-qty-row').style.display='flex';
+ n('fpk-g').value=vIdx!=null?S.piano[s]?.[g]?.[m]?.[vIdx]?.quantita_g||100:100;n('fpk-k').value='';
+ if(!desktopFoods.matches){n('fpk-q').value='';n('fpk-category').value='';}
+ renderFpList();S._fpPopupOpen=true;layoutFoodPicker(true);
+}
+function rememberDockContext(){if(S._fpMode==='pasto')S._fpDockContext={ctx:{...S._fpCtx,vIdx:null},ready:S._fpTargetReady};}
 function openFpSost(s,g,m,vIdx=0){
-  S._fpMode='sostituto';S._fpCtx={s,g,m,vIdx};S._fpSelId=null;
-  n('fpk-title').textContent=`Sostituto — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
-  n('fpk-qty-row').style.display='none'; // isocalorico: no quantità
-  n('fpk-q').value='';renderFpList();
-  const fpkOv2=document.getElementById('fpk-overlay');if(fpkOv2)fpkOv2.style.display='block';
-  n('fpk').style.display='flex';
+ rememberDockContext();S._fpMode='sostituto';S._fpCtx={s,g,m,vIdx};S._fpSelId=null;
+ n('fpk-title').textContent=`Sostituto — ${MOMENTI.find(mo=>mo.id===m)?.label}`;
+ n('fpk-qty-row').style.display='none';n('fpk-q').value='';n('fpk-category').value='';renderFpList();S._fpPopupOpen=true;layoutFoodPicker(true);
 }
 function openFpForList(tipo){
-  S._fpMode=tipo;S._fpSelId=null;
-  n('fpk-title').textContent=tipo==='cons'?'Alimento consigliato':'Alimento sconsigliato';
-  n('fpk-qty-row').style.display='none';
-  n('fpk-q').value='';renderFpList();
-  const fpkOv3=document.getElementById('fpk-overlay');if(fpkOv3)fpkOv3.style.display='block';
-  n('fpk').style.display='flex';
+ rememberDockContext();S._fpMode=tipo;S._fpSelId=null;
+ n('fpk-title').textContent=tipo==='cons'?'Alimento consigliato':'Alimento sconsigliato';
+ n('fpk-qty-row').style.display='none';n('fpk-q').value='';n('fpk-category').value='';renderFpList();S._fpPopupOpen=true;layoutFoodPicker(true);
 }
 
 function renderFpList(){
   const q=n('fpk-q').value.toLowerCase();
-  const lista=q?S.alimenti.filter(a=>a.nome.toLowerCase().includes(q)).slice(0,40):S.alimenti.slice(0,100);
+  const category=n('fpk-category').value;
+  const matches=S.alimenti.filter(a=>(!q||a.nome.toLowerCase().includes(q))&&(!category||a.categoria===category));
+  const lista=matches.slice(0,q?40:100);
+  if(S._fpSelId&&!lista.some(a=>a.id===S._fpSelId))S._fpSelId=null;
+  n('fpk-count').textContent=`${lista.length} di ${matches.length} alimenti${matches.length>lista.length?' · Affina la ricerca':''}`;
   const patSet=new Set(S.patPaziente.map(pp=>pp.patologia_id));
   const gruppi=Object.create(null);lista.forEach(a=>{if(!gruppi[a.categoria])gruppi[a.categoria]=[];gruppi[a.categoria].push(a);});
   let html='';
@@ -1273,11 +1353,11 @@ function renderFpList(){
       const isViet=ci.some(c=>c.livello==='vietato');
       const isWarn=ci.some(c=>c.livello==='attenzione');
       const vw=vegWarn(a.categoria);
-      let cls='fpk-item';let badge='';
+      let cls='fpk-item'+(S._fpSelId===a.id?' fp-selected':'');let badge='';
       if(isViet){cls+=' fi-viet';badge='<span class="fi-badge" style="background:#fee2e2;color:#c53030;">🚫</span>';}
       else if(isWarn){cls+=' fi-warn';badge='<span class="fi-badge" style="background:#fef3c7;color:#b45309;">⚠</span>';}
       else if(vw){cls+=' fi-veg';badge='<span class="fi-badge" style="background:#fef9ec;color:#d97706;">🌿</span>';}
-      html+=`<div class="${escapeHtml(cls)}" data-faid="${escapeHtml(a.id)}" data-fporz="${escapeHtml(a.porzione_default_g||100)}">
+      html+=`<div class="${escapeHtml(cls)}" data-faid="${escapeHtml(a.id)}" data-fporz="${escapeHtml(a.porzione_default_g||100)}" role="button" tabindex="0" data-row-open aria-label="Seleziona ${escapeHtml(a.nome)}">
         <div style="flex:1;"><div class="fi-nome">${escapeHtml(a.nome)}</div>
           <div class="fi-macro">P${escapeHtml(a.proteine_g||0)} C${escapeHtml(a.carboidrati_g||0)} L${escapeHtml(a.lipidi_g||0)} /100g</div></div>
         <div class="fi-kcal">${a.energia_kcal==null?'—':Math.round(a.energia_kcal)}kcal</div>${badge}</div>`;
@@ -1289,16 +1369,15 @@ function renderFpList(){
     n('fpk-list').querySelectorAll('.fpk-item').forEach(i=>i.classList.remove('fp-selected'));
     item.classList.add('fp-selected');
     S._fpSelId=item.dataset.faid;
-    if(S._fpMode==='pasto'){n('fpk-g').value=+item.dataset.fporz;syncKfromG();}
+    if(S._fpMode==='pasto'){if(S._fpCtx.vIdx==null)n('fpk-g').value=+item.dataset.fporz;syncKfromG();}
+    updateFpButton();
   });
 
-  // Avvia ricerca OFF in parallelo con la ricerca locale
-  const _fpkQ = n('fpk-q')?.value?.trim() || '';
-  cancelOffPickerSearch();
+  cancelOffPickerSearch();updateFpButton();
 }
 
 function syncKfromG(){
-  const a=S.aliIdx[S._fpSelId];if(!a||!a.energia_kcal)return;
+  const a=S.aliIdx[S._fpSelId];if(!a||a.energia_kcal==null)return;
   const g=parseFloat(n('fpk-g').value)||0;
   n('fpk-k').value=g>0?Math.round(a.energia_kcal*g/100):'';
 }
@@ -1309,14 +1388,20 @@ function syncGfromK(){
 }
 
 function closeFp(){
-  cancelOffPickerSearch();
-  n('fpk').style.display='none';
-  const ov=document.getElementById('fpk-overlay');if(ov)ov.style.display='none';
-  S._fpSelId=null;
+ cancelOffPickerSearch();S._fpPopupOpen=false;S._fpSelId=null;n('fpk-list').querySelectorAll('.fp-selected').forEach(el=>el.classList.remove('fp-selected'));
+ if(S._fpMode!=='pasto'){const previous=S._fpDockContext;S._fpMode='pasto';S._fpCtx=previous?.ctx||{s:S.settimana,g:S.giornoVista,m:'',vIdx:null};S._fpTargetReady=previous?.ready||false;S._fpDockContext=null;}
+ else S._fpCtx={...S._fpCtx,vIdx:null};
+ layoutFoodPicker();highlightFpTarget();
+}
+async function confirmFp(){
+ if(S._fpBusy)return;
+ S._fpBusy=true;updateFpButton();
+ try{await applyFpSelection();}finally{S._fpBusy=false;updateFpButton();}
 }
 
-async function confirmFp(){
+async function applyFpSelection(){
   const aid=S._fpSelId;
+  if(S._fpMode==='pasto'&&!S._fpTargetReady){toast('Seleziona il pasto di destinazione','error');return;}
   // Lista
   if(S._fpMode==='cons'||S._fpMode==='scons'){
     if(!aid){toast('Seleziona un alimento','error');return;}
@@ -1367,6 +1452,7 @@ async function confirmFp(){
     S.piano[s][g][m].push(nuovaVoce); // aggiunge nuova voce
   }
   closeFp();renderPiano();renderDayView();
+  if(desktopFoods.matches)refreshFpDestination();
   await autoSave();
 }
 
@@ -1484,15 +1570,7 @@ function openSlotDetail(s,g,m){
       if(editBtn){
         const vIdx=+editBtn.dataset.editVoce;
         ModalManager.forceClose('modal-pasto');
-        S._fpCtx={s,g,m,vIdx};S._fpMode='pasto';
-        S._fpSelId=null;
-        n('fpk-title').textContent=`Cambia: ${(S.piano[s]?.[g]?.[m]||[])[vIdx]?.alimento_nome||''}`;
-        n('fpk-qty-row').style.display='flex';
-        n('fpk-g').value=(S.piano[s]?.[g]?.[m]||[])[vIdx]?.quantita_g||100;
-        n('fpk-k').value='';n('fpk-q').value='';
-        renderFpList();
-        const ov=document.getElementById('fpk-overlay');if(ov)ov.style.display='block';
-        n('fpk').style.display='flex';
+        openFp(s,g,m,vIdx);
         return;
       }
       // Aggiungi sostituto a voce
@@ -1593,6 +1671,7 @@ async function cloneVerso(targetPzId){
 
 // ─── NUOVO ALIMENTO INLINE ────────────────────────────
 function openInlineAlim(){
+  S._fpInlineContext={mode:S._fpMode,ctx:{...S._fpCtx},ready:S._fpTargetReady};
   closeFp();
   ['ali-nome','ali-note-p','ali-kcal','ali-prot','ali-carb','ali-lip','ali-zucc','ali-fibra']
     .forEach(id=>{const el=n(id);if(el)el.value='';});
@@ -1618,19 +1697,15 @@ async function saveAlimInline(){
     }).select().single().throwOnError();
     if(error)throw error;
     // Aggiunge al DB locale senza ricaricare la pagina
-    S.alimenti.push(data);S.aliIdx[data.id]=data;
+    S.alimenti.push(data);S.aliIdx[data.id]=data;refreshFpCategories();
     toast('Alimento creato! Ora puoi cercarlo.');
     markClean('modal-alim-inline');ModalManager.forceClose('modal-alim-inline');
-    // Riapre il food picker nel contesto precedente
-    if(S._fpMode==='pasto')openFp(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m);
+    const previous=S._fpInlineContext;S._fpInlineContext=null;
+    if(previous){S._fpMode=previous.mode;S._fpCtx=previous.ctx;S._fpTargetReady=previous.ready;}
+    if(S._fpMode==='pasto')openFp(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m,S._fpCtx.vIdx??null);
     else if(S._fpMode==='sostituto')openFpSost(S._fpCtx.s,S._fpCtx.g,S._fpCtx.m,S._fpCtx.vIdx??0);
-    else if(S._fpMode==='cons'||S._fpMode==='scons')openFpForList(S._fpMode);
-    // Pre-seleziona il nuovo alimento
-    setTimeout(()=>{
-      n('fpk-q').value=data.nome;renderFpList();
-      const item=n('fpk-list').querySelector(`[data-faid="${data.id}"]`);
-      if(item){item.click();}
-    },100);
+    else openFpForList(S._fpMode);
+    n('fpk-category').value='';n('fpk-q').value=data.nome;renderFpList();n('fpk-list').querySelector(`[data-faid="${data.id}"]`)?.click();updateSearchControls();
   }catch(e){showAlert('ali-err','Errore: '+e.message);}
   finally{setBtn('btn-save-ali-inline',false);}
 }
@@ -1728,30 +1803,16 @@ function renderOffInPicker(prodotti, dupCount) {
       const btn = e.currentTarget;
       btn.disabled = true;
       btn.textContent = 'Importazione…';
+      const generation=_fpkOffGeneration;
       try {
         const nuovoAlimento = await importOffProdotto(p, S.user.id);
         // Aggiunge al DB locale e all'indice
         S.alimenti.push(nuovoAlimento);
-        S.aliIdx[nuovoAlimento.id] = nuovoAlimento;
+        S.aliIdx[nuovoAlimento.id] = nuovoAlimento;refreshFpCategories();
         toast(`✓ "${nuovoAlimento.nome}" importato!`);
-        // Seleziona automaticamente l'alimento appena importato
-        n('fpk-list').querySelectorAll('.fpk-item').forEach(i=>i.classList.remove('fp-selected'));
-        S._fpSelId = nuovoAlimento.id;
-        // Aggiorna il picker con i dati locali ora disponibili
-        n('fpk-q').value = nuovoAlimento.nome;
-        renderFpList();
-        // Pre-seleziona
-        setTimeout(() => {
-          const el = document.querySelector(`[data-faid="${nuovoAlimento.id}"]`);
-          if (el) {
-            el.classList.add('fp-selected');
-            n('fpk-g').value = nuovoAlimento.porzione_default_g || 100;
-            syncKfromG();
-          }
-        }, 50);
-        // Rimuovi sezione OFF
-        document.querySelectorAll('.fpk-off-sep,.fpk-off-item').forEach(e=>e.remove());
-        document.getElementById('fpk-off-status').style.display = 'none';
+        if(generation!==_fpkOffGeneration)return;
+        n('fpk-category').value='';n('fpk-q').value=nuovoAlimento.nome;renderFpList();
+        n('fpk-list').querySelector(`[data-faid="${nuovoAlimento.id}"]`)?.click();updateSearchControls();
       } catch(err) {
         btn.disabled = false;
         btn.textContent = '⬇ Importa e usa';
@@ -1761,8 +1822,7 @@ function renderOffInPicker(prodotti, dupCount) {
   });
 }
 
-// Il listener OFF per il picker è integrato direttamente in renderFpList()
-// per garantire coerenza con la ricerca locale
+// La ricerca OFF parte dal pulsante o da Invio, usando il proxy autenticato.
 
 init().catch(reportError);
 </script>
