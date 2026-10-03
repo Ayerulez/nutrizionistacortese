@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/app.css?v=20261003-4" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,7 +155,8 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261003-4" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261003-4" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -282,11 +283,12 @@
           <h3 id="ed-nome" class="record-name" style="font-size:20px;"></h3>
           <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
           <div class="editor-actions">
-            <div class="page-head-actions"><button class="btn btn-secondary" id="btn-vai-paziente">Scheda paziente</button><button class="btn btn-secondary" id="btn-edit-meta">Modifica info</button><button class="btn btn-secondary" id="btn-clone">Clona piano</button></div>
+            <div class="page-head-actions"><button class="btn btn-secondary" id="btn-vai-paziente">Scheda paziente</button><button class="btn btn-secondary" id="btn-edit-meta">Modifica info</button><button class="btn btn-secondary" id="btn-clone">Clona piano</button><button class="btn btn-secondary" id="btn-crea-modello" data-ui-icon="copy">Crea modello</button></div>
             <div class="export-actions"><a href="preferenze-pdf.html" class="btn btn-secondary" data-ui-icon="settings" target="_blank" rel="noopener">Preferenze</a><button class="btn btn-secondary" id="btn-pdf">Esporta PDF</button><button class="btn btn-secondary" id="btn-word">Esporta Word</button><button class="btn btn-primary" id="btn-salva">Salva piano</button></div>
           </div>
         </div>
 
+        <div class="model-base" id="model-base" hidden></div>
         <div class="kal-alert" id="kal-alert">⚠️ <span id="kal-txt"></span></div>
         <div class="veg-alert-strip" id="veg-alert">🚫 <span id="veg-txt"></span></div>
 
@@ -394,6 +396,11 @@
     <div class="modal-body">
       <div class="alert alert-error" id="md-err"></div>
       <input type="hidden" id="md-id" />
+      <div class="model-selector" id="md-source"><label class="model-confirm"><input type="checkbox" id="md-use-model"> Inizia da un modello (facoltativo)</label><div id="md-model-picker" hidden>
+        <div class="form-group"><label for="md-model-q">Cerca un modello</label><input id="md-model-q" type="search" placeholder="Nome o descrizione…"></div>
+        <div class="grid-2"><div class="form-group"><label for="md-model-type">Tipo dieta</label><select id="md-model-type"><option value="">Tutti</option></select></div><div class="form-group"><label for="md-model-path">Patologia</label><select id="md-model-path"><option value="">Tutte</option></select></div></div>
+        <div class="form-group"><label for="md-model-id">Modello di partenza</label><select id="md-model-id"><option value="">Seleziona un modello</option></select></div><p id="md-model-info"></p>
+      </div></div>
       <div class="form-group"><label>Nome dieta *</label><input type="text" id="md-nome" /></div>
       <div class="grid-2">
         <div class="form-group"><label>Target kcal/giorno *</label><input type="number" id="md-kcal" placeholder="1800" min="500" max="6000" step="50" /></div>
@@ -518,16 +525,17 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-4';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261002-3';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002-2';
-import { esportaPianoWord } from './js/word-dieta.js?v=20261002-3';
-import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261002-3';
-import { loadPdfPreferences } from './js/pdf-preferences.js';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261003-4';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261003-4';
+import { esportaPianoWord } from './js/word-dieta.js?v=20261003-4';
+import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261003-4';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261003-4';
+import { loadPdfPreferences } from './js/pdf-preferences.js?v=20261003-4';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261002-3';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261003-4';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -583,7 +591,9 @@ async function init(){
   n('btn-vai-paziente').onclick = guard(()=>{
     if(S.paziente) window.location.href='pazienti.html?id='+S.paziente.id;
   });
-  n('btn-clone').onclick = guard(openClone);
+  n('btn-clone').onclick = guard(openClone);n('btn-crea-modello').onclick=guard(createFromPlan);
+  n('md-use-model').onchange=guard(toggleModelPicker);n('md-model-id').onchange=guard(selectModelBase);
+  n('md-model-q').oninput=renderModelChoices;['md-model-type','md-model-path'].forEach(id=>n(id).onchange=guard(renderModelChoices));
   n('btn-salva-testi').onclick = guard(salvaTestiDieta);
   n('btn-salva-consig').onclick = guard(salvaAlimConsig);
   n('btn-add-cons').onclick = guard(()=>openFpForList('cons'));
@@ -599,7 +609,7 @@ async function init(){
   n('fpk-g').addEventListener('input',()=>{if(S._fpSelId)syncKfromG();});
   n('fpk-k').addEventListener('input',()=>{if(S._fpSelId)syncGfromK();});
   // Schema modal dieta
-  document.querySelectorAll('.schema-chip').forEach(c=>c.onclick = guard(()=>selSchema(c.dataset.s)));
+  document.querySelectorAll('.schema-chip').forEach(c=>c.onclick = guard(()=>{if(!c.disabled)selSchema(c.dataset.s);}));
   ['md-kcal','md-pc','md-pp','md-pl'].forEach(id=>n(id).addEventListener('input',aggiornaMdPrev));
   // Editor tabs
   document.querySelectorAll('.et-btn').forEach(b=>b.onclick = guard(()=>switchEtab(b.dataset.etab,b)));
@@ -632,7 +642,7 @@ async function init(){
     if(pz){
       await selectPz(pz);
       // Se c'è &new=1 apre subito il modal nuova dieta
-      if(p.get('new')==='1') openNuovaDieta();
+      if(p.get('new')==='1'){await openNuovaDieta();if(p.get('modello')){n('md-use-model').checked=true;await toggleModelPicker();n('md-model-id').value=p.get('modello');selectModelBase();if(!n('md-model-id').value)showAlert('md-err','Il modello richiesto non è disponibile. Scegli un altro modello oppure crea un piano vuoto.');}}
       // Se c'è &dieta=id apre direttamente quell'editor
       if(p.get('dieta')) await openEditor(p.get('dieta'));
     }
@@ -657,7 +667,7 @@ async function loadCatalogo(){
 }
 
 async function loadAllPazienti(){
-  const data=await getAllRows(()=>sb.from('pazienti').select('id,nome,cognome,sesso,data_nascita,vegetariano_vegano').order('cognome').order('id'));
+  const data=await getAllRows(()=>sb.from('pazienti').select('id,nome,cognome,sesso,data_nascita,vegetariano_vegano,tipo_dieta_strutturato').order('cognome').order('id'));
   S._allPz=data||[];
 }
 
@@ -764,7 +774,7 @@ async function selectPz(pz,showPzView=true){
   n('pz-subtitle').textContent=`Piani alimentari del paziente`;
   const{data:pp}=await sb.from('pazienti_patologie').select('patologia_id,patologie_catalogo(nome)').eq('paziente_id',pz.id).throwOnError();
   S.patPaziente=pp||[];
-  S.vegTipo=pz.vegetariano_vegano||null;
+  S.vegTipo=DIET_TYPES[patientDietType(pz)]||null;
   if(showPzView){
     n('view-list').style.display='none';
     n('view-paziente').style.display='block';
@@ -829,7 +839,38 @@ function aggiornaMdPrev(){
   n('mdp-l').textContent=Math.round(kcal*pl/100/9)+'g';
 }
 
-function openNuovaDieta(){
+let dietModels=[],modelsLoadGeneration=0;
+function lockTemplateFields(on){
+  ['md-kcal','md-note','md-pc','md-pp','md-pl'].forEach(id=>n(id).disabled=on);
+  document.querySelectorAll('[name=mds],.schema-chip').forEach(el=>{el.disabled=on;el.setAttribute('aria-disabled',String(on));});
+}
+function renderModelChoices(){
+  const previous=n('md-model-id').value,models=filterModels(dietModels,{q:val('md-model-q'),type:val('md-model-type'),path:val('md-model-path')});
+  setHTML(n('md-model-id'),'<option value="">Seleziona un modello</option>'+models.map(m=>`<option value="${escapeHtml(m.id)}">${escapeHtml(m.nome)} · ${escapeHtml(DIET_TYPES[m.tipo_dieta])}</option>`).join(''));
+  if(models.some(m=>m.id===previous))n('md-model-id').value=previous;
+  selectModelBase();
+}
+async function toggleModelPicker(){
+  const generation=++modelsLoadGeneration,on=n('md-use-model').checked;n('md-model-picker').hidden=!on;
+  if(!on){n('md-model-id').value='';selectModelBase();return;}
+  n('md-model-info').textContent='Caricamento modelli…';hideAlert('md-err');
+  try{dietModels=await loadModels();if(generation!==modelsLoadGeneration)return;renderModelChoices();if(!dietModels.some(m=>m.attivo))n('md-model-info').textContent='Nessun modello attivo. Puoi crearne uno dalla schermata di un piano.';}
+  catch(error){if(generation===modelsLoadGeneration){showAlert('md-err',error.message);n('md-model-info').textContent='Puoi deselezionare il modello e creare un piano vuoto.';}}
+}
+function selectModelBase(){
+  const model=n('md-use-model').checked?dietModels.find(m=>m.id===n('md-model-id').value&&m.attivo):null;
+  lockTemplateFields(!!model);n('md-model-info').textContent=model?`${model.piano.numero_settimane} settimane · ${Math.round(model.piano.target_kcal)} kcal/giorno. Verranno copiati pasti, quantità, alternative e testi. Dopo la creazione potrai adattare il piano; gli avvisi saranno verificati prima dell’applicazione.`:'Scegli un modello oppure crea un piano vuoto.';
+  if(model){const d=model.piano;n('md-nome').value=model.nome;n('md-kcal').value=d.target_kcal;n('md-note').value=d.note||'';document.querySelector(`[name=mds][value="${d.numero_settimane}"]`).checked=true;n('md-pc').value=d.pct_carboidrati??40;n('md-pp').value=d.pct_proteine??30;n('md-pl').value=d.pct_grassi??30;selSchema(d.schema_macro||'libera');}
+}
+async function createFromPlan(){
+  if(!S.dieta)return;setBtn('btn-crea-modello',true);
+  try{await salvaPiano(false,true);openModelForm({catalog:S._catalogo,defaultType:patientDietType(S.paziente),pathIds:S.patPaziente.map(p=>p.patologia_id),name:S.dieta.nome,onSave:async v=>{await createModel(S.dieta.id,v);toast('Modello creato. Lo trovi nella sezione Modelli.');}});}catch(error){toast(error.message,'error');}finally{setBtn('btn-crea-modello',false);}
+}
+async function openNuovaDieta(){
+  ++modelsLoadGeneration;n('md-source').hidden=false;n('md-use-model').checked=false;n('md-model-picker').hidden=true;n('md-model-id').value='';lockTemplateFields(false);
+  ['md-model-q','md-model-type','md-model-path'].forEach(id=>n(id).value='');
+  setHTML(n('md-model-type'),'<option value="">Tutti</option>'+Object.entries(DIET_TYPES).map(([id,label])=>`<option value="${id}">${escapeHtml(label)}</option>`).join(''));
+  setHTML(n('md-model-path'),'<option value="">Tutte</option>'+S._catalogo.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.nome)}</option>`).join(''));
   n('md-id').value=''; n('md-title').textContent='Nuova dieta';
   ['md-nome','md-kcal','md-note'].forEach(id=>{const el=n(id);if(el)el.value='';});
   n('btn-save-dieta').textContent='Crea dieta';
@@ -839,6 +880,7 @@ function openNuovaDieta(){
 }
 function editMeta(){
   if(!S.dieta)return;
+  ++modelsLoadGeneration;n('md-source').hidden=true;n('md-use-model').checked=false;lockTemplateFields(false);
   n('md-id').value=S.dieta.id;n('md-title').textContent='Modifica dieta';
   n('md-nome').value=S.dieta.nome;n('md-kcal').value=S.dieta.target_kcal;
   n('md-note').value=S.dieta.note||'';n('btn-save-dieta').textContent='Salva';
@@ -877,7 +919,12 @@ async function saveDieta(){
       }
       S.settimana=Math.min(S.settimana,updated.numero_settimane);renderWeekTabs();renderPiano();renderEditorHeader();toast('Dieta aggiornata');
     } else {
-      const{data,error}=await sb.from('diete').insert(payload).select().single().throwOnError();if(error)throw error;
+      let data;
+      if(n('md-use-model').checked){
+        const model=dietModels.find(m=>m.id===n('md-model-id').value&&m.attivo);if(!model)throw new Error('Seleziona un modello di partenza.');
+        const codes=await reviewModelWarnings(model.id,S.paziente.id,model.nome,S.paziente.nome+' '+S.paziente.cognome);if(codes===null)return;
+        data={id:await applyModel(model.id,S.paziente.id,nome,codes)};
+      }else{const result=await sb.from('diete').insert(payload).select().single().throwOnError();data=result.data;}
       toast('Dieta creata!');markClean('modal-dieta');ModalManager.forceClose('modal-dieta');
       await openEditor(data.id);return;
     }
@@ -942,6 +989,8 @@ function switchEtab(tabId,btn){
 }
 
 function renderEditorHeader(){
+  const base=n('model-base');base.hidden=!S.dieta.modello_base_nome;
+  if(S.dieta.modello_base_nome){setHTML(base,`Base del piano: <strong>${escapeHtml(S.dieta.modello_base_nome)}</strong>. Questo piano è una copia modificabile del modello. ${S.dieta.modello_base_id?`<a href="modelli.html?id=${escapeHtml(S.dieta.modello_base_id)}">Apri modello e storico</a>`:''}`);}
   n('ed-nome').textContent=S.dieta.nome;
   n('ed-target').textContent=Math.round(S.dieta.target_kcal);
   const schema=SCHEMI[S.dieta.schema_macro||'libera'];
@@ -1532,7 +1581,9 @@ async function cloneVerso(targetPzId){
   loading(true,'Clonazione dieta…');
   try{
     await salvaPiano(false,true);
-    await sb.rpc('nutri_clone_dieta',{p_dieta_id:S.dieta.id,p_paziente_id:targetPzId}).throwOnError();
+    const destName=S._allPz.find(p=>p.id===targetPzId);let codes=[];
+    if(S.dieta.modello_base_id){loading(false);codes=await reviewModelWarnings(S.dieta.modello_base_id,targetPzId,S.dieta.modello_base_nome,(destName?.nome||'')+' '+(destName?.cognome||''));if(codes===null)return;loading(true,'Clonazione dieta…');}
+    await cloneDiet(S.dieta.id,targetPzId,codes);
     const dest=S._allPz.find(p=>p.id===targetPzId);
     toast(`Dieta clonata verso ${dest?.cognome} ${dest?.nome}`);
     ModalManager.forceClose('modal-clone');

@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css" />
-  <link rel="stylesheet" href="css/pdf-preferences.css" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
+  <link rel="stylesheet" href="css/app.css?v=20261003-4" />
+  <link rel="stylesheet" href="css/pdf-preferences.css?v=20261003-4" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261003-4" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -68,6 +68,15 @@
           </section>
           <section class="pdf-card"><h3>Valori nutrizionali</h3><p>Decidi quali numeri mostrare al paziente.</p><div class="pdf-checks" id="pdf-nutrition"></div></section>
           <section class="pdf-card"><h3>Pasti e indicazioni</h3><p>Includi solo le informazioni utili alla consegna.</p><div class="pdf-checks" id="pdf-content"></div></section>
+          <section class="pdf-card"><h3>Ordine delle sezioni</h3><p>Usa le frecce per definire l’ordine in PDF e Word. La copertina, se inclusa, resta sempre all’inizio. Le sezioni vuote o disattivate vengono saltate; introduzione e linee guida consecutive condividono la stessa pagina.</p><ol class="pdf-section-order" id="pdf-section-order" aria-label="Ordine del documento"></ol></section>
+          <section class="pdf-card"><h3>Informazioni dello specialista</h3><p>Visualizzate sulla copertina e, se attivati, nei contatti a piè di pagina.</p><div class="form-grid">
+            <div class="form-group"><label for="pf-specialistName">Nome e titolo</label><input id="pf-specialistName" maxlength="250"></div>
+            <div class="form-group"><label for="pf-specialistRole">Qualifica</label><input id="pf-specialistRole" maxlength="250"></div>
+            <div class="form-group"><label for="pf-specialistPhone">Telefono</label><input id="pf-specialistPhone" maxlength="250" type="tel"></div>
+            <div class="form-group"><label for="pf-specialistEmail">Email</label><input id="pf-specialistEmail" maxlength="250" type="email"></div>
+            <div class="form-group"><label for="pf-specialistAddress">Indirizzo dello studio</label><input id="pf-specialistAddress" maxlength="250"></div>
+            <div class="form-group"><label for="pf-specialistWebsite">Sito web</label><input id="pf-specialistWebsite" maxlength="250"></div>
+          </div></section>
           <section class="pdf-card"><h3>Aspetto del documento</h3><p>Colori, leggibilità e intestazione.</p>
             <div class="form-grid"><div class="form-group"><label for="pf-palette">Colori</label><select id="pf-palette"><option value="sage">Verde dello studio</option><option value="grayscale">Bianco e nero</option></select></div>
             <div class="form-group"><label for="pf-textSize">Dimensione del testo</label><select id="pf-textSize"><option value="standard">Standard</option><option value="large">Più grande</option></select></div></div>
@@ -85,6 +94,6 @@
     </main>
   </div>
 </div>
-<script type="module" src="js/pdf-preferences-page.js"></script>
+<script type="module" src="js/pdf-preferences-page.js?v=20261003-4"></script>
 </body>
 </html>
