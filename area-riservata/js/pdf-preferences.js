@@ -1,4 +1,4 @@
-import {sb} from './supabase.js';
+import {sb} from './supabase.js?v=20261002-3';
 import {normalizePdfOptions} from './pdf-options.js';
 
 function explain(error) {
@@ -8,14 +8,14 @@ function explain(error) {
   return error;
 }
 export async function loadPdfPreferences(userId) {
-  if (!userId) throw new Error('Accedi per caricare le preferenze PDF.');
+  if (!userId) throw new Error('Accedi per caricare le preferenze di esportazione.');
   try {
     const {data} = await sb.from('preferenze_pdf').select('opzioni').eq('user_id',userId).maybeSingle().throwOnError();
     return normalizePdfOptions(data?.opzioni);
   } catch (error) { throw explain(error); }
 }
 export async function savePdfPreferences(userId, value) {
-  if (!userId) throw new Error('Accedi per salvare le preferenze PDF.');
+  if (!userId) throw new Error('Accedi per salvare le preferenze di esportazione.');
   try {
     const {data} = await sb.from('preferenze_pdf').upsert({user_id:userId,opzioni:normalizePdfOptions(value)},
       {onConflict:'user_id'}).select('opzioni').single().throwOnError();

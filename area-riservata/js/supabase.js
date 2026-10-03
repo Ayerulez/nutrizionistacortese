@@ -155,11 +155,12 @@ export async function savePaziente(payload, editingId = null, patologiaIds = [],
 // ─── VISITE ───────────────────────────────────────────────────────────────
 
 export async function getListaVisite({
-  struttura_id = null, prestazione_id = null, limit = 10, offset = 0,
+  struttura_id = null, prestazione_id = null, search = '', limit = 10, offset = 0,
 } = {}) {
+  const term=String(search).trim();
   let q = sb.from('visite')
     .select(
-      'id, data_visita, peso_kg, bmi, pazienti(id, nome, cognome), strutture(id, nome), prestazioni(id, nome)',
+      `id, data_visita, peso_kg, bmi, pazienti${term?'!inner':''}(id, nome, cognome), strutture(id, nome), prestazioni(id, nome)`,
       { count: 'exact' }
     )
     .order('data_visita', { ascending: false })
@@ -167,6 +168,7 @@ export async function getListaVisite({
 
   if (struttura_id)   q = q.eq('struttura_id',   struttura_id);
   if (prestazione_id) q = q.eq('prestazione_id', prestazione_id);
+  if(term){const pattern='"%'+term.replace(/[\\%_]/g,'\\$&').replace(/"/g,'\\"')+'%"';q=q.or(`nome.ilike.${pattern},cognome.ilike.${pattern}`,{referencedTable:'pazienti'});}
 
   const { data, error, count } = await q;
   if (error) throw error;

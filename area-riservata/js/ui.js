@@ -1,4 +1,6 @@
 import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js';
+import {initGestionaleUI,updateSearchControls} from './gestionale-ui.js?v=20261002-3';
+export {updateSearchControls};
 /**
  * ui.js — Helper UI condivisi
  *
@@ -41,9 +43,10 @@ export function hideAlert(id) {
 export function setBtn(id, on) {
   const b = document.getElementById(id);
   if (!b) return;
+  if(on&&b.getAttribute('aria-busy')==='true')return;
   b.disabled = on;
-  if (on) { b.dataset.orig = b.textContent; b.textContent = 'Attendere…'; }
-  else if (b.dataset.orig) b.textContent = b.dataset.orig;
+  if (on) { b.dataset.orig = b.textContent;b._btnChildren=[...b.childNodes].map(n=>n.cloneNode(true));b.setAttribute('aria-busy','true');b.textContent = 'Attendere…'; }
+  else { if(b._btnChildren){b.replaceChildren(...b._btnChildren);delete b._btnChildren;}else if(b.dataset.orig)b.textContent=b.dataset.orig;b.removeAttribute('aria-busy'); }
 }
 
 // ─── DIRTY TRACKING ──────────────────────────────────────────────────────
@@ -164,6 +167,9 @@ export const closeModal = id => ModalManager.close(id);
  * - Registra input listener per markDirty automatico su tutti i modal
  */
 export function initUI() {
+  if(document.documentElement.dataset.modalUI)return;
+  document.documentElement.dataset.modalUI='true';
+  initGestionaleUI();
   window.closeModal = id => ModalManager.close(id);
   window.openModal  = id => ModalManager.open(id);
 

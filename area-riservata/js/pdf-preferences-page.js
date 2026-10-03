@@ -1,9 +1,9 @@
-import {requireAuth,logout} from './supabase.js';
-import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js';
+import {requireAuth,logout} from './supabase.js?v=20261002-3';
+import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261002-3';
 import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js';
 import {PDF_DEFAULTS,normalizePdfOptions} from './pdf-options.js';
 import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261002-2';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261002-3';
 const $=id=>document.getElementById(id);
 let user,dirty=false,revision=0,previewUrl;
 const groups={
@@ -54,7 +54,7 @@ async function save(event){
   event.preventDefault();hideAlert('pdf-error');setBtn('btn-save-pdf',true);
   try{const current=revision;await savePdfPreferences(user.id,collect());
     if(current===revision){dirty=false;$('pdf-status').textContent='Preferenze salvate sul tuo account.';}else $('pdf-status').textContent='Salvataggio completato. Ci sono altre modifiche da salvare.';
-    toast('Preferenze PDF salvate');
+    toast('Preferenze di esportazione salvate');
   }catch(error){showAlert('pdf-error',error.message);}finally{setBtn('btn-save-pdf',false);}
 }
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});

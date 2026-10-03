@@ -1,4 +1,4 @@
-import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js';
+import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js?v=20261002-3';
 import { mapOffToAlimento } from './off-model.js';
 export { mapOffToAlimento } from './off-model.js';
 const cache=new Map();
