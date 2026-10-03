@@ -1,10 +1,10 @@
-import {normalizePdfOptions} from './pdf-options.js';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-4';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
 export const number=v=>v!=null&&v!==''&&Number.isFinite(Number(v))?Number(v):0;
 export const grams=v=>new Intl.NumberFormat('it-IT',{maximumFractionDigits:1}).format(number(v));
-export const cleanText=v=>String(v??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/↔/g,' / ').replace(/\p{Extended_Pictographic}/gu,'');
+export const cleanText=v=>String(v??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g,'').replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,'').replace(/↔/g,' / ').replace(/\p{Extended_Pictographic}/gu,'');
 export const foodsAt=(p,s,g,m)=>{const a=p?.[s]?.[g]?.[m];return Array.isArray(a)?a:a?[a]:[];};
 export const energy=p=>number(p.kcal??p.kcal_calcolate);
 export const macro=(p,key)=>p[key]??p[({prot:'proteine_calcolate',carb:'carboidrati_calcolati',lip:'lipidi_calcolati'})[key]];
@@ -29,9 +29,26 @@ export function foodDetails(food,idx,o){
   return {measures:measures.join(' · '),macros:o.showMacros?macroText(food):'',notes};
 }
 export function totalText(piano,s,g,o){const t=dayTotals(piano,s,g),lines=[];if(o.showCalories)lines.push(`${Math.round(t.kcal)} kcal`);if(o.showMacros){lines.push(macroText(t));if(t.incomplete)lines.push('Macro parziali');}return lines;}
-export function planSections(dieta,idx,o){return [
-  [o.showIntro,'Intestazione',dieta.intestazione],[o.showPlanNotes,'Note del piano',dieta.note],
-  [o.showGuidelines,'Linee guida',dieta.linee_guida],[o.showConclusions,'Conclusioni',dieta.conclusioni],
-  [o.showRecommended,'Alimenti consigliati',(dieta.alimenti_consigliati||[]).map(id=>idx[id]?.nome||'Alimento non disponibile').join('\n')],
-  [o.showRecommended,'Alimenti sconsigliati',(dieta.alimenti_sconsigliati||[]).map(id=>idx[id]?.nome||'Alimento non disponibile').join('\n')],
-].filter(([enabled,,value])=>enabled&&value);}
+export function planSections(dieta,idx,o){
+  const entries={
+    intro:[o.showIntro,'Introduzione',dieta.intestazione],guidelines:[o.showGuidelines,'Linee guida',dieta.linee_guida],
+    planNotes:[o.showPlanNotes,'Note del piano',dieta.note],conclusions:[o.showConclusions,'Conclusioni',dieta.conclusioni],
+    recommended:[o.showRecommended,'Alimenti consigliati',(dieta.alimenti_consigliati||[]).map(id=>idx[id]?.nome||'Alimento non disponibile').join('\n')],
+    discouraged:[o.showDiscouraged,'Alimenti sconsigliati',(dieta.alimenti_sconsigliati||[]).map(id=>idx[id]?.nome||'Alimento non disponibile').join('\n')],
+  };
+  return o.sectionOrder.filter(id=>entries[id]?.[0]&&cleanText(entries[id][2]).trim()).map(id=>[id,entries[id][1],cleanText(entries[id][2]).trim()]);
+}
+// Blocchi consecutivi della stessa famiglia condividono una pagina; nessuna pagina vuota.
+export function documentBlocks(dieta,idx,o){
+  const entries=Object.fromEntries(planSections(dieta,idx,o).map(a=>[a[0],a]));
+  const blocks=[];
+  for(const id of o.sectionOrder){
+    if(id==='table'){blocks.push({type:'table'});continue;}
+    const entry=entries[id];if(!entry)continue;
+    const type=['intro','guidelines','planNotes'].includes(id)?'intro':['recommended','discouraged'].includes(id)?'foods':'conclusions';
+    let block=blocks.at(-1);if(block?.type!==type){block={type,title:{intro:'Indicazioni del piano',foods:'Scelte alimentari',conclusions:'Indicazioni conclusive'}[type],sections:[]};blocks.push(block);}
+    block.sections.push(entry);
+  }
+  return blocks;
+}
+export function specialistLines(o){return [o.specialistName,o.specialistRole,o.specialistAddress,o.specialistPhone&&'Tel. '+o.specialistPhone,o.specialistEmail,o.specialistWebsite].filter(Boolean).map(cleanText);}

@@ -1,4 +1,4 @@
-import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js';
+import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js?v=20261003-4';
 /**
  * supabase.js — Client + Auth + DB functions
  *
@@ -8,7 +8,7 @@ import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js';
  *   logout()    = sempre → login.html
  */
 
-import { createClient } from './vendor/supabase.js';
+import { createClient } from './vendor/supabase.js?v=20261003-4';
 
 // ─── CONFIG — sostituire con i valori reali ───────────────────────────────
 export const SUPABASE_URL      = 'https://lzxkfknqzvmykuumorwy.supabase.co';

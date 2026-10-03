@@ -1,5 +1,5 @@
-import {sb} from './supabase.js?v=20261002-3';
-import {normalizePdfOptions} from './pdf-options.js';
+import {sb} from './supabase.js?v=20261003-4';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-4';
 
 function explain(error) {
   if (error.code === 'PGRST205' || error.code === '42P01') {

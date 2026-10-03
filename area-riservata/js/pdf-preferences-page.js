@@ -1,22 +1,27 @@
-import {requireAuth,logout} from './supabase.js?v=20261002-3';
-import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261002-3';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js';
-import {PDF_DEFAULTS,normalizePdfOptions} from './pdf-options.js';
-import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261002-3';
+import {requireAuth,logout} from './supabase.js?v=20261003-4';
+import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261003-4';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-4';
+import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261003-4';
+import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261003-4';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261003-4';
 const $=id=>document.getElementById(id);
-let user,dirty=false,revision=0,previewUrl;
+let user,dirty=false,revision=0,previewUrl,sectionOrder=[...PDF_DEFAULTS.sectionOrder];
 const groups={
   'pdf-nutrition':[['showCalories','Calorie degli alimenti'],['showMacros','Proteine, carboidrati e grassi'],['showDailyTotals','Totali giornalieri'],['showTarget','Target calorico del piano'],['showQuantities','Quantità in grammi']],
-  'pdf-content':[['showAlternatives','Alternative ai singoli alimenti'],['showMealNotes','Note dei pasti'],['showEmptyMeals','Mostra anche i pasti vuoti'],['showIntro','Intestazione del piano'],['showPlanNotes','Note generali del piano'],['showGuidelines','Linee guida'],['showConclusions','Conclusioni'],['showRecommended','Alimenti consigliati e sconsigliati']],
-  'pdf-brand':[['showLogo','Logo dello studio'],['showContacts','Firma e contatti dello studio'],['showPageNumbers','Numeri di pagina'],['showDate','Data di generazione']],
+  'pdf-content':[['showAlternatives','Alternative ai singoli alimenti'],['showMealNotes','Note dei pasti'],['showEmptyMeals','Mostra anche i pasti vuoti'],['showCover','Copertina con paziente e specialista'],['showIntro','Introduzione / intestazione del piano'],['showPlanNotes','Note generali del piano'],['showGuidelines','Linee guida'],['showConclusions','Conclusioni'],['showRecommended','Alimenti consigliati'],['showDiscouraged','Alimenti sconsigliati']],
+  'pdf-brand':[['showLogo','Logo dello studio'],['showContacts','Contatti a piè di pagina'],['showPageNumbers','Numeri di pagina'],['showDate','Data di generazione']],
 };
 function build(){
   for(const [id,items] of Object.entries(groups))setHTML($(id),items.map(([key,label])=>`<label class="pdf-check"><input type="checkbox" id="pf-${escapeHtml(key)}"><span>${escapeHtml(label)}</span></label>`).join(''));
   setHTML($('pdf-days'),['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map((name,i)=>`<label class="pdf-day"><input type="checkbox" name="day" value="${i+1}">${name}</label>`).join(''));
 }
+function renderOrder(){
+  setHTML($('pdf-section-order'),sectionOrder.map((id,i)=>`<li><span><b>${i+1}.</b> ${escapeHtml(EXPORT_SECTIONS[id])}</span><div><button type="button" class="btn btn-secondary btn-icon" data-move="-1" data-section="${escapeHtml(id)}" aria-label="Sposta ${escapeHtml(EXPORT_SECTIONS[id])} prima" ${i===0?'disabled':''}>↑</button><button type="button" class="btn btn-secondary btn-icon" data-move="1" data-section="${escapeHtml(id)}" aria-label="Sposta ${escapeHtml(EXPORT_SECTIONS[id])} dopo" ${i===sectionOrder.length-1?'disabled':''}>↓</button></div></li>`).join(''));
+}
+function moveSection(event){const button=event.target.closest('[data-move]');if(!button)return;const i=sectionOrder.indexOf(button.dataset.section),next=i+Number(button.dataset.move);if(next<0||next>=sectionOrder.length)return;[sectionOrder[i],sectionOrder[next]]=[sectionOrder[next],sectionOrder[i]];renderOrder();markChanged();$('pdf-section-order').querySelector(`[data-section="${button.dataset.section}"][data-move="${button.dataset.move}"]`)?.focus();}
 function fill(value){
-  const o=normalizePdfOptions(value);
+  const o=normalizePdfOptions(value);sectionOrder=[...o.sectionOrder];renderOrder();
+  for(const key of ['specialistName','specialistRole','specialistPhone','specialistEmail','specialistAddress','specialistWebsite'])$('pf-'+key).value=o[key];
   document.querySelector(`[name=layout][value="${o.layout}"]`).checked=true;
   for(const key of ['weeks','palette','textSize'])$('pf-'+key).value=o[key];
   for(const items of Object.values(groups))for(const [key] of items)$('pf-'+key).checked=o[key];
@@ -28,6 +33,8 @@ function collect(){
   const o={layout:document.querySelector('[name=layout]:checked')?.value,days};
   for(const key of ['weeks','palette','textSize'])o[key]=$('pf-'+key).value;
   for(const items of Object.values(groups))for(const [key] of items)o[key]=$('pf-'+key).checked;
+  o.sectionOrder=sectionOrder;
+  for(const key of ['specialistName','specialistRole','specialistPhone','specialistEmail','specialistAddress','specialistWebsite'])o[key]=$('pf-'+key).value;
   return normalizePdfOptions(o);
 }
 function summary(){
@@ -62,7 +69,7 @@ window.addEventListener('pagehide',()=>{if(previewUrl)URL.revokeObjectURL(previe
 async function init(){
   loading(true);initUI();user=await requireAuth();if(!user)return;
   $('topbar-email').textContent=user.email;$('app').style.display='block';build();fill(PDF_DEFAULTS);
-  $('btn-logout').onclick=guard(logout);$('pdf-form').onsubmit=guard(save);$('pdf-form').onchange=guard(markChanged);
+  $('btn-logout').onclick=guard(logout);$('pdf-form').onsubmit=guard(save);$('pdf-form').onchange=guard(markChanged);$('pdf-section-order').onclick=guard(moveSection);
   $('btn-reset-pdf').onclick=guard(()=>{fill(PDF_DEFAULTS);markChanged();});
   $('btn-preview-pdf').onclick=guard(()=>preview());$('btn-example-pdf').onclick=guard(()=>preview(true));
   try{fill(await loadPdfPreferences(user.id));$('pdf-status').textContent='Le preferenze salvate vengono applicate al prossimo export del piano.';}
