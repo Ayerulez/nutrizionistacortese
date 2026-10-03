@@ -69,6 +69,7 @@
     .pat-categoria{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
       color:var(--text-muted);margin-top:.75rem;margin-bottom:.35rem;}
   </style>
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -108,7 +109,7 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -116,15 +117,19 @@
       <!-- ══ LISTA PAZIENTI ══ -->
       <div id="view-list">
         <div class="page-head">
-          <div><h2>Pazienti</h2><p id="lista-count">Archivio anagrafico</p></div>
+          <div><h2>Pazienti</h2><p>Anagrafica e storico clinico dei pazienti.</p></div>
           <div class="page-head-actions">
-            <button class="btn btn-ghost btn-sm" id="btn-toggle-adv">⚙ Ricerca avanzata</button>
             <button class="btn btn-primary" id="btn-nuovo-paziente">+ Nuovo paziente</button>
           </div>
         </div>
-        <div class="search-wrap">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-base" placeholder="Cerca nome, cognome, codice fiscale…" />
+        <div class="list-toolbar">
+          <div class="toolbar-fields">
+            <div class="form-group toolbar-search"><label for="search-base">Cerca</label>
+              <div class="search-field"><input type="search" id="search-base" placeholder="Nome, cognome o codice fiscale…" /></div>
+            </div>
+            <button class="btn btn-secondary" id="btn-toggle-adv" aria-controls="search-advanced" aria-expanded="false">Filtri avanzati</button>
+          </div>
+          <div class="toolbar-result" id="lista-count" aria-live="polite">Archivio anagrafico</div>
         </div>
         <div class="search-advanced" id="search-advanced">
           <div class="search-advanced-grid">
@@ -143,8 +148,8 @@
           </div>
           <div style="margin-top:.75rem;"><button class="btn btn-ghost btn-sm" id="btn-reset-search">✕ Reset</button></div>
         </div>
-        <div class="patient-item-header"><span></span><span>Cognome Nome</span><span>Nascita</span><span>C.F.</span><span>Città</span><span></span></div>
-        <div id="patient-list-container"></div>
+        <div class="record-panel"><div class="patient-item-header"><span></span><span>Cognome Nome</span><span>Nascita</span><span>C.F.</span><span>Città</span><span></span></div>
+        <div id="patient-list-container"></div></div>
       </div>
 
       <!-- ══ DETTAGLIO PAZIENTE ══ -->
@@ -160,16 +165,16 @@
             <div><h2 id="detail-name">—</h2><p id="detail-meta" class="text-muted text-sm" style="margin-top:.2rem;"></p></div>
           </div>
           <div class="page-head-actions">
-<button class="btn btn-secondary" id="btn-edit-patient">✏️ Modifica anagrafica</button>
+<button class="btn btn-secondary" id="btn-edit-patient">Modifica anagrafica</button>
             <button class="btn btn-primary"   id="btn-nuova-visita">+ Nuova visita</button>
           </div>
         </div>
 
         <div class="tabs">
-          <button class="tab-btn active" data-tab="tab-visite">📋 Visite</button>
-          <button class="tab-btn" data-tab="tab-anagrafica">👤 Anagrafica</button>
-          <button class="tab-btn" data-tab="tab-grafici">📈 Grafici</button>
-          <button class="tab-btn" data-tab="tab-diete">🥗 Diete</button>
+          <button class="tab-btn active" data-tab="tab-visite">Visite</button>
+          <button class="tab-btn" data-tab="tab-anagrafica">Anagrafica</button>
+          <button class="tab-btn" data-tab="tab-grafici">Grafici</button>
+          <button class="tab-btn" data-tab="tab-diete">Diete</button>
         </div>
 
         <div id="tab-visite"     class="tab-panel active"><div id="visit-list-container"></div></div>
@@ -314,7 +319,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-patient">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-patient">💾 Salva paziente</button>
+      <button class="btn btn-primary" id="btn-save-patient">Salva paziente</button>
     </div>
   </div>
 </div>
@@ -429,7 +434,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-visit">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-visit">💾 Salva visita</button>
+      <button class="btn btn-primary" id="btn-save-visit">Salva visita</button>
     </div>
   </div>
 </div>
@@ -441,13 +446,13 @@ import { sb, requireAuth, logout,
          searchPazienti, getPaziente, savePaziente,
          getVisitePaziente, getUltimaVisita, saveVisita,
          getStrutture, getPrestazioni,
-         getPatologieCatalogo, getPatologiePaziente, localDateISO } from './js/supabase.js';
+         getPatologieCatalogo, getPatologiePaziente, localDateISO } from './js/supabase.js?v=20261002-3';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, initUI,
          n, val, flt, resetFields,
          fmtDate, fmtDateShort, calcEta, emptyState,
-         showValoriPrecedenti, clearValoriPrecedenti } from './js/ui.js';
+         showValoriPrecedenti, clearValoriPrecedenti, updateSearchControls } from './js/ui.js?v=20261002-3';
 
 // ─── STATO ──────────────────────────────────────────────
 const S = {
@@ -538,6 +543,7 @@ function getFilters() {
 }
 
 async function loadPazienti() {
+  updateSearchControls();
   try {
     const pazienti = await searchPazienti(getFilters());
     n('lista-count').textContent = `${pazienti.length} pazient${pazienti.length === 1 ? 'e' : 'i'}`;
@@ -547,13 +553,13 @@ async function loadPazienti() {
     }
     setHTML(cont, '<div class="patient-list">' + pazienti.map(p => {
       const eta = calcEta(p.data_nascita);
-      return `<div class="patient-item" data-patient-id="${escapeHtml(p.id)}">
+      return `<div class="patient-item" data-row-open role="link" tabindex="0" aria-label="Apri paziente ${escapeHtml(p.cognome)} ${escapeHtml(p.nome)}" data-patient-id="${escapeHtml(p.id)}">
         <div class="patient-avatar">${escapeHtml(initials(p))}</div>
         <span class="patient-name">${escapeHtml(p.cognome)} ${escapeHtml(p.nome)}</span>
-        <span style="font-size:.85rem;">${escapeHtml(p.data_nascita ? fmtDateShort(p.data_nascita) + (eta ? ' · '+eta+'a' : '') : '—')}</span>
-        <span style="font-size:.82rem;color:var(--text-muted);">${escapeHtml(p.codice_fiscale || '—')}</span>
-        <span style="font-size:.85rem;">${escapeHtml(p.citta || '—')}</span>
-        <span style="color:var(--text-muted);">›</span>
+        <span class="list-value" data-label="Nascita">${escapeHtml(p.data_nascita ? fmtDateShort(p.data_nascita) + (eta ? ' · '+eta+'a' : '') : '—')}</span>
+        <span class="list-value" data-label="Codice fiscale">${escapeHtml(p.codice_fiscale || '—')}</span>
+        <span class="list-value" data-label="Città">${escapeHtml(p.citta || '—')}</span>
+        <span class="record-chevron" aria-hidden="true">›</span>
       </div>`;
     }).join('') + '</div>');
 
@@ -574,7 +580,8 @@ function resetSearch() {
 function toggleAdvanced() {
   const el = n('search-advanced');
   const open = el.classList.toggle('open');
-  n('btn-toggle-adv').textContent = open ? '✕ Chiudi filtri' : '⚙ Ricerca avanzata';
+  n('btn-toggle-adv').textContent = open ? 'Chiudi filtri' : 'Filtri avanzati';
+  n('btn-toggle-adv').setAttribute('aria-expanded',String(open));
 }
 
 // ─── DETTAGLIO PAZIENTE ──────────────────────────────────
@@ -804,7 +811,7 @@ async function loadVisite() {
       ? `<span class="${escapeHtml(deltaCls)}">${escapeHtml(v.delta_peso > 0 ? '+' : '')}${escapeHtml(v.delta_peso)} kg</span>`
       : '';
     return `<div class="visit-card" id="vcard-${escapeHtml(v.id)}">
-      <div class="visit-summary" data-toggle="${escapeHtml(v.id)}">
+      <div class="visit-summary" data-toggle="${escapeHtml(v.id)}" data-row-open role="button" tabindex="0" aria-label="Espandi visita del ${escapeHtml(fmtDateShort(v.data_visita))}">
         <div style="flex-shrink:0;">
           <div class="visit-date">${escapeHtml(fmtDate(v.data_visita))}</div>
           <div style="display:flex;gap:.35rem;margin-top:.3rem;flex-wrap:wrap;">
@@ -823,8 +830,8 @@ async function loadVisite() {
 
         <!-- Azioni SEMPRE a destra, stopPropagation impedisce toggle body -->
         <div class="visit-actions" data-no-toggle>
-          <button class="btn btn-gold btn-sm"      data-pdf="${escapeHtml(v.id)}">📄 PDF</button>
-          <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(v.id)}">✏️</button>
+          <button class="btn btn-secondary btn-sm"      data-pdf="${escapeHtml(v.id)}">PDF</button>
+          <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(v.id)}">Modifica</button>
         </div>
         <span class="visit-chevron" id="chev-${escapeHtml(v.id)}">›</span>
       </div>
@@ -1176,30 +1183,13 @@ async function renderDieteTab() {
   if (!diete?.length) {
     html += emptyState('🥗', 'Nessuna dieta', 'Clicca "+ Nuova dieta" per creare il primo piano alimentare.');
   } else {
-    html += diete.map(d => `
-      <div style="display:flex;align-items:center;gap:.85rem;padding:.9rem 1.25rem;
-        background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
-        margin-bottom:.45rem;cursor:pointer;transition:all .2s;"
-        class="dg-card-inline" data-diet-id="${escapeHtml(d.id)}"
-        onmouseover="this.style.borderColor='var(--sage-300)'"
-        onmouseout="this.style.borderColor='var(--border)'">
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;color:var(--text-primary);font-size:.92rem;">
-            ${escapeHtml(d.nome)}
-            ${d.attiva ? '<span style="font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.35rem;">✓ Attiva</span>' : ''}
-          </div>
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem;">
-            🎯 ${escapeHtml(Math.round(d.target_kcal))} kcal/g · ${escapeHtml(SCHEMI_DIETA[d.schema_macro] || 'Libera')} · ${escapeHtml(d.numero_settimane)} sett.
-            · ${escapeHtml(fmtDateShort(d.created_at))}
-          </div>
-        </div>
-        <div style="display:flex;gap:.4rem;flex-shrink:0;">
-          <button class="btn btn-secondary btn-sm" data-open-diet="${escapeHtml(d.id)}">Apri →</button>
-          <button class="btn btn-ghost btn-sm" data-toggle-diet="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}">
-            ${escapeHtml(d.attiva ? '⏸' : '▶')}
-          </button>
-        </div>
-      </div>`).join('');
+    html += `<div class="record-list"><div class="record-head record-head--plan"><span>Piano alimentare</span><span>Calorie</span><span>Settimane</span><span>Creato il</span><span>Stato</span><span></span></div>`+diete.map(d=>`
+      <div class="record-row record-row--plan" data-open-diet="${escapeHtml(d.id)}" data-row-open role="link" tabindex="0" aria-label="Apri piano ${escapeHtml(d.nome)}">
+        <div class="row-summary"><div class="record-name">${escapeHtml(d.nome)}</div><div class="record-sub">${escapeHtml(SCHEMI_DIETA[d.schema_macro]||'Libera')}</div></div>
+        <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(d.numero_settimane)} sett.</span><span class="list-value" data-label="Creato il">${escapeHtml(fmtDateShort(d.created_at))}</span>
+        <div class="record-actions"><button class="btn btn-secondary btn-sm" data-toggle-diet="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}" title="${d.attiva?'Disattiva':'Attiva'} piano">${d.attiva?'Disattiva':'Attiva'}</button></div><span class="record-chevron" aria-hidden="true">›</span>
+      </div>`).join('')+'</div>';
+
   }
 
   setHTML(cont, html);
@@ -1208,13 +1198,11 @@ async function renderDieteTab() {
   n('dt-nuova').onclick = guard(openNuovaDietaInline);
   cont.onclick = guard(async e => {
     if(e.target.closest('[data-open-complete]')) { window.open('diete.html?paziente='+encodeURIComponent(S.patientId),'_blank','noopener'); return; }
-    const ob = e.target.closest('[data-open-diet]');
-    if (ob) { window.location.href = 'diete.html?paziente=' + S.patientId + '&dieta=' + ob.dataset.openDiet; return; }
     const tb = e.target.closest('[data-toggle-diet]');
-    if (tb) {
-      await sb.from('diete').update({ attiva: tb.dataset.att !== 'true' }).eq('id', tb.dataset.toggleDiet).select().single().throwOnError();
-      await renderDieteTab();
-    }
+    if(tb){await sb.from('diete').update({attiva:tb.dataset.att!=='true'}).eq('id',tb.dataset.toggleDiet).select().single().throwOnError();await renderDieteTab();return;}
+    const row=e.target.closest('[data-open-diet]');
+    if(row&&!e.target.closest('button,a,input,select'))window.location.href='diete.html?paziente='+encodeURIComponent(S.patientId)+'&dieta='+encodeURIComponent(row.dataset.openDiet);
+
   });
 }
 

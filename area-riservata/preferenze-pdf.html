@@ -3,12 +3,13 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preferenze PDF – Studio Cortese</title>
+  <title>Preferenze di esportazione – Studio Cortese</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="css/pdf-preferences.css" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -48,13 +49,13 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
     <main class="main">
-      <div class="page-head"><div><h2>Preferenze PDF</h2><p>Personalizza i piani alimentari da consegnare ai pazienti.</p></div><a class="btn btn-secondary" href="diete.html">Vai alle diete</a></div>
-      <div class="pdf-note">Le preferenze si applicano ai PDF dei piani alimentari e sono salvate sul tuo account, anche per gli altri dispositivi.</div>
+      <div class="page-head"><div><h2>Preferenze di esportazione</h2><p>Personalizza i PDF e i documenti Word dei piani alimentari.</p></div><a class="btn btn-secondary" href="diete.html">Vai alle diete</a></div>
+      <div class="pdf-note">Le preferenze si applicano ai PDF e ai documenti Word dei piani alimentari e sono salvate sul tuo account, anche per gli altri dispositivi.</div>
       <div class="alert alert-error" id="pdf-error" role="alert"></div>
       <div class="pdf-layout">
         <form id="pdf-form">
@@ -75,7 +76,7 @@
           <div class="pdf-actions"><button type="submit" class="btn btn-primary" id="btn-save-pdf">Salva preferenze</button><button type="button" class="btn btn-secondary" id="btn-reset-pdf">Ripristina predefiniti</button></div>
           <p class="pdf-status" id="pdf-status" aria-live="polite"></p>
         </form>
-        <aside class="pdf-card pdf-preview"><h3>Anteprima</h3><p>L’anteprima usa dati fittizi e le opzioni attuali, anche prima di salvarle.</p>
+        <aside class="pdf-card pdf-preview"><h3>Anteprima PDF</h3><p>L’anteprima usa dati fittizi e le opzioni attuali, anche prima di salvarle.</p>
           <div class="pdf-preview-summary" id="pdf-summary"></div>
           <div class="pdf-actions"><button class="btn btn-secondary" id="btn-preview-pdf">Genera anteprima</button><button class="btn btn-secondary" id="btn-example-pdf">Scarica esempio</button></div>
           <iframe id="pdf-preview-frame" title="Anteprima del piano PDF con dati fittizi" hidden></iframe>

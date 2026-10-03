@@ -155,13 +155,14 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
 <div class="toast" id="toast"></div>
 
 <!-- FOOD PICKER -->
-<div id="fpk-overlay" style="display:none;position:fixed;inset:0;z-index:1999;" id="fpk-overlay"></div>
+<div id="fpk-overlay" style="display:none;position:fixed;inset:0;z-index:1999;"></div>
 <div class="fpk" id="fpk" style="display:none;">
   <div class="fpk-hdr">
     <h4 id="fpk-title">Seleziona alimento</h4>
@@ -171,7 +172,7 @@
     </div>
   </div>
   <div class="fpk-list" id="fpk-list"></div>
-  <button class="btn btn-ghost btn-sm" type="button" id="btn-fpk-off">🌐 Cerca su Open Food Facts</button>
+  <button class="btn btn-ghost btn-sm" type="button" id="btn-fpk-off">Cerca su Open Food Facts</button>
   <div class="fpk-off-status" id="fpk-off-status" role="status"></div>
   <div class="fpk-ftr">
     <div class="qty-row" id="fpk-qty-row">
@@ -215,7 +216,7 @@
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -226,30 +227,30 @@
         <div class="page-head">
           <div><h2>Diete</h2><p>Ultime diete create — tutti i pazienti</p></div>
           <div class="page-head-actions">
-            <button class="btn btn-ghost btn-sm" id="btn-scegli-pz">👤 Per paziente</button>
+            <button class="btn btn-ghost btn-sm" id="btn-scegli-pz">Per paziente</button>
           </div>
         </div>
 
         <!-- FILTRI GLOBALI -->
-        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;">
-          <div class="form-group" style="margin:0;flex:2;">
-            <label>Cerca paziente</label>
+        <div class="list-toolbar"><div class="toolbar-fields">
+          <div class="form-group toolbar-search">
+            <label for="gf-pz">Cerca</label>
             <div class="search-wrap" style="margin:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="gf-pz" placeholder="Nome paziente…" />
+              <input type="search" id="gf-pz" placeholder="Nome o cognome del paziente…" />
             </div>
           </div>
           <div class="form-group" style="margin:0;"><label>Sesso</label>
             <select id="gf-sesso"><option value="">Tutti</option><option>Femmina</option><option>Maschio</option></select>
           </div>
-          <div class="form-group" style="margin:0;"><label>Età min</label>
+          <div class="form-group toolbar-compact"><label>Età min</label>
             <input type="number" id="gf-eta-min" placeholder="18" style="width:75px;" /></div>
-          <div class="form-group" style="margin:0;"><label>Età max</label>
+          <div class="form-group toolbar-compact"><label>Età max</label>
             <input type="number" id="gf-eta-max" placeholder="80" style="width:75px;" /></div>
           <div class="form-group" style="margin:0;"><label>Patologia</label>
             <select id="gf-pat" style="min-width:160px;"><option value="">Tutte</option></select>
           </div>
-          <button class="btn btn-ghost btn-sm" id="gf-reset">✕ Reset</button>
-        </div>
+          <button class="btn btn-ghost" id="gf-reset">Azzera filtri</button>
+        </div><div class="toolbar-result" id="diete-count" aria-live="polite"></div></div>
 
         <div id="global-list-cont"></div>
       </div>
@@ -278,23 +279,11 @@
           <span id="ed-bc">—</span>
         </div>
         <div class="card mb-md">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
-            <div>
-              <h3 id="ed-nome" style="font-size:1.15rem;"></h3>
-              <div style="display:flex;gap:1rem;margin-top:.35rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-muted);">
-                <span>🎯 <strong id="ed-target"></strong> kcal/giorno</span>
-                <span id="ed-schema-lbl"></span>
-                <span id="ed-macro-lbl"></span>
-              </div>
-            </div>
-            <div class="page-head-actions">
-              <button class="btn btn-ghost btn-sm" id="btn-vai-paziente">👤 Scheda paziente</button>
-              <button class="btn btn-ghost btn-sm" id="btn-clone">📋 Clona verso…</button>
-              <button class="btn btn-secondary btn-sm" id="btn-edit-meta">✏️ Info</button>
-              <a href="preferenze-pdf.html" class="btn btn-secondary" target="_blank" rel="noopener">Preferenze PDF</a>
-<button class="btn btn-gold btn-sm" id="btn-pdf">📄 Esporta PDF</button>
-              <button class="btn btn-primary btn-sm" id="btn-salva">💾 Salva piano</button>
-            </div>
+          <h3 id="ed-nome" class="record-name" style="font-size:20px;"></h3>
+          <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
+          <div class="editor-actions">
+            <div class="page-head-actions"><button class="btn btn-secondary" id="btn-vai-paziente">Scheda paziente</button><button class="btn btn-secondary" id="btn-edit-meta">Modifica info</button><button class="btn btn-secondary" id="btn-clone">Clona piano</button></div>
+            <div class="export-actions"><a href="preferenze-pdf.html" class="btn btn-secondary" data-ui-icon="settings" target="_blank" rel="noopener">Preferenze</a><button class="btn btn-secondary" id="btn-pdf">Esporta PDF</button><button class="btn btn-secondary" id="btn-word">Esporta Word</button><button class="btn btn-primary" id="btn-salva">Salva piano</button></div>
           </div>
         </div>
 
@@ -303,10 +292,10 @@
 
         <!-- Editor tabs -->
         <div class="tabs" style="margin-bottom:1rem;">
-          <button class="et-btn active" data-etab="piano">📅 Piano</button>
-          <button class="et-btn" data-etab="giorno">🗓 Vista giornaliera</button>
-          <button class="et-btn" data-etab="testi">📝 Testi</button>
-          <button class="et-btn" data-etab="consig">🥗 Alimenti consigliati</button>
+          <button class="et-btn active" data-etab="piano">Piano</button>
+          <button class="et-btn" data-etab="giorno">Vista giornaliera</button>
+          <button class="et-btn" data-etab="testi">Testi</button>
+          <button class="et-btn" data-etab="consig">Alimenti consigliati</button>
         </div>
 
         <!-- TAB PIANO -->
@@ -317,15 +306,16 @@
             <button class="btn btn-ghost btn-sm" style="border-color:rgba(255,255,255,.3);color:white;" id="clip-clear">✕ Cancella</button>
           </div>
           <div style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap;" id="week-tabs"></div>
-          <div style="overflow-x:auto;" id="piano-cont"></div>
+          <div class="piano-scroll" id="piano-cont" tabindex="0" aria-label="Tabella settimanale, scorribile orizzontalmente"></div>
           <div class="card mt-md" id="week-sum">
-            <div class="card-title">📊 Media settimana</div>
+            <div class="card-title">Media settimana</div>
             <div id="week-sum-body"></div>
           </div>
         </div>
 
         <!-- TAB VISTA GIORNALIERA -->
         <div id="etab-giorno" class="tab-panel">
+          <div id="day-week-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
           <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center;">
             <label style="font-size:.78rem;color:var(--text-muted);">Giorno:</label>
             <div id="day-selector" style="display:flex;gap:.3rem;flex-wrap:wrap;"></div>
@@ -336,14 +326,14 @@
         <!-- TAB TESTI -->
         <div id="etab-testi" class="tab-panel">
           <div class="card">
-            <div class="card-title">📝 Testi liberi</div>
+            <div class="card-title">Testi liberi</div>
             <div class="form-group"><label>Intestazione / Introduzione</label>
               <textarea id="txt-intro" style="min-height:100px;" placeholder="Gentile paziente…"></textarea></div>
             <div class="form-group"><label>Linee guida generali</label>
               <textarea id="txt-linee" style="min-height:130px;" placeholder="Bere almeno 2L di acqua…"></textarea></div>
             <div class="form-group"><label>Conclusioni</label>
               <textarea id="txt-concl" style="min-height:90px;" placeholder="Si raccomanda di…"></textarea></div>
-            <button class="btn btn-primary" id="btn-salva-testi">💾 Salva testi</button>
+            <button class="btn btn-primary" id="btn-salva-testi">Salva testi</button>
           </div>
         </div>
 
@@ -351,18 +341,18 @@
         <div id="etab-consig" class="tab-panel">
           <div class="grid-2">
             <div class="card">
-              <div class="card-title" style="color:var(--sage-600);">✅ Consigliati</div>
+              <div class="card-title" style="color:var(--sage-600);">Consigliati</div>
               <div id="list-cons" style="min-height:40px;margin-bottom:.75rem;"></div>
               <button class="btn btn-secondary btn-sm" id="btn-add-cons">+ Aggiungi</button>
             </div>
             <div class="card">
-              <div class="card-title" style="color:#c53030;">❌ Sconsigliati</div>
+              <div class="card-title" style="color:#c53030;">Sconsigliati</div>
               <div id="list-scons" style="min-height:40px;margin-bottom:.75rem;"></div>
               <button class="btn btn-danger btn-sm" id="btn-add-scons">+ Aggiungi</button>
             </div>
           </div>
           <div class="mt-md" style="text-align:right;">
-            <button class="btn btn-primary" id="btn-salva-consig">💾 Salva liste</button>
+            <button class="btn btn-primary" id="btn-salva-consig">Salva liste</button>
           </div>
         </div>
       </div>
@@ -522,7 +512,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-alim-inline">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-ali-inline">💾 Salva e usa</button>
+      <button class="btn btn-primary" id="btn-save-ali-inline">Salva e usa</button>
     </div>
   </div>
 </div>
@@ -530,13 +520,14 @@
 <script type="module">
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261002-3';
 import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002-2';
-import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261002-2';
+import { esportaPianoWord } from './js/word-dieta.js?v=20261002-3';
+import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261002-3';
 import { loadPdfPreferences } from './js/pdf-preferences.js';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta } from './js/ui.js';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261002-3';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -586,7 +577,8 @@ async function init(){
   n('btn-nuova-dieta').onclick = guard(openNuovaDieta);
   n('btn-save-dieta').onclick = guard(saveDieta);
   n('btn-salva').onclick = guard(()=>salvaPiano(true));
-  n('btn-pdf').onclick = guard(handleEsportaPDF);
+  n('btn-pdf').onclick = guard(()=>handleEsporta('pdf'));
+  n('btn-word').onclick = guard(()=>handleEsporta('word'));
   n('btn-edit-meta').onclick = guard(editMeta);
   n('btn-vai-paziente').onclick = guard(()=>{
     if(S.paziente) window.location.href='pazienti.html?id='+S.paziente.id;
@@ -677,7 +669,9 @@ function populatePatologie(){
 }
 
 // ─── LISTA GLOBALE ─────────────────────────────────────
+let globalListGeneration=0;
 async function renderGlobalList(){
+  const generation=++globalListGeneration;updateSearchControls();
   const qPz=val('gf-pz').toLowerCase();
   const sesso=n('gf-sesso').value;
   const emin=n('gf-eta-min').value?+n('gf-eta-min').value:null;
@@ -698,40 +692,31 @@ async function renderGlobalList(){
     const ids=new Set((pp||[]).map(x=>x.paziente_id));
     pzFilt=pzFilt.filter(p=>ids.has(p.id));
   }
+  if(generation!==globalListGeneration)return;
   const pzIds=pzFilt.map(p=>p.id);
 
-  if(!pzIds.length){setHTML(n('global-list-cont'), emptyState('🥗','Nessuna dieta','Nessun paziente corrisponde ai filtri.'));return;}
+  if(!pzIds.length){n('diete-count').textContent='Nessun piano trovato';setHTML(n('global-list-cont'), emptyState('🥗','Nessuna dieta','Nessun paziente corrisponde ai filtri.'));return;}
 
   // Carica ultime 20 diete per i pazienti filtrati
   const{data:diete}=await sb.from('diete').select('id,nome,target_kcal,numero_settimane,schema_macro,attiva,created_at,paziente_id')
     .in('paziente_id',pzIds).order('created_at',{ascending:false}).limit(30).throwOnError();
 
+  if(generation!==globalListGeneration)return;
   const cont=n('global-list-cont');
+  n('diete-count').textContent=`${diete?.length||0} piani alimentari${diete?.length===30?' più recenti':''}`;
   if(!diete?.length){setHTML(cont, emptyState('🥗','Nessuna dieta','I pazienti selezionati non hanno diete.'));return;}
-
-  setHTML(cont, '<div class="diete-global-list">'+diete.map(d=>{
-    const pz=S._allPz.find(p=>p.id===d.paziente_id);
-    const eta=calcEta(pz?.data_nascita);
-    const ini=(pz?.nome?.[0]||'?')+(pz?.cognome?.[0]||'?');
-    return`<div class="dg-card" data-did="${escapeHtml(d.id)}" data-pzid="${escapeHtml(d.paziente_id)}">
+  setHTML(cont, `<div class="record-list"><div class="record-head record-head--diets"><span></span><span>Paziente</span><span>Piano alimentare</span><span>Calorie</span><span>Settimane</span><span>Stato</span><span></span></div>`+diete.map(d=>{
+    const pz=S._allPz.find(p=>p.id===d.paziente_id),ini=(pz?.nome?.[0]||'?')+(pz?.cognome?.[0]||'?');
+    return `<div class="record-row record-row--diets" data-open="${escapeHtml(d.id)}" data-pzid="${escapeHtml(d.paziente_id)}" data-row-open role="link" tabindex="0" aria-label="Apri piano ${escapeHtml(d.nome)}">
       <div class="dg-av">${escapeHtml(ini.toUpperCase())}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.1rem;">${escapeHtml(pz?.cognome||'')} ${escapeHtml(pz?.nome||'')}${escapeHtml(eta?' · '+eta+'a':'')}</div>
-        <div style="font-weight:600;color:var(--text-primary);font-size:.9rem;">${escapeHtml(d.nome)}
-          ${d.attiva?'<span style="font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.3rem;">✓</span>':''}</div>
-        <div style="font-size:.73rem;color:var(--text-muted);">🎯 ${escapeHtml(Math.round(d.target_kcal))} kcal · ${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')} · ${escapeHtml(d.numero_settimane)} sett.</div>
-      </div>
-      <button class="btn btn-secondary btn-sm" data-open="${escapeHtml(d.id)}" data-pzid="${escapeHtml(d.paziente_id)}">Apri →</button>
+      <div class="row-summary"><div class="record-name">${escapeHtml(pz?.cognome||'')} ${escapeHtml(pz?.nome||'')}</div><div class="record-sub">${escapeHtml(fmtDateShort(d.created_at))}</div></div>
+      <div class="row-summary"><div class="record-name">${escapeHtml(d.nome)}</div><div class="record-sub">${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')}</div></div>
+      <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(d.numero_settimane)} sett.</span>
+      <span class="list-value" data-label="Stato"><span class="record-status${d.attiva?'':' inactive'}">${d.attiva?'Attiva':'Inattiva'}</span></span><span class="record-chevron" aria-hidden="true">›</span>
     </div>`;
   }).join('')+'</div>');
+  cont.onclick = guard(async e=>{const row=e.target.closest('[data-open]');if(!row||e.target.closest('button,a,input,select'))return;const pz=S._allPz.find(p=>p.id===row.dataset.pzid);if(pz){await selectPz(pz,false);await openEditor(row.dataset.open);}});
 
-  cont.onclick = guard(async e=>{
-    const ob=e.target.closest('[data-open]');
-    if(ob){
-      const pz=S._allPz.find(p=>p.id===ob.dataset.pzid);
-      if(pz){await selectPz(pz,false);await openEditor(ob.dataset.open);}
-    }
-  });
 }
 
 // ─── PAZIENTE ──────────────────────────────────────────
@@ -793,25 +778,16 @@ async function loadPzDiete(){
   const{data}=await sb.from('diete').select('*').eq('paziente_id',S.paziente.id).order('created_at',{ascending:false}).throwOnError();
   const cont=n('pz-diete-list');
   if(!data?.length){setHTML(cont, emptyState('🥗','Nessuna dieta','Clicca "+ Nuova dieta" per iniziare.'));return;}
-  setHTML(cont, data.map(d=>`<div class="dg-card" data-did="${escapeHtml(d.id)}">
-    <div style="flex:1;">
-      <div style="font-weight:600;color:var(--text-primary);font-size:.92rem;">${escapeHtml(d.nome)}
-        ${d.attiva?'<span style="font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:var(--sage-100);color:var(--sage-600);border:1px solid var(--sage-200);margin-left:.35rem;">✓ Attiva</span>':''}</div>
-      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem;">
-        🎯 ${escapeHtml(Math.round(d.target_kcal))} kcal · ${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')} · ${escapeHtml(d.numero_settimane)} sett.</div>
-    </div>
-    <div style="display:flex;gap:.4rem;flex-shrink:0;">
-      <button class="btn btn-secondary btn-sm" data-open="${escapeHtml(d.id)}">Apri piano →</button>
-      <button class="btn btn-ghost btn-sm" data-tog="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}">${escapeHtml(d.attiva?'⏸':'▶')}</button>
-    </div>
-  </div>`).join(''));
+  setHTML(cont, `<div class="record-list"><div class="record-head record-head--plan"><span>Piano alimentare</span><span>Calorie</span><span>Settimane</span><span>Creato il</span><span>Stato</span><span></span></div>`+data.map(d=>`<div class="record-row record-row--plan" data-open="${escapeHtml(d.id)}" data-row-open role="link" tabindex="0" aria-label="Apri piano ${escapeHtml(d.nome)}">
+    <div class="row-summary"><div class="record-name">${escapeHtml(d.nome)}</div><div class="record-sub">${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')}</div></div>
+    <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(d.numero_settimane)} sett.</span><span class="list-value" data-label="Creato il">${escapeHtml(fmtDateShort(d.created_at))}</span>
+    <div class="record-actions"><button class="btn btn-secondary btn-sm" data-tog="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}" title="${d.attiva?'Disattiva':'Attiva'} piano">${d.attiva?'Disattiva':'Attiva'}</button></div><span class="record-chevron" aria-hidden="true">›</span>
+  </div>`).join('')+'</div>');
   cont.onclick = guard(async e=>{
-    const ob=e.target.closest('[data-open]');if(ob){await openEditor(ob.dataset.open);return;}
-    const tb=e.target.closest('[data-tog]');if(tb){
-      await sb.from('diete').update({attiva:tb.dataset.att!=='true'}).eq('id',tb.dataset.tog).select().single().throwOnError();
-      await loadPzDiete();
-    }
+    const tb=e.target.closest('[data-tog]');if(tb){await sb.from('diete').update({attiva:tb.dataset.att!=='true'}).eq('id',tb.dataset.tog).select().single().throwOnError();await loadPzDiete();return;}
+    const row=e.target.closest('[data-open]');if(row&&!e.target.closest('button,a,input,select'))await openEditor(row.dataset.open);
   });
+
 }
 
 async function backToGlobal(){
@@ -950,8 +926,9 @@ async function openEditor(dietaId){
   n('ed-bc').textContent=d.nome;
   n('btn-back-pz').textContent=S.paziente?`← ${S.paziente.cognome} ${S.paziente.nome}`:'← Diete';
 
-  switchEtab('piano',document.querySelector('.et-btn'));
   renderEditorHeader();renderWeekTabs();renderPiano();buildDaySelector();
+  const firstTab=matchMedia('(max-width:760px)').matches?'giorno':'piano';
+  switchEtab(firstTab,document.querySelector(`[data-etab="${firstTab}"]`));
   loading(false);
 }
 
@@ -977,13 +954,12 @@ function renderEditorHeader(){
 }
 
 function renderWeekTabs(){
-  const wrap=n('week-tabs');setHTML(wrap, '');
-  for(let s=1;s<=S.dieta.numero_settimane;s++){
-    const btn=document.createElement('button');
-    btn.className='week-tab'+(s===S.settimana?' active':'');
-    btn.textContent='Settimana '+s;
-    btn.onclick = guard(()=>{S.settimana=s;renderWeekTabs();renderPiano();});
-    wrap.appendChild(btn);
+  for(const id of ['week-tabs','day-week-tabs']){
+    const wrap=n(id);setHTML(wrap,'');
+    for(let s=1;s<=S.dieta.numero_settimane;s++){
+      const btn=document.createElement('button');btn.type='button';btn.className='week-tab'+(s===S.settimana?' active':'');btn.textContent='Settimana '+s;btn.setAttribute('aria-pressed',String(s===S.settimana));
+      btn.onclick=guard(()=>{S.settimana=s;renderWeekTabs();renderPiano();if(n('etab-giorno').classList.contains('active'))renderDayView();});wrap.appendChild(btn);
+    }
   }
 }
 
@@ -1032,7 +1008,7 @@ function renderPiano(){
   let html='<div class="piano-header"><div></div>'+GIORNI.map(g=>`<div class="pdl">${escapeHtml(g)}</div>`).join('')+'</div>';
   html+='<div class="piano-grid">';
   MOMENTI.forEach(mom=>{
-    html+=`<div class="mom-lbl">${escapeHtml(mom.icon)}<br>${escapeHtml(mom.label)}</div>`;
+    html+=`<div class="mom-lbl">${escapeHtml(mom.label)}</div>`;
     for(let g=1;g<=7;g++){
       const voci=S.piano[s]?.[g]?.[mom.id]||[];
       const isOver=tot[g].kcal>target*1.05;
@@ -1040,7 +1016,6 @@ function renderPiano(){
       const hasCI=voci.some(v=>{const a=S.aliIdx[v.alimento_id];return a&&chkCI(v.alimento_id).length>0;});
       if(voci.length>0){
         const items=voci.map(v=>{
-          const nm=v.alimento_nome.length>20?v.alimento_nome.slice(0,18)+'…':v.alimento_nome;
           const sosts=(v.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
           const sostTag=sosts.length
             ?sosts.map(alt=>{
@@ -1049,16 +1024,16 @@ function renderPiano(){
                 return `<div class="pc-sost-inline">↔ ${escapeHtml(sNm)} ${escapeHtml(qIso)}g</div>`;
               }).join('')
             :'';
-          return `<div class="pc-voce">${escapeHtml(nm)} <span class="pc-qty">${escapeHtml(Math.round(v.quantita_g))}g</span></div>${sostTag}`;
+          return `<div class="pc-voce"><span class="pc-food-name" title="${escapeHtml(v.alimento_nome)}">${escapeHtml(v.alimento_nome)}</span><span class="pc-qty">${escapeHtml(Math.round(v.quantita_g))}g</span></div>${sostTag}`;
         }).join('');
         html+=`<div class="pc has${escapeHtml(isOver?' over':'')}${escapeHtml(hasCI?' warn':'')}" data-s="${escapeHtml(s)}" data-g="${escapeHtml(g)}" data-m="${escapeHtml(mom.id)}">
           ${items}
-          <div class="pc-slot-tot">${escapeHtml(totSlot)}k &nbsp;<span class="pc-add-inline">＋</span></div>
+          <div class="pc-slot-tot">${escapeHtml(totSlot)}k &nbsp;<span class="pc-add-inline">+</span></div>
           ${hasCI?'<div class="pc-ci">⚠CI</div>':''}
         </div>`;
       } else {
         html+=`<div class="pc" data-s="${escapeHtml(s)}" data-g="${escapeHtml(g)}" data-m="${escapeHtml(mom.id)}">
-          ${S.clipboard?`<div class="pc-paste">📋 Incolla</div>`:''}<div class="pc-add">＋</div>
+          ${S.clipboard?`<div class="pc-paste">Incolla</div>`:''}<div class="pc-add">+</div>
         </div>`;
       }
     }
@@ -1120,7 +1095,7 @@ function renderDayView(){
   const html=MOMENTI.map(mom=>{
     const voci=S.piano[s]?.[g]?.[mom.id]||[];
     if(voci.length===0)return`<div class="day-sec">
-      <div class="day-sec-hdr"><span class="day-mom">${escapeHtml(mom.icon)} ${escapeHtml(mom.label)}</span>
+      <div class="day-sec-hdr"><span class="day-mom">${escapeHtml(mom.label)}</span>
         <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;">— vuoto —</span>
         <button class="btn btn-ghost btn-sm" data-add-s="${escapeHtml(s)}" data-add-g="${escapeHtml(g)}" data-add-m="${escapeHtml(mom.id)}" style="margin-left:.5rem;">+</button>
       </div></div>`;
@@ -1136,7 +1111,7 @@ function renderDayView(){
             <span class="day-qty">${escapeHtml(Math.round(p.quantita_g))}g · ${escapeHtml(p.kcal||0)}kcal</span>
             <span class="day-mac">P${escapeHtml(p.prot||0)} C${escapeHtml(p.carb||0)} L${escapeHtml(p.lip||0)}</span>
           </div>
-          ${p.note?`<div class="day-note-txt">📝 ${escapeHtml(p.note)}</div>`:''}
+          ${p.note?`<div class="day-note-txt">${escapeHtml(p.note)}</div>`:''}
           ${sosts.map(alt=>{
             const qIso=alt.energia_kcal?Math.round((p.kcal||0)/(alt.energia_kcal/100)):Math.round(p.quantita_g);
             const mcIso=cKcal(alt,qIso);
@@ -1158,16 +1133,16 @@ function renderDayView(){
     }).join('');
     return`<div class="day-sec">
       <div class="day-sec-hdr">
-        <span class="day-mom">${escapeHtml(mom.icon)} ${escapeHtml(mom.label)}</span>
+        <span class="day-mom">${escapeHtml(mom.label)}</span>
         <span class="day-k" style="margin-left:.5rem;">${escapeHtml(slotK)} kcal</span>
         ${hasCI?'<span style="font-size:.65rem;font-weight:700;color:#c53030;margin-left:.5rem;">⚠CI</span>':''}
         <div style="flex:1;"></div>
-        <button class="btn btn-ghost btn-sm" data-det-s="${escapeHtml(s)}" data-det-g="${escapeHtml(g)}" data-det-m="${escapeHtml(mom.id)}" title="Gestisci pasto">✏️</button>
-        <button class="btn btn-ghost btn-sm" data-copy-s="${escapeHtml(s)}" data-copy-g="${escapeHtml(g)}" data-copy-m="${escapeHtml(mom.id)}" title="Copia">📋</button>
+        <button class="btn btn-ghost btn-sm" data-det-s="${escapeHtml(s)}" data-det-g="${escapeHtml(g)}" data-det-m="${escapeHtml(mom.id)}" title="Gestisci pasto">Gestisci</button>
+        <button class="btn btn-ghost btn-sm" data-copy-s="${escapeHtml(s)}" data-copy-g="${escapeHtml(g)}" data-copy-m="${escapeHtml(mom.id)}" title="Copia">Copia</button>
       </div>
       <div class="day-body">${vociHtml}
         <button class="btn btn-ghost btn-sm" data-add-s="${escapeHtml(s)}" data-add-g="${escapeHtml(g)}" data-add-m="${escapeHtml(mom.id)}"
-          style="margin-top:.3rem;font-size:.72rem;">＋ Aggiungi alimento</button>
+          style="margin-top:.3rem;font-size:.72rem;">+ Aggiungi alimento</button>
       </div>
     </div>`;
   }).join('');
@@ -1419,7 +1394,7 @@ function openSlotDetail(s,g,m){
           <span style="font-size:.68rem;color:var(--text-muted);">P${escapeHtml(voce.prot||0)} C${escapeHtml(voce.carb||0)} L${escapeHtml(voce.lip||0)}</span>
         </div>
         <div style="display:flex;gap:.3rem;">
-          <button class="btn btn-ghost btn-sm" data-edit-voce="${escapeHtml(vIdx)}" title="Cambia alimento">✏️</button>
+          <button class="btn btn-ghost btn-sm" data-edit-voce="${escapeHtml(vIdx)}" title="Cambia alimento">Cambia</button>
           <button class="btn btn-ghost btn-sm" data-add-sost="${escapeHtml(vIdx)}" title="Aggiungi sostituto">↔</button>
           <button class="btn btn-danger btn-sm" data-rm-voce="${escapeHtml(vIdx)}" title="Rimuovi">✕</button>
         </div>
@@ -1435,9 +1410,9 @@ function openSlotDetail(s,g,m){
     const listHtml=vociCur.map((v,i)=>buildVoceHtml(v,i)).join('');
     setHTML(n('mp-body'), `
       ${listHtml}
-      <button class="btn btn-secondary" id="mp-add-voce" style="width:100%;margin-top:.25rem;">＋ Aggiungi alimento a questo pasto</button>
+      <button class="btn btn-secondary" id="mp-add-voce" style="width:100%;margin-top:.25rem;">+ Aggiungi alimento a questo pasto</button>
       <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" id="mp-copy-slot">📋 Copia slot</button>
+        <button class="btn btn-ghost btn-sm" id="mp-copy-slot">Copia slot</button>
         <div style="flex:1;"></div>
         <div style="font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;">
           Totale slot: <strong style="color:var(--sage-600);margin-left:.3rem;">${escapeHtml(tot)} kcal</strong>
@@ -1610,24 +1585,26 @@ async function saveAlimInline(){
 }
 
 // ─── ESPORTA PDF ─────────────────────────────────────────────────
-async function handleEsportaPDF() {
+async function handleEsporta(format='pdf') {
   if (!S.dieta || !S.paziente) {
     toast('Nessuna dieta aperta', 'error');
     return;
   }
   // Auto-salva prima di esportare per avere dati aggiornati
-  setBtn('btn-pdf', true);
+  const label=format==='word'?'Word':'PDF';
+  setBtn('btn-pdf',true);setBtn('btn-word',true);
   try {
     await salvaPiano(false,true);
-    toast('Generazione PDF…');
+    toast('Generazione '+label+'…');
     const preferences=await loadPdfPreferences(S.user.id);
-    await esportaPianoPDF(S.dieta,S.paziente,S.piano,S.aliIdx,preferences,{currentWeek:S.settimana});
-    toast('PDF generato!');
+    const exporter=format==='word'?esportaPianoWord:esportaPianoPDF;
+    await exporter(S.dieta,S.paziente,S.piano,S.aliIdx,preferences,{currentWeek:S.settimana});
+    toast(label+' generato');
   } catch(e) {
-    toast('Errore PDF: ' + e.message, 'error');
+    toast('Errore '+label+': ' + e.message, 'error');
     console.error(e);
   } finally {
-    setBtn('btn-pdf', false);
+    setBtn('btn-pdf',false);setBtn('btn-word',false);
   }
 }
 

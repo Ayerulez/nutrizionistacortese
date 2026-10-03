@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -50,7 +51,7 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -76,13 +77,13 @@
 
         <!-- Mese corrente -->
         <div class="card">
-          <div class="card-title">📅 Mese corrente — <span id="kpi-mese-corr-label">—</span></div>
+          <div class="card-title">Mese corrente — <span id="kpi-mese-corr-label">—</span></div>
           <div id="kpi-mese-corr"></div>
         </div>
 
         <!-- Mese precedente -->
         <div class="card">
-          <div class="card-title">📅 Mese precedente — <span id="kpi-mese-prec-label">—</span></div>
+          <div class="card-title">Mese precedente — <span id="kpi-mese-prec-label">—</span></div>
           <div id="kpi-mese-prec"></div>
         </div>
 
@@ -90,7 +91,7 @@
 
       <!-- TREND GRAFICO -->
       <div class="card mt-md">
-        <div class="card-title">📈 Confronto visite (ultimi 2 mesi per prestazione)</div>
+        <div class="card-title">Confronto visite (ultimi 2 mesi per prestazione)</div>
         <div id="kpi-chart-wrap" style="position:relative;height:260px;">
           <canvas id="kpi-chart"></canvas>
         </div>
@@ -104,12 +105,13 @@
 <script type="module">
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
-import { sb, requireAuth, logout, getKpiMensili, getStatGlobali } from './js/supabase.js';
-import { loading, toast, n } from './js/ui.js';
+import { sb, requireAuth, logout, getKpiMensili, getStatGlobali } from './js/supabase.js?v=20261002-3';
+import { initUI, loading, toast, n } from './js/ui.js?v=20261002-3';
 
 let kpiChart = null;
 
 async function init() {
+  initUI();
   loading(true, 'Verifica sessione…');
   const user = await requireAuth();
   if (!user) return;

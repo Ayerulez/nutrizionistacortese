@@ -48,6 +48,7 @@
       color:var(--text-muted);cursor:pointer;user-select:none;}
     .filter-toggle input{accent-color:var(--sage-600);}
   </style>
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -87,7 +88,7 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -97,7 +98,7 @@
       <div class="tabs">
         <button class="tab-btn active" data-tab="tab-strutture">🏥 Strutture</button>
         <button class="tab-btn" data-tab="tab-prestazioni">💊 Prestazioni</button>
-        <button class="tab-btn" data-tab="tab-account">👤 Account</button>
+        <button class="tab-btn" data-tab="tab-account">Account</button>
       </div>
 
       <!-- TAB STRUTTURE -->
@@ -232,10 +233,10 @@ import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
 import { sb, requireAuth, logout,
          getStrutture, saveStruttura, toggleStruttura,
-         getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js';
+         getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js?v=20261002-3';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, emptyState } from './js/ui.js';
+         ModalManager, initUI, n, val, emptyState } from './js/ui.js?v=20261002-3';
 
 const S = { user: null, strutture: [], prestazioni: [] };
 
@@ -307,7 +308,7 @@ async function loadStrutture() {
             <span class="toggle-slider"></span>
           </span>
         </label>
-        <button class="btn btn-secondary btn-sm" data-edit-str="${escapeHtml(s.id)}">✏️</button>
+        <button class="btn btn-secondary btn-sm" data-edit-str="${escapeHtml(s.id)}">Modifica</button>
       </div>
     </div>`).join(''));
 
@@ -424,7 +425,7 @@ async function loadPrestazioni() {
             <span class="toggle-slider"></span>
           </span>
         </label>
-        <button class="btn btn-secondary btn-sm" data-edit-prest="${escapeHtml(p.id)}">✏️</button>
+        <button class="btn btn-secondary btn-sm" data-edit-prest="${escapeHtml(p.id)}">Modifica</button>
       </div>
     </div>`;
   }).join(''));

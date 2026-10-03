@@ -85,6 +85,7 @@
     border-top-color: var(--sage-600); border-radius:50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -124,45 +125,27 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
     <main class="main">
       <div class="page-head">
-        <div><h2>Alimenti</h2><p id="db-count">Database nutrizionale</p></div>
+        <div><h2>Alimenti</h2><p>Catalogo alimenti e valori nutrizionali.</p></div>
         <div class="page-head-actions">
           <button class="btn btn-primary" id="btn-nuovo-alimento">+ Nuovo alimento</button>
         </div>
       </div>
 
-      <div class="filter-row">
-        <div class="form-group" style="flex:2;">
-          <label>Cerca</label>
-          <div class="search-wrap" style="margin:0;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="search-alimento" placeholder="Nome alimento…" />
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-search-off">🌐 Cerca su Open Food Facts</button>
-            <span id="off-spinner"></span><div id="off-status" role="status"></div>
-          </div>
+      <div class="list-toolbar">
+        <div class="toolbar-fields">
+          <div class="form-group toolbar-search"><label for="search-alimento">Cerca</label><div class="search-field"><input type="search" id="search-alimento" placeholder="Nome alimento…" /></div></div>
+          <div class="form-group"><label for="filter-categoria">Categoria</label><select id="filter-categoria"><option value="">Tutte</option></select></div>
+          <div class="form-group"><label for="filter-kcal-max">Kcal max /100 g</label><input type="number" id="filter-kcal-max" placeholder="es. 300" min="0" step="10" /></div>
+          <div class="form-group"><label for="filter-sort">Ordina per</label><select id="filter-sort"><option value="nome">Nome A–Z</option><option value="kcal">Calorie crescenti</option><option value="prot">Proteine crescenti</option><option value="carb">Carboidrati crescenti</option></select></div>
         </div>
-        <div class="form-group">
-          <label>Categoria</label>
-          <select id="filter-categoria"><option value="">Tutte</option></select>
-        </div>
-        <div class="form-group">
-          <label>Kcal max /100g</label>
-          <input type="number" id="filter-kcal-max" placeholder="es: 300" min="0" step="10" />
-        </div>
-        <div class="form-group">
-          <label>Ordina per</label>
-          <select id="filter-sort">
-            <option value="nome">Nome A→Z</option>
-            <option value="kcal">Calorie ↑</option>
-            <option value="prot">Proteine ↑</option>
-            <option value="carb">Carboidrati ↑</option>
-          </select>
-        </div>
+        <div class="toolbar-tools"><button class="btn btn-secondary" type="button" id="btn-search-off" data-ui-icon="search">Cerca su Open Food Facts</button><button class="btn btn-ghost" type="button" id="btn-reset-alimenti">Azzera filtri</button><span id="off-spinner"></span></div>
+        <div id="off-status" role="status"></div><div class="toolbar-result" id="db-count" aria-live="polite">Database nutrizionale</div>
       </div>
 
       <div class="alimenti-table-wrap">
@@ -199,7 +182,7 @@
     <div class="modal-body" id="detail-body"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-detail">Chiudi</button>
-      <button class="btn btn-secondary" id="detail-btn-edit" style="display:none;">✏️ Modifica</button>
+      <button class="btn btn-secondary" id="detail-btn-edit" style="display:none;">Modifica</button>
     </div>
   </div>
 </div>
@@ -289,7 +272,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-modal-close="modal-alimento">Annulla</button>
-      <button class="btn btn-primary" id="btn-save-alimento">💾 Salva alimento</button>
+      <button class="btn btn-primary" id="btn-save-alimento">Salva alimento</button>
     </div>
   </div>
 </div>
@@ -297,10 +280,10 @@
 <script type="module">
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261002-3';
 import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261002-2';
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, flt, emptyState } from './js/ui.js';
+         ModalManager, initUI, n, val, flt, emptyState, updateSearchControls } from './js/ui.js?v=20261002-3';
 
 const PAGE_SIZE = 50;
 // ── Stato OFF ────────────────────────────────────────────────────────────────
@@ -321,6 +304,7 @@ async function init() {
   n('topbar-email').textContent = S.user.email;
   n('app').style.display = 'block';
   n('btn-logout').onclick = guard(logout);
+  n('btn-reset-alimenti').onclick = guard(()=>{n('search-alimento').value='';n('filter-categoria').value='';n('filter-kcal-max').value='';n('filter-sort').value='nome';S.pagina=0;applyFilters();});
   n('btn-nuovo-alimento').onclick = guard(() => openAlimentoForm());
   n('btn-save-alimento').onclick = guard(saveAlimento);
   n('detail-btn-edit').onclick = guard(() => openAlimentoForm(n('detail-btn-edit').dataset.id));
@@ -362,6 +346,7 @@ async function loadAlimenti() {
 }
 
 function applyFilters() {
+  updateSearchControls();
   const q=val('search-alimento').toLowerCase(), cat=n('filter-categoria').value;
   const km=n('filter-kcal-max').value?parseFloat(n('filter-kcal-max').value):null;
   const sort=n('filter-sort').value;
@@ -378,7 +363,9 @@ function applyFilters() {
     if(sort==='carb') return (a.carboidrati_g||0)-(b.carboidrati_g||0);
     return 0;
   });
-  S.filtrati=lista; renderTable(); renderPagination();
+  S.filtrati=lista;
+  n('db-count').textContent = `${lista.length} alimenti${lista.length===S.tutti.length?'':` su ${S.tutti.length}`} · ${new Set(S.tutti.map(a=>a.categoria)).size} categorie`;
+  renderTable(); renderPagination();
 }
 
 function macroBar(p,c,l) {
@@ -395,7 +382,7 @@ function renderTable() {
     const isCustom=a.user_id===S.user.id;
     const ci=S.controindicazioniIdx[a.id]||[];
     const ciTag=ci.length?`<span style="font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:9999px;background:${escapeHtml(ci.some(x=>x.livello==='vietato')?'#fef2f2':'#fef3c7')};color:${escapeHtml(ci.some(x=>x.livello==='vietato')?'#c53030':'#b45309')};border:1px solid ${escapeHtml(ci.some(x=>x.livello==='vietato')?'#fecaca':'#fcd34d')};">⚠ ${escapeHtml(ci.length)}</span>`:'';
-    return `<tr class="${escapeHtml(isCustom?'custom-food':'')}" data-alimento-id="${escapeHtml(a.id)}">
+    return `<tr class="${escapeHtml(isCustom?'custom-food':'')}" data-row-open role="button" tabindex="0" aria-label="Apri alimento ${escapeHtml(a.nome)}" data-alimento-id="${escapeHtml(a.id)}">
       <td class="td-nome">
         <div style="display:flex;align-items:center;gap:.4rem;">
           ${isCustom?'<span class="badge-custom">Custom</span>':''}
@@ -404,15 +391,15 @@ function renderTable() {
         ${a.note_porzione?`<div style="font-size:.68rem;color:var(--text-muted);">${escapeHtml(a.note_porzione)}</div>`:''}
       </td>
       <td><span class="cat-chip">${escapeHtml(a.categoria)}</span></td>
-      <td class="td-num hl">${escapeHtml(a.energia_kcal!=null?Math.round(a.energia_kcal):'—')}</td>
-      <td class="td-num">${escapeHtml(a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—')}</td>
-      <td class="td-num">${escapeHtml(a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—')}</td>
-      <td class="td-num">${escapeHtml(a.lipidi_g!=null?(+a.lipidi_g).toFixed(1):'—')}</td>
-      <td class="td-num">${escapeHtml(a.fibra_g!=null?(+a.fibra_g).toFixed(1):'—')}</td>
+      <td data-label="Kcal /100 g" class="td-num hl">${escapeHtml(a.energia_kcal!=null?Math.round(a.energia_kcal):'—')}</td>
+      <td data-label="Proteine g" class="td-num">${escapeHtml(a.proteine_g!=null?(+a.proteine_g).toFixed(1):'—')}</td>
+      <td data-label="Carboidrati g" class="td-num">${escapeHtml(a.carboidrati_g!=null?(+a.carboidrati_g).toFixed(1):'—')}</td>
+      <td data-label="Grassi g" class="td-num">${escapeHtml(a.lipidi_g!=null?(+a.lipidi_g).toFixed(1):'—')}</td>
+      <td data-label="Fibra g" class="td-num">${escapeHtml(a.fibra_g!=null?(+a.fibra_g).toFixed(1):'—')}</td>
       <td>${macroBar(a.proteine_g,a.carboidrati_g,a.lipidi_g)}</td>
       <td><div class="td-actions">
-        <button class="btn btn-secondary btn-sm" data-detail="${escapeHtml(a.id)}">🔍</button>
-        <button class="btn btn-ghost btn-sm" data-edit="${escapeHtml(a.id)}" title="${escapeHtml(isCustom?'Modifica':'Copia personale')}">${escapeHtml(isCustom?'✏️':'📋 Copia')}</button>
+        <button class="btn btn-ghost btn-icon" data-detail="${escapeHtml(a.id)}" title="Apri alimento" aria-label="Apri alimento">›</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${escapeHtml(a.id)}" title="${escapeHtml(isCustom?'Modifica':'Copia personale')}">${escapeHtml(isCustom?'Modifica':'Copia')}</button>
       </div></td>
     </tr>`;
   }).join(''));

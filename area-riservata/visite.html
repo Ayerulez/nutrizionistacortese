@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -47,7 +48,7 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -57,8 +58,9 @@
       </div>
 
       <!-- FILTRI -->
-      <div class="filter-bar card mb-md">
-        <div class="filter-bar__inner">
+      <div class="list-toolbar">
+        <div class="toolbar-fields">
+          <div class="form-group toolbar-search"><label for="search-visite">Cerca</label><div class="search-field"><input type="search" id="search-visite" placeholder="Nome o cognome del paziente…" /></div></div>
           <div class="form-group" style="margin:0;flex:1;">
             <label>Struttura</label>
             <select id="filter-struttura" onchange="applyFilters()">
@@ -71,9 +73,9 @@
               <option value="">Tutte le prestazioni</option>
             </select>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="resetFilters()">✕ Reset</button>
+          <button class="btn btn-ghost" type="button" onclick="resetFilters()">Azzera filtri</button>
         </div>
-        <div id="filter-count" class="text-muted text-sm mt-sm"></div>
+        <div id="filter-count" class="toolbar-result" aria-live="polite"></div>
       </div>
 
       <!-- LISTA VISITE -->
@@ -89,20 +91,23 @@
 <script type="module">
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
-import { sb, requireAuth, logout, getListaVisite, getStrutture, getPrestazioni } from './js/supabase.js';
-import { loading, toast, emptyState, fmtDate, n } from './js/ui.js';
+import { sb, requireAuth, logout, getListaVisite, getStrutture, getPrestazioni } from './js/supabase.js?v=20261002-3';
+import { initUI, updateSearchControls, loading, toast, emptyState, fmtDate, n } from './js/ui.js?v=20261002-3';
 
 const PAGE_SIZE = 10;
 let currentPage = 0;
 let totalVisite = 0;
+let searchTimer,loadGeneration=0;
 
 async function init() {
+  initUI();
   loading(true);
   const user = await requireAuth();
   if (!user) return;
   n('topbar-email').textContent = user.email;
   n('app').style.display = 'block';
   n('btn-logout').onclick = guard(logout);
+  n('search-visite').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{currentPage=0;loadVisite();},280);});
   await Promise.all([populateFilters(), loadVisite()]);
   loading(false);
 }
@@ -126,18 +131,21 @@ async function populateFilters() {
 }
 
 async function loadVisite() {
+  const generation=++loadGeneration;
   loading(true, 'Caricamento visite…');
   try {
     const { visite, totale } = await getListaVisite({
       struttura_id:    n('filter-struttura')?.value    || null,
       prestazione_id:  n('filter-prestazione')?.value  || null,
+      search: n('search-visite').value,
       limit:  PAGE_SIZE,
       offset: currentPage * PAGE_SIZE,
     });
+    if(generation!==loadGeneration)return;
     totalVisite = totale;
 
     const cont = n('visite-container');
-    n('filter-count').textContent = `${totale} visit${totale === 1 ? 'a' : 'e'} trovate`;
+    n('filter-count').textContent = `${totale} visit${totale === 1 ? 'a trovata' : 'e trovate'}`;
 
     if (!visite?.length) {
       setHTML(cont, emptyState('📋', 'Nessuna visita', 'Prova a cambiare i filtri.'));
@@ -150,15 +158,15 @@ async function loadVisite() {
         <span>Paziente</span><span>Data</span><span>Struttura</span><span>Prestazione</span><span>Peso</span><span></span>
       </div>
       ${visite.map(v => `
-        <div class="visita-row" data-patient-id="${escapeHtml(v.pazienti?.id || '')}" data-visit-id="${escapeHtml(v.id)}">
+        <div class="visita-row" data-row-open role="link" tabindex="0" aria-label="Apri visita di ${escapeHtml(v.pazienti?.cognome??'')} ${escapeHtml(v.pazienti?.nome??'')}" data-patient-id="${escapeHtml(v.pazienti?.id || '')}" data-visit-id="${escapeHtml(v.id)}">
           <span class="visita-paziente">
             <strong>${escapeHtml(v.pazienti?.cognome ?? '')} ${escapeHtml(v.pazienti?.nome ?? '')}</strong>
           </span>
-          <span>${escapeHtml(fmtDate(v.data_visita, {day:'2-digit',month:'2-digit',year:'numeric'}))}</span>
-          <span>${escapeHtml(v.strutture?.nome ?? '—')}</span>
-          <span>${escapeHtml(v.prestazioni?.nome ?? '—')}</span>
-          <span>${escapeHtml(v.peso_kg ? v.peso_kg + ' kg' : '—')}</span>
-          <span style="color:var(--text-muted);">›</span>
+          <span class="list-value" data-label="Data">${escapeHtml(fmtDate(v.data_visita, {day:'2-digit',month:'2-digit',year:'numeric'}))}</span>
+          <span class="list-value" data-label="Struttura">${escapeHtml(v.strutture?.nome ?? '—')}</span>
+          <span class="list-value" data-label="Prestazione">${escapeHtml(v.prestazioni?.nome ?? '—')}</span>
+          <span class="list-value" data-label="Peso">${escapeHtml(v.peso_kg!=null ? v.peso_kg + ' kg' : '—')}</span>
+          <span class="record-chevron" aria-hidden="true">›</span>
         </div>`).join('')}
     </div>`);
 
@@ -168,7 +176,7 @@ async function loadVisite() {
     };
     renderPagination();
   } catch(e) { toast('Errore caricamento visite', 'error'); console.error(e); }
-  finally { loading(false); }
+  finally { if(generation===loadGeneration)loading(false); }
 }
 
 function renderPagination() {
@@ -184,6 +192,7 @@ function renderPagination() {
 
 window.applyFilters = () => { currentPage = 0; loadVisite(); };
 window.resetFilters = () => {
+  clearTimeout(searchTimer);n('search-visite').value='';updateSearchControls();
   n('filter-struttura').value = ''; n('filter-prestazione').value = '';
   currentPage = 0; loadVisite();
 };

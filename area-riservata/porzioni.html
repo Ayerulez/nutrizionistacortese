@@ -42,6 +42,7 @@
     .input-group { display:flex; align-items:center; gap:.35rem; }
     .unit-lbl { font-size:.73rem; color:var(--text-muted); white-space:nowrap; }
   </style>
+  <link rel="stylesheet" href="css/gestionale.css?v=20261002-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
@@ -76,7 +77,7 @@
       <div class="sidebar-section" style="margin-top:1rem;">
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze PDF</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
@@ -91,11 +92,11 @@
         </div>
         <div class="page-head-actions">
           <button class="btn btn-secondary" id="btn-reset">↺ Ripristina default</button>
-          <button class="btn btn-primary"   id="btn-pdf">📄 Esporta PDF</button>
+          <button class="btn btn-secondary" id="btn-pdf">Esporta PDF</button>
         </div>
       </div>
 
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;">
+      <div class="record-panel porzioni-panel">
         <table class="porzioni-table" id="porzioni-table">
           <thead>
             <tr>
@@ -117,9 +118,9 @@
 <script type="module">
 import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js';
 
-import { requireAuth, logout } from './js/supabase.js';
-import { loading, toast, n, initUI } from './js/ui.js';
-import { loadJsPDF } from './js/pdf-dieta.js';
+import { requireAuth, logout } from './js/supabase.js?v=20261002-3';
+import { loading, toast, n, initUI } from './js/ui.js?v=20261002-3';
+import { loadJsPDF } from './js/pdf-dieta.js?v=20261002-3';
 
 // ─── DATI TABELLA ─────────────────────────────────────────────────────────
 // Struttura: ogni entry ha id, nome, note, crudo, cotto, fc
@@ -270,7 +271,7 @@ function renderTable() {
                id="inp-${escapeHtml(row.id)}"
                value="${escapeHtml(fmt(row.crudo))}"
                min="0" step="1"
-               ${escapeHtml(isBase ? `data-base="${row.baseField}"` : 'readonly tabindex="-1"')} />
+               ${isBase ? `data-base="${escapeHtml(row.baseField)}"` : 'readonly tabindex="-1"'} aria-label="Peso crudo: ${escapeHtml(row.nome)}" />
              <span class="unit-lbl">g</span>
            </div>`
         : '<span style="color:var(--text-muted)">—</span>';
@@ -278,7 +279,7 @@ function renderTable() {
     const cottoVal = row.cotto != null
       ? `<div class="input-group">
            <input type="number" class="td-input computed" value="${escapeHtml(fmt(row.cotto))}"
-             readonly tabindex="-1" />
+             readonly tabindex="-1" aria-label="Peso cotto: ${escapeHtml(row.nome)}" />
            <span class="unit-lbl">g</span>
          </div>`
       : '<span style="color:var(--text-muted)">—</span>';
@@ -288,9 +289,9 @@ function renderTable() {
     html += `<tr data-rowid="${escapeHtml(row.id)}">
       <td class="td-name">${escapeHtml(row.nome)}</td>
       <td class="td-note">${escapeHtml(row.note || '—')}</td>
-      <td>${crudoVal}</td>
-      <td>${cottoVal}</td>
-      <td style="text-align:center;color:var(--text-muted);">${escapeHtml(fcVal)}</td>
+      <td data-label="Peso crudo">${crudoVal}</td>
+      <td data-label="Peso cotto">${cottoVal}</td>
+      <td data-label="Fattore di cottura" style="text-align:center;color:var(--text-muted);">${escapeHtml(fcVal)}</td>
       <td></td>
     </tr>`;
   });
@@ -462,7 +463,7 @@ async function exportPDF() {
 async function init() {
   loading(true);
   initUI();
-  const { requireAuth: ra, logout: lo } = await import('./js/supabase.js');
+  const { requireAuth: ra, logout: lo } = await import('./js/supabase.js?v=20261002-3');
   const user = await requireAuth();
   if (!user) return;
   document.getElementById('topbar-email').textContent = user.email;
