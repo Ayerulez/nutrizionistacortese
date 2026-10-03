@@ -20,3 +20,5 @@
 .pdf-actions{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;}
 @media(max-width:1050px){.pdf-layout{grid-template-columns:1fr}.pdf-preview{position:static;}}
 @media(max-width:600px){.pdf-checks{grid-template-columns:1fr}.pdf-card{padding:1rem}.pdf-preview iframe{height:430px;}}
+
+.pdf-section-order{list-style:none;padding:0;margin:0;display:grid;gap:.5rem}.pdf-section-order li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.65rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:.88rem}.pdf-section-order li>div{display:flex;gap:.35rem;flex-shrink:0}.pdf-section-order .btn{min-width:40px;min-height:40px}.pdf-section-order b{color:var(--text-muted);margin-right:.25rem}
