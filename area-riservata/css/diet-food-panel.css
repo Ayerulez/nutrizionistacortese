@@ -1,0 +1,28 @@
+/* Il catalogo condivide il picker esistente: pannello su desktop, popup su mobile. */
+.diet-food-panel[hidden]{display:none;}.diet-workspace-main{min-width:0;}
+.fpk-target{display:none;}.fpk-srow .search-field{flex:1;min-width:0;}
+.fpk-filter{padding:10px 16px;border-bottom:1px solid var(--border);}
+.fpk-filter select{width:100%;min-height:40px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:#fff;color:var(--text-body);font:inherit;font-size:13px;}
+#fpk-count{margin-top:6px;font-size:12px;color:var(--text-muted);}
+.fpk-list{min-height:80px;overscroll-behavior:contain;scrollbar-width:thin;}
+.fpk-item>div:first-child{min-width:0;}.fi-nome{overflow-wrap:anywhere;}
+@media(min-width:1025px){
+ #view-editor.has-food-panel .diet-workspace{display:grid;grid-template-columns:310px minmax(0,1fr);align-items:start;gap:20px;}
+ .diet-food-panel{position:sticky;top:84px;display:flex;flex-direction:column;height:var(--food-panel-height,calc(100dvh - 180px));min-height:420px;max-height:900px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+ .diet-food-heading{padding:14px 16px;border-bottom:1px solid var(--border);background:#f3f7f2;}.diet-food-heading h3{font-family:var(--font-body);font-size:16px;font-weight:600;}.diet-food-heading p{font-size:12px;color:var(--text-muted);margin-top:2px;}
+ #food-panel-home{flex:1;min-height:0;display:flex;flex-direction:column;}
+ .fpk.fpk-docked{position:static;inset:auto;transform:none;width:100%;max-height:none;min-height:0;flex:1;border:0;box-shadow:none;border-radius:0;z-index:auto;}
+ .fpk-docked .fpk-hdr{padding:12px 14px;}.fpk-docked .fpk-hdr h4{font-family:var(--font-body);font-size:13px;color:var(--sage-700);margin-bottom:8px;}
+ .fpk-docked .fpk-target{display:block;padding:0 14px 12px;border-bottom:1px solid var(--border);}.fpk-target .form-group{margin-bottom:8px;}.fpk-destination{display:grid;grid-template-columns:1fr 1fr;gap:8px;}.fpk-target select{width:100%;min-width:0;}.fpk-target label{font-size:11px;}
+ #fpk-context{font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.4;}
+ .fpk-docked .fpk-filter{padding:10px 14px;}.fpk-docked .fpk-item{padding:10px 14px;gap:8px;}.fpk-docked .fi-nome{font-size:13px;}.fpk-docked .fi-kcal{font-size:11px;white-space:nowrap;}.fpk-docked .fi-macro{font-size:11px;}.fpk-docked .fpk-cat{padding:8px 14px;font-size:10px;}
+ .fpk-docked .fpk-off-item{flex-wrap:wrap;}.fpk-docked .off-import-mini{margin-left:auto;}.fpk-docked #btn-fpk-off{margin:8px 14px 0;white-space:normal;}.fpk-docked .fpk-off-status{padding:8px 14px;}
+ .fpk-docked .fpk-ftr{padding:12px 14px;gap:8px;}.fpk-docked .qty-row{width:100%;justify-content:space-between;}.fpk-docked #fpk-ann,.fpk-docked #fpk-ok{flex:1;}
+ .diet-workspace .piano-header,.diet-workspace .piano-grid,.diet-workspace .dtot{min-width:920px;}
+ .pc.fp-target-cell{outline:2px solid var(--sage-600);outline-offset:-2px;background:#eaf2e8;}
+}
+@media(min-width:1025px) and (max-width:1280px){#view-editor.has-food-panel .diet-workspace{grid-template-columns:290px minmax(0,1fr);gap:16px;}}
+@media(max-width:1024px){.diet-workspace{display:block;}.fpk-filter select{font-size:16px;}}
+
+.week-summary-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}.week-summary-values>div{min-width:0;}
+@media(max-width:760px){.week-summary-values{grid-template-columns:repeat(2,minmax(0,1fr));}}

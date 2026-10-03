@@ -44,3 +44,11 @@ body .btn-sm{min-height:36px;padding:7px 12px!important;font-size:13px!important
 .week-tab:focus-visible{outline-offset:2px;}
 @media(max-width:760px){.toolbar-fields>.form-group{flex:1 1 calc(50% - 6px)!important;}.toolbar-fields>.toolbar-search{flex-basis:100%!important;}.week-tab{min-height:44px;}}
 @media(max-width:760px){.day-sec-hdr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;}.day-sec-hdr>.day-mom{grid-column:1;font-size:13px;}.day-sec-hdr>.day-k{grid-column:2;text-align:right;margin-left:0!important;}.day-sec-hdr>div:empty{display:none;}.day-sec-hdr>[data-det-s]{grid-column:1;justify-self:start;}.day-sec-hdr>[data-copy-s]{grid-column:2;}.day-sec-hdr>[data-add-s]{grid-column:2;grid-row:1;margin-left:0!important;}}
+
+/* Menu desktop compatto, con etichette accessibili e scelta manuale persistente. */
+@media(min-width:1025px){
+ .nav-toggle{display:inline-flex;}.nav-in-dialog{margin-left:auto;margin-right:8px;}.nav-collapsed .app-body{grid-template-columns:72px minmax(0,1fr);}
+ .nav-collapsed .sidebar{padding:20px 8px;}.nav-collapsed .sidebar-link{justify-content:center;padding:12px;min-height:48px;gap:0;}
+ .nav-collapsed .sidebar-link svg{width:20px;height:20px;}.nav-collapsed .sidebar-link-label,.nav-collapsed .sidebar-section-label{display:none;}
+ .nav-collapsed .sidebar-section{margin-top:12px!important;}.nav-collapsed .sidebar-section:first-of-type{margin-top:0!important;}
+}
