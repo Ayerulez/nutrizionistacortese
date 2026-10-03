@@ -1,0 +1,11 @@
+docx 9.6.1 — https://github.com/dolanmiu/docx
+Licenza MIT, vedere docx-LICENSE.txt.
+
+docx.bundle.js contiene la distribuzione ESM per browser, già compilata.
+Le note di licenza delle dipendenze sono conservate nel bundle.
+Non è necessario eseguire npm install per pubblicare o usare il sito.
+
+Per ricompilare: con docx 9.6.1 ed esbuild, creare un entry point con
+export * from 'docx';
+e usare esbuild con bundle=true, platform=browser, format=esm,
+target=es2022, minify=true, legalComments=eof.
