@@ -1,5 +1,5 @@
-import {sb,getAllRows} from './supabase.js?v=20261003-4';
-import {setHTML,escapeHtml,guard} from './safe-dom.js?v=20261003-4';
+import {sb,getAllRows} from './supabase.js?v=20261003-5';
+import {setHTML,escapeHtml,guard} from './safe-dom.js?v=20261003-5';
 export const DIET_TYPES={onnivora:'Onnivora',carnivora:'Carnivora',vegetariana:'Vegetariana',vegana:'Vegana',pescetariana:'Pescetariana',altra:'Altra / non specificata'};
 export function patientDietType(patient){const v=String(patient.vegetariano_vegano||patient.tipo_dieta_strutturato||'').trim().toLowerCase();return Object.hasOwn(DIET_TYPES,v)?v:'altra';}
 function explain(error){if(['PGRST202','PGRST205','42P01','42703'].includes(error.code))return new Error('Modelli non ancora attivati: esegui db/003_modelli_dieta.sql su Supabase, dopo le migrazioni 001 e 002.');return error;}

@@ -1,5 +1,5 @@
-import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText} from './diet-export-model.js?v=20261003-4';
-import {loadPdfLogo} from './pdf-dieta.js?v=20261003-4';
+import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText} from './diet-export-model.js?v=20261003-5';
+import {loadPdfLogo} from './pdf-dieta.js?v=20261003-5';
 
 // OOXML nativo: testo e tabelle modificabili, nessun HTML rinominato .doc.
 export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options={},context={}){
@@ -90,7 +90,7 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
 }
 
 export async function esportaPianoWord(dieta,paziente,piano,idx,options={},context={}){
-  const DX=await import('./vendor/docx.bundle.js?v=20261003-4'),{o}=selection(dieta,options,context);
+  const DX=await import('./vendor/docx.bundle.js?v=20261003-5'),{o}=selection(dieta,options,context);
   let logo=null;
   if(o.showLogo){const source=await loadPdfLogo();if(source){const img=new Image();await new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;img.src=source;});if(img.naturalWidth)logo={data:Uint8Array.from(atob(source.split(',')[1]),c=>c.charCodeAt(0)),width:img.naturalWidth,height:img.naturalHeight};}}
   const doc=createPianoWord(DX,dieta,paziente,piano,idx,logo,o,context),blob=await DX.Packer.toBlob(doc);

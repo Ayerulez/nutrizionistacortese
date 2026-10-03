@@ -1,9 +1,9 @@
-import {requireAuth,logout} from './supabase.js?v=20261003-4';
-import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261003-4';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-4';
-import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261003-4';
-import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261003-4';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261003-4';
+import {requireAuth,logout} from './supabase.js?v=20261003-5';
+import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261003-5';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-5';
+import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261003-5';
+import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261003-5';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261003-5';
 const $=id=>document.getElementById(id);
 let user,dirty=false,revision=0,previewUrl,sectionOrder=[...PDF_DEFAULTS.sectionOrder];
 const groups={

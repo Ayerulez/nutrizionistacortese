@@ -1,5 +1,5 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-4';
-import {documentBlocks,specialistLines,cleanText} from './diet-export-model.js?v=20261003-4';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-5';
+import {documentBlocks,specialistLines,cleanText} from './diet-export-model.js?v=20261003-5';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];

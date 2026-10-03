@@ -1,4 +1,4 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-4';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-5';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
