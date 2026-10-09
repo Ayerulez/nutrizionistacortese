@@ -1,5 +1,6 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-1';
-import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261009-1';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-2';
+import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261009-2';
+import {mealColors,colorRgb} from './meal-colors.js?v=20261009-2';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -95,9 +96,10 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
         if(capacity<1)throw new Error('Intestazione troppo lunga per il formato PDF. Riduci il nome del piano.');
         const take=Math.min(count-offset,capacity),labels=wrap(label.toUpperCase()+(offset?' (segue)':''),labelW-3,7.3,true),h=Math.max(10,take*lineHeight+4,labels.length*3.3*scale+3);
         if(y+h>g.end){part++;page();continue;}
-        rect(g.margin,y,labelW,h,c.pale);font(7.3,true,c.green);
+        const theme=mealColors(id,o.palette==='grayscale');
+        rect(g.margin,y,labelW,h,colorRgb(theme.fill));font(7.3,true,colorRgb(theme.text));
         labels.forEach((t,i)=>doc.text(t,g.margin+labelW/2,y+4+i*3.3*scale,{align:'center'}));
-        cells.forEach((lines,i)=>{const x=g.margin+labelW+i*cellW;rect(x,y,cellW,h,[255,255,255]);writeLines(lines.slice(offset,offset+take),x+1.5,y+4,lineHeight);});
+        cells.forEach((lines,i)=>{const x=g.margin+labelW+i*cellW;rect(x,y,cellW,h,colorRgb(theme.tint));writeLines(lines.slice(offset,offset+take),x+1.5,y+4,lineHeight);});
         y+=h;offset+=take;
       }
     }
@@ -111,19 +113,19 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
   function daily(s,day){
     let part=1,g,y;const subtitle=()=>`${DAYS[day-1]} · Settimana ${s} di ${totalWeeks}${part>1?' - segue':''}`;
     const page=()=>{g=newPage(subtitle(),'portrait');y=g.y;};page();
-    const mealHeading=(label,follow=false)=>{rect(g.margin,y,g.w,7,c.green);font(9,true,[255,255,255]);doc.text(label.toUpperCase()+(follow?' - SEGUE':''),g.margin+3,y+4.8);y+=11;};
+    const mealHeading=(id,label,follow=false)=>{const theme=mealColors(id,o.palette==='grayscale');rect(g.margin,y,g.w,7,colorRgb(theme.fill));font(9,true,colorRgb(theme.text));doc.text(label.toUpperCase()+(follow?' - SEGUE':''),g.margin+3,y+4.8);y+=11;};
     for(const [id,label] of MEALS){
       const foods=foodsAt(piano,s,day,id);if(!foods.length&&!o.showEmptyMeals)continue;
-      if(y+19>g.end){part++;page();}mealHeading(label);
+      if(y+19>g.end){part++;page();}mealHeading(id,label);
       const entries=foods.length?foods:[null];
       for(const food of entries){
         const lines=food?foodLines(food,g.w-6,true):[{text:'-',size:10,bold:false,color:c.grey}],lineHeight=4.6*scale;
         const fullHeight=lines.length*lineHeight+5;
-        if(fullHeight<g.end-g.y-12&&y+fullHeight>g.end){part++;page();mealHeading(label,true);}
+        if(fullHeight<g.end-g.y-12&&y+fullHeight>g.end){part++;page();mealHeading(id,label,true);}
         let offset=0;
         while(offset<lines.length){
           let capacity=Math.floor((g.end-y-3)/lineHeight);
-          if(capacity<1){part++;page();mealHeading(label,true);capacity=Math.floor((g.end-y-3)/lineHeight);}
+          if(capacity<1){part++;page();mealHeading(id,label,true);capacity=Math.floor((g.end-y-3)/lineHeight);}
           if(capacity<1)throw new Error('Intestazione troppo lunga per il formato PDF. Riduci il nome del piano.');
           const take=Math.min(lines.length-offset,capacity);writeLines(lines.slice(offset,offset+take),g.margin+3,y+3,lineHeight);y+=take*lineHeight;offset+=take;
         }

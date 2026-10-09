@@ -1,5 +1,6 @@
-import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText,roundedExportValue} from './diet-export-model.js?v=20261009-1';
-import {loadPdfLogo} from './pdf-dieta.js?v=20261009-1';
+import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText,roundedExportValue} from './diet-export-model.js?v=20261009-2';
+import {loadPdfLogo} from './pdf-dieta.js?v=20261009-2';
+import {mealColors} from './meal-colors.js?v=20261009-2';
 
 // OOXML nativo: testo e tabelle modificabili, nessun HTML rinominato .doc.
 export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options={},context={}){
@@ -57,7 +58,8 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
     const rows=[new DX.TableRow({tableHeader:true,cantSplit:true,children:[cell([para('PASTO',{bold:true,size:8,align:DX.AlignmentType.CENTER})],labelWidth,{fill:'E8E8E8'}),...o.days.map(d=>cell([para(SHORT[d-1],{bold:true,size:8.5,align:DX.AlignmentType.CENTER})],dayWidth,{fill:'E8E8E8'}))]})];
     for(const [id,label] of MEALS){
       if(!o.showEmptyMeals&&o.days.every(day=>!foodsAt(piano,s,day,id).length))continue;
-      rows.push(new DX.TableRow({children:[cell([para(label,{bold:true,size:8})],labelWidth,{fill:pale}),...o.days.map(day=>cell(foodsAt(piano,s,day,id).flatMap(p=>foodParagraphs(p,true)),dayWidth))]}));
+      const theme=mealColors(id,o.palette==='grayscale');
+      rows.push(new DX.TableRow({children:[cell([para(label,{bold:true,size:8,color:theme.text})],labelWidth,{fill:theme.fill}),...o.days.map(day=>cell(foodsAt(piano,s,day,id).flatMap(p=>foodParagraphs(p,true)),dayWidth,{fill:theme.tint}))]}));
     }
     if(o.showDailyTotals&&(o.showCalories||o.showMacros))rows.push(new DX.TableRow({cantSplit:true,children:[cell([para('TOTALE',{bold:true,size:8})],labelWidth,{fill:pale}),...o.days.map(day=>cell(totalText(piano,s,day,o).map(t=>para(t,{bold:true,size:8})),dayWidth,{fill:pale}))]}));
     add([...header(`Settimana ${s} di ${totalWeeks}`),table(rows,width,widths)],true);
@@ -66,8 +68,9 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
     const width=10206,widths=[6500,3706],children=header(`${DAYS[day-1]} · Settimana ${s} di ${totalWeeks}`);
     for(const [id,label] of MEALS){
       const foods=foodsAt(piano,s,day,id);if(!foods.length&&!o.showEmptyMeals)continue;
-      children.push(para(label,{bold:true,size:12,keepNext:true,after:100,style:'NutriHeading2'}));
-      const rows=[new DX.TableRow({tableHeader:true,cantSplit:true,children:[cell([para('Alimento',{bold:true,size:9})],widths[0],{fill:'E8E8E8'}),cell([para('Quantità e valori',{bold:true,size:9})],widths[1],{fill:'E8E8E8'})]})];
+      const theme=mealColors(id,o.palette==='grayscale');
+      children.push(para(label,{bold:true,size:12,color:theme.text,keepNext:true,after:100,style:'NutriHeading2'}));
+      const rows=[new DX.TableRow({tableHeader:true,cantSplit:true,children:[cell([para('Alimento',{bold:true,size:9})],widths[0],{fill:theme.fill}),cell([para('Quantità e valori',{bold:true,size:9})],widths[1],{fill:theme.fill})]})];
       (foods.length?foods:[null]).forEach(food=>{
         const d=food?foodDetails(food,idx,o):{measures:'',macros:'',notes:[]};
         rows.push(new DX.TableRow({cantSplit:true,children:[cell([para(food?.alimento_nome||'-',{bold:!!food,size:10}),...d.notes.flatMap(t=>cleanText(t).split('\n').map(line=>para(line,{size:9,color:'595959'})))],widths[0]),cell([d.measures,d.macros].filter(Boolean).map(t=>para(t,{size:10,color:green})),widths[1])]}));
@@ -90,7 +93,7 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
 }
 
 export async function esportaPianoWord(dieta,paziente,piano,idx,options={},context={}){
-  const DX=await import('./vendor/docx.bundle.js?v=20261009-1'),{o}=selection(dieta,options,context);
+  const DX=await import('./vendor/docx.bundle.js?v=20261009-2'),{o}=selection(dieta,options,context);
   let logo=null;
   if(o.showLogo){const source=await loadPdfLogo();if(source){const img=new Image();await new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;img.src=source;});if(img.naturalWidth)logo={data:Uint8Array.from(atob(source.split(',')[1]),c=>c.charCodeAt(0)),width:img.naturalWidth,height:img.naturalHeight};}}
   const doc=createPianoWord(DX,dieta,paziente,piano,idx,logo,o,context),blob=await DX.Packer.toBlob(doc);

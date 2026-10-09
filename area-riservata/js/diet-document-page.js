@@ -1,15 +1,22 @@
-import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-1';
-import {initUI,loading,showAlert,hideAlert,toast,setBtn} from './ui.js?v=20261009-1';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-1';
-import {DOCUMENT_FIELDS,MAX_PARAGRAPHS,normalizeExportDocument,previewLink} from './export-document.js?v=20261009-1';
-import {EXPORT_SECTIONS} from './pdf-options.js?v=20261009-1';
-import {loadPdfPreferences} from './pdf-preferences.js?v=20261009-1';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-1';
-import {esportaPianoWord} from './word-dieta.js?v=20261009-1';
-import {PdfPreview} from './pdf-preview-renderer.js?v=20261009-1';
+import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-2';
+import {initUI,loading,showAlert,hideAlert,toast,setBtn} from './ui.js?v=20261009-2';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-2';
+import {DOCUMENT_FIELDS,MAX_PARAGRAPHS,normalizeExportDocument,previewLink} from './export-document.js?v=20261009-2';
+import {EXPORT_SECTIONS} from './pdf-options.js?v=20261009-2';
+import {loadPdfPreferences} from './pdf-preferences.js?v=20261009-2';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-2';
+import {esportaPianoWord} from './word-dieta.js?v=20261009-2';
+import {PdfPreview} from './pdf-preview-renderer.js?v=20261009-2';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 const S={revision:0,saved:0,renderRevision:-1,paragraphs:[],ready:false,busy:false};
-let saveTimer,previewTimer,saveQueue,renderQueue,renderer,jsPDF,logo;
+let saveTimer,previewTimer,saveQueue,renderQueue,renderer,jsPDF,logo,heightFrame,heightObserver;
+function scheduleDocumentHeight(){
+ if(heightFrame)return;
+ heightFrame=requestAnimationFrame(()=>{heightFrame=0;if(innerWidth<=1024)return;const layout=$('document-layout');if(layout.hidden)return;const top=Math.max(document.body.classList.contains('document-focus')?12:84,layout.getBoundingClientRect().top);const height=Math.max(240,innerHeight-top-16)+'px';if(layout.style.getPropertyValue('--document-panel-height')!==height)layout.style.setProperty('--document-panel-height',height);});
+}
+function toggleDocumentFocus(force){
+ const active=force??!document.body.classList.contains('document-focus');document.body.classList.toggle('document-focus',active);$('document-focus').setAttribute('aria-pressed',String(active));$('document-focus-label').textContent=active?'Ripristina':'Espandi';scheduleDocumentHeight();
+}
 const flags={intro:'showIntro',guidelines:'showGuidelines',planNotes:'showPlanNotes',conclusions:'showConclusions'};
 function fail(error){const missing=['PGRST202','PGRST204','42703'].includes(error.code);showAlert('document-error',missing?'Attiva il salvataggio dell’anteprima eseguendo db/004_anteprima_documento.sql su Supabase. Le modifiche qui restano aperte finché non riesci a salvarle.':error.message||String(error));$('document-status').textContent='Operazione non completata. Le modifiche non salvate restano in questa schermata.';}
 function snapshot(){const dieta={...S.dieta,documento_export:normalizeExportDocument({paragraphs:S.paragraphs})};for(const field of Object.values(DOCUMENT_FIELDS))dieta[field]=$('document-field-'+field).value;return dieta;}
@@ -67,6 +74,9 @@ function wire(){
  $('document-preferences').onclick=guard(()=>action('document-preferences',()=>{location.href='preferenze-pdf.html?'+new URLSearchParams({ritorno:'anteprima',dieta:S.dieta.id,settimana:S.week});}));
  $('document-back').onclick=guard(event=>{event.preventDefault();return action('document-save',()=>{location.href=$('document-back').href;});});
  $('document-zoom').onchange=()=>renderer.setZoom($('document-zoom').value);
+ $('document-editor-toggle').onclick=()=>{const editor=$('document-editor');editor.hidden=!editor.hidden;$('document-layout').classList.toggle('document-texts-hidden',editor.hidden);$('document-editor-toggle').setAttribute('aria-expanded',String(!editor.hidden));scheduleDocumentHeight();};
+ $('document-focus').onclick=()=>toggleDocumentFocus();
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.body.classList.contains('document-focus')){toggleDocumentFocus(false);$('document-focus').focus();}});
 }
 async function init(){
  initUI();loading(true,'Caricamento anteprima…');
@@ -86,10 +96,11 @@ async function init(){
   buildFields();buildParagraphs();wire();
   renderer=new PdfPreview($('document-canvas-scroll'),$('document-pages'),$('document-pages-count'),fail);
   [jsPDF,logo]=await Promise.all([loadJsPDF(),options.showLogo?loadPdfLogo():null]);
-  $('document-layout').hidden=false;await refresh();S.ready=true;$('document-status').textContent='Anteprima del PDF effettivo. Le aggiunte saranno incluse anche nel Word; Word adatta le pagine al proprio layout.';
+  $('document-layout').hidden=false;scheduleDocumentHeight();heightObserver=new ResizeObserver(scheduleDocumentHeight);heightObserver.observe(document.querySelector('.document-header'));heightObserver.observe($('document-error'));await refresh();S.ready=true;$('document-status').textContent='PDF effettivo · Testi salvati sul piano · Word adatta le pagine al proprio layout.';
  }catch(error){fail(error);for(const id of ['document-save','document-preferences','document-word','document-pdf'])$(id).disabled=true;}
  finally{loading(false);}
 }
 window.addEventListener('beforeunload',event=>{if(S.revision>S.saved){event.preventDefault();event.returnValue='';}});
-window.addEventListener('pagehide',()=>{clearTimeout(saveTimer);clearTimeout(previewTimer);renderer?.destroy();});
+window.addEventListener('resize',scheduleDocumentHeight);window.addEventListener('scroll',scheduleDocumentHeight,{passive:true});
+window.addEventListener('pagehide',()=>{clearTimeout(saveTimer);clearTimeout(previewTimer);cancelAnimationFrame(heightFrame);heightObserver?.disconnect();renderer?.destroy();});
 init().catch(reportError);

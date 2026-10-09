@@ -1,6 +1,6 @@
-import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js?v=20261009-1';
-import { mapOffToAlimento } from './off-model.js?v=20261009-1';
-export { mapOffToAlimento } from './off-model.js?v=20261009-1';
+import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js?v=20261009-2';
+import { mapOffToAlimento } from './off-model.js?v=20261009-2';
+export { mapOffToAlimento } from './off-model.js?v=20261009-2';
 const cache=new Map();
 const TTL=24*60*60*1000, PAGE_SIZE=15;
 const STORAGE='nutri.off.v2:';
