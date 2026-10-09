@@ -97,7 +97,7 @@
     }
     @keyframes spin{to{transform:rotate(360deg);}}
   </style>
-  <link rel="stylesheet" href="css/gestionale.css?v=20261003-5" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261003-6" />
 </head>
 <body>
   <div class="login-card">
@@ -125,9 +125,9 @@
   </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-5';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-6';
 
-import { sb, redirectIfAuth, login } from './js/supabase.js?v=20261003-5';
+import { sb, redirectIfAuth, login } from './js/supabase.js?v=20261003-6';
 
 // Se già autenticato → vai alla dashboard
 await redirectIfAuth();
