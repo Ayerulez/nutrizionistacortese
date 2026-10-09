@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261003-6" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-1" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,9 +155,10 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/modelli.css?v=20261003-6" />
-  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261003-6" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261003-6" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -288,12 +289,20 @@
             <div id="food-panel-home"></div>
           </aside>
           <div class="diet-workspace-main">
-        <div class="card mb-md">
-          <h3 id="ed-nome" class="record-name" style="font-size:20px;"></h3>
-          <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
-          <div class="editor-actions">
-            <div class="page-head-actions"><button class="btn btn-secondary" id="btn-vai-paziente">Scheda paziente</button><button class="btn btn-secondary" id="btn-edit-meta">Modifica info</button><button class="btn btn-secondary" id="btn-clone">Clona piano</button><button class="btn btn-secondary" id="btn-crea-modello" data-ui-icon="copy">Crea modello</button></div>
-            <div class="export-actions"><a href="preferenze-pdf.html" class="btn btn-secondary" data-ui-icon="settings" target="_blank" rel="noopener">Preferenze</a><button class="btn btn-secondary" id="btn-pdf">Esporta PDF</button><button class="btn btn-secondary" id="btn-word">Esporta Word</button><button class="btn btn-primary" id="btn-salva">Salva piano</button></div>
+        <div class="card mb-md diet-header">
+          <div class="diet-heading">
+            <div class="diet-heading-text"><h3 id="ed-nome" class="record-name"></h3>
+              <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
+            </div>
+            <div class="diet-primary-actions"><button class="btn btn-secondary" id="btn-anteprima" data-ui-icon="file">Anteprima</button><button class="btn btn-primary" id="btn-salva">Salva piano</button></div>
+          </div>
+          <div class="diet-secondary-actions">
+            <button class="btn btn-ghost" id="btn-vai-paziente">Scheda paziente</button>
+            <button class="btn btn-ghost" id="btn-edit-meta">Modifica info</button>
+            <details class="diet-more"><summary class="btn btn-ghost">Altre azioni <span aria-hidden="true">▾</span></summary><div class="diet-more-menu">
+              <button class="btn btn-ghost" id="btn-clone">Clona piano</button>
+              <button class="btn btn-ghost" id="btn-crea-modello" data-ui-icon="copy">Crea modello</button>
+            </div></details>
           </div>
         </div>
 
@@ -536,18 +545,16 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-6';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-1';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261003-6';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261003-6';
-import { esportaPianoWord } from './js/word-dieta.js?v=20261003-6';
-import { esportaPianoPDF } from './js/pdf-dieta.js?v=20261003-6';
-import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261003-6';
-import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261003-6';
-import { loadPdfPreferences } from './js/pdf-preferences.js?v=20261003-6';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-1';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-1';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-1';
+import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-1';
+import {previewLink} from './js/export-document.js?v=20261009-1';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261003-6';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-1';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -597,8 +604,9 @@ async function init(){
   n('btn-nuova-dieta').onclick = guard(openNuovaDieta);
   n('btn-save-dieta').onclick = guard(saveDieta);
   n('btn-salva').onclick = guard(()=>salvaPiano(true));
-  n('btn-pdf').onclick = guard(()=>handleEsporta('pdf'));
-  n('btn-word').onclick = guard(()=>handleEsporta('word'));
+  n('btn-anteprima').onclick=guard(openPlanPreview);
+  document.addEventListener('click',e=>{const menu=n('btn-clone').closest('details');if(!menu.contains(e.target)||e.target.closest('.diet-more-menu button'))menu.open=false;});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')n('btn-clone').closest('details').open=false;});
   n('btn-edit-meta').onclick = guard(editMeta);
   n('btn-vai-paziente').onclick = guard(()=>{
     if(S.paziente) window.location.href='pazienti.html?id='+S.paziente.id;
@@ -960,7 +968,7 @@ async function openEditor(dietaId){
   loading(true,'Caricamento piano…');
   const{data:d}=await sb.from('diete').select('*').eq('id',dietaId).single().throwOnError();
   if(!d){toast('Errore','error');loading(false);return;}
-  S.dieta=d;S.pianoDirty=false;S.settimana=1;S.giornoVista=1;
+  S.dieta=d;S.pianoDirty=false;S.settimana=Math.max(1,Math.min(d.numero_settimane||1,Math.trunc(Number(new URLSearchParams(location.search).get("settimana")))||1));S.giornoVista=1;
   S.piano={};
   for(let s=1;s<=d.numero_settimane;s++){
     S.piano[s]={};
@@ -1720,27 +1728,12 @@ async function saveAlimInline(){
 }
 
 // ─── ESPORTA PDF ─────────────────────────────────────────────────
-async function handleEsporta(format='pdf') {
-  if (!S.dieta || !S.paziente) {
-    toast('Nessuna dieta aperta', 'error');
-    return;
-  }
-  // Auto-salva prima di esportare per avere dati aggiornati
-  const label=format==='word'?'Word':'PDF';
-  setBtn('btn-pdf',true);setBtn('btn-word',true);
-  try {
-    await salvaPiano(false,true);
-    toast('Generazione '+label+'…');
-    const preferences=await loadPdfPreferences(S.user.id);
-    const exporter=format==='word'?esportaPianoWord:esportaPianoPDF;
-    await exporter(S.dieta,S.paziente,S.piano,S.aliIdx,preferences,{currentWeek:S.settimana});
-    toast(label+' generato');
-  } catch(e) {
-    toast('Errore '+label+': ' + e.message, 'error');
-    console.error(e);
-  } finally {
-    setBtn('btn-pdf',false);setBtn('btn-word',false);
-  }
+async function openPlanPreview(){
+ if(!S.dieta||!S.paziente)return;
+ setBtn('btn-anteprima',true);
+ try{await salvaPiano(false,true);location.href=previewLink(S.dieta.id,S.settimana);}
+ catch(error){toast('Impossibile aprire l’anteprima: '+error.message,'error');}
+ finally{setBtn('btn-anteprima',false);}
 }
 
 // ─── OFF nel FOOD PICKER ─────────────────────────────────────────────────────

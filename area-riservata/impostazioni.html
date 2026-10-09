@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261003-6" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-1" />
   <style>
     /* Toggle switch */
     .toggle-wrap{display:flex;align-items:center;gap:.5rem;}
@@ -48,7 +48,7 @@
       color:var(--text-muted);cursor:pointer;user-select:none;}
     .filter-toggle input{accent-color:var(--sage-600);}
   </style>
-  <link rel="stylesheet" href="css/gestionale.css?v=20261003-6" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -229,14 +229,14 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261003-6';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-1';
 
 import { sb, requireAuth, logout,
          getStrutture, saveStruttura, toggleStruttura,
-         getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js?v=20261003-6';
+         getPrestazioni, savePrestazione, togglePrestazione } from './js/supabase.js?v=20261009-1';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, emptyState } from './js/ui.js?v=20261003-6';
+         ModalManager, initUI, n, val, emptyState } from './js/ui.js?v=20261009-1';
 
 const S = { user: null, strutture: [], prestazioni: [] };
 

@@ -3,12 +3,12 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modelli di dieta – Studio Cortese</title>
+  <title>Anteprima del piano – Studio Cortese</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/modelli.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261009-1" />
   <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
 </head>
 <body>
@@ -49,17 +49,32 @@
         <div class="sidebar-section-label">Impostazioni</div>
         <a href="impostazioni.html" class="sidebar-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
-        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
+        <a href="preferenze-pdf.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
       </div>
     </nav>
 
-    <main class="main"><div id="models-list-view">
-      <div class="page-head"><div><h2>Modelli di dieta</h2><p>Le basi riutilizzabili dei piani, con categorie e storico per paziente.</p></div><a class="btn btn-secondary" href="diete.html">Vai alle diete</a></div>
-      <div class="alert alert-error" id="models-error" role="alert"></div>
-      <div class="list-toolbar"><div class="toolbar-fields"><div class="form-group toolbar-search"><label for="models-q">Cerca modello</label><div class="search-field"><input id="models-q" type="search" placeholder="Nome o descrizione…"></div></div><div class="form-group"><label for="models-type">Tipo dieta</label><select id="models-type"><option value="">Tutti</option></select></div><div class="form-group"><label for="models-path">Patologia</label><select id="models-path"><option value="">Tutte</option></select></div><div class="form-group"><label for="models-state">Stato</label><select id="models-state"><option value="active">Attivi</option><option value="archived">Archiviati</option></select></div><button class="btn btn-secondary" id="models-reset">Azzera filtri</button></div></div>
-      <p class="model-help">Per aggiungere un modello, apri una dieta e premi <strong>Crea modello</strong>. I contenuti restano una copia del piano al momento della creazione.</p><p class="model-help" id="models-count" aria-live="polite"></p><div id="models-list"></div>
-    </div><div id="model-detail" hidden>
-      <div class="page-head"><div><button class="btn btn-ghost" id="models-back">‹ Tutti i modelli</button><h2 id="model-name"></h2><p id="model-description"></p></div><div class="page-head-actions"><button class="btn btn-secondary" id="model-edit">Modifica categorie</button><button class="btn btn-primary" id="model-use">Usa per un paziente</button></div></div>
-      <div id="model-meta" class="model-meta"></div><div class="model-detail-grid"><section class="card"><h3 class="card-title">Contenuto del modello</h3><div class="form-grid"><div class="form-group"><label for="model-week">Settimana</label><select id="model-week"></select></div><div class="form-group"><label for="model-day">Giorno</label><select id="model-day"></select></div></div><div id="model-meals"></div><div id="model-texts"></div></section><section class="card"><h3 class="card-title">Storico di utilizzo</h3><p class="model-help">Ogni applicazione registra paziente, dieta e avvisi confermati. Anche le clonazioni di piani basati sul modello restano nello storico.</p><div class="search-field"><input id="model-history-q" type="search" placeholder="Cerca un paziente nello storico…"></div><p class="model-help" id="model-history-count" aria-live="polite"></p><div id="model-history" class="model-usage-list"></div></section></div>
-    </div></main></div></div>
-<script type="module" src="js/modelli-page.js?v=20261009-1"></script></body></html>
+    <main class="main document-main">
+      <div class="document-page-head"><div><a id="document-back" class="document-back">← Torna alla dieta</a><h2>Anteprima del piano</h2><p id="document-name"></p></div></div>
+      <div class="document-toolbar">
+        <div class="document-toolbar-edit"><button class="btn btn-secondary" id="document-preferences" data-ui-icon="settings">Preferenze</button><button class="btn btn-secondary" id="document-save" data-ui-icon="save">Salva modifiche</button></div>
+        <div class="document-toolbar-export"><button class="btn btn-secondary" id="document-word" data-ui-icon="file">Scarica Word</button><button class="btn btn-primary" id="document-pdf" data-ui-icon="file">Scarica PDF</button></div>
+      </div>
+      <p id="document-status" class="document-status" role="status">Caricamento del piano…</p>
+      <div id="document-error" class="alert alert-error" role="alert"></div>
+      <div class="document-layout" id="document-layout" hidden>
+        <aside class="document-editor"><div class="document-editor-heading"><h3>Testi e aggiunte</h3><p>Le modifiche valgono per questo piano. L’anteprima si aggiorna mentre scrivi.</p></div>
+          <div id="document-fields"></div>
+          <section class="document-add"><h4>Aggiungi un paragrafo</h4><label for="document-anchor">Posizione nel documento</label><select id="document-anchor"></select><button id="document-add" class="btn btn-secondary" data-ui-icon="plus">Inserisci paragrafo</button></section>
+          <p class="document-paragraph-help">Le frecce ordinano i paragrafi inseriti nella stessa posizione.</p><div id="document-paragraphs"></div>
+        </aside>
+        <section class="document-preview" aria-label="PDF del piano">
+          <div class="document-preview-tools"><span id="document-pages-count" role="status"></span><label for="document-zoom">Zoom</label><select id="document-zoom"><option value="1">Adatta alla larghezza</option><option value="1.25">125%</option><option value="1.5">150%</option></select><button class="btn btn-ghost btn-sm" id="document-refresh">Aggiorna</button></div>
+          <div class="document-canvas-scroll" id="document-canvas-scroll" tabindex="0" aria-label="Pagine dell’anteprima scorribili"><div id="document-pages"></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+<script type="module" src="js/diet-document-page.js?v=20261009-1"></script>
+</body>
+</html>
