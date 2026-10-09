@@ -52,3 +52,8 @@ body .btn-sm{min-height:36px;padding:7px 12px!important;font-size:13px!important
  .nav-collapsed .sidebar-link svg{width:20px;height:20px;}.nav-collapsed .sidebar-link-label,.nav-collapsed .sidebar-section-label{display:none;}
  .nav-collapsed .sidebar-section{margin-top:12px!important;}.nav-collapsed .sidebar-section:first-of-type{margin-top:0!important;}
 }
+
+/* Densità dei portatili: spazio recuperato dai margini, con caratteri invariati. */
+@media(min-width:1025px) and (max-width:1440px){
+ .main{padding:20px;}.app-body{grid-template-columns:208px minmax(0,1fr);}.sidebar{padding:20px 10px;}.sidebar-link{padding-inline:10px;}.card{padding:16px;}.page-head{gap:12px;margin-bottom:18px;}.page-head h2{font-size:26px;}.list-toolbar{padding:14px;margin-bottom:16px;}.patient-item,.visita-row,.record-row{min-height:68px;padding:12px 14px;gap:12px;}.patient-item-header,.visite-list-header,.record-head{padding-inline:14px;}.alimenti-table td{padding:12px 14px;}.alimenti-table th{padding:10px 14px;}.form-section-body{padding:16px;}.tabs{margin-bottom:16px;}body .btn{min-height:40px;}.sidebar-link,.search-field>input,.search-wrap>input{min-height:44px;}
+}

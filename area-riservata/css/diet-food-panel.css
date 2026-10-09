@@ -27,3 +27,13 @@
 @media(min-width:1025px) and (max-width:1280px){#view-editor.has-food-panel .diet-workspace{grid-template-columns:minmax(0,1fr) 290px;gap:16px;}}
 @media(max-width:1024px){.diet-workspace{display:block;}.fpk-filter select{font-size:16px;}}
 @media(max-width:760px){.week-summary-values{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+/* Il catalogo può ridursi a una linguetta, senza perdere ricerca o selezione. */
+.food-catalog-expand[hidden]{display:none;}
+@media(min-width:1025px){
+ .diet-food-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}.diet-food-heading>div{min-width:0;}.diet-food-heading .btn{flex-shrink:0;}
+ .food-catalog-expand{display:flex;flex-direction:column;align-items:center;gap:12px;padding:12px 6px;width:46px;min-height:130px;background:#f3f7f2;border:0;color:var(--sage-700);font:inherit;cursor:pointer;}.food-catalog-expand>span:first-child{font-size:24px;line-height:1;}.food-catalog-expand>span:last-child{writing-mode:vertical-rl;font-size:13px;font-weight:600;letter-spacing:.03em;}
+ #view-editor.has-food-panel.catalog-compact .diet-workspace{grid-template-columns:minmax(0,1fr) 48px;}
+ .catalog-compact .diet-food-panel{height:auto;min-height:130px;overflow:hidden;}.catalog-compact .diet-food-heading,.catalog-compact .food-drag-hint,.catalog-compact #food-panel-home{display:none;}
+}
+@media(min-width:1025px) and (max-width:1440px){#view-editor.has-food-panel .diet-workspace{grid-template-columns:minmax(0,1fr) 270px;gap:14px;}#view-editor.has-food-panel.catalog-compact .diet-workspace{grid-template-columns:minmax(0,1fr) 48px;}.fpk-docked .fpk-item{padding:10px 12px;}.diet-food-heading{padding:12px;}.fpk-docked .fpk-hdr,.fpk-docked .fpk-filter{padding:10px 12px;}}
