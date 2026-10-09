@@ -1,5 +1,5 @@
-import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js?v=20261003-6';
-import {initGestionaleUI,updateSearchControls} from './gestionale-ui.js?v=20261003-6';
+import { setHTML, escapeHtml, guard, reportError } from './safe-dom.js?v=20261009-1';
+import {initGestionaleUI,updateSearchControls} from './gestionale-ui.js?v=20261009-1';
 export {updateSearchControls};
 /**
  * ui.js — Helper UI condivisi

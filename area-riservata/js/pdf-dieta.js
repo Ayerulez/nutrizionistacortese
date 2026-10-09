@@ -1,5 +1,5 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-6';
-import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261003-6';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-1';
+import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261009-1';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -146,7 +146,8 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     let g=newPage(block.title,'portrait'),y=g.y;
     const page=()=>{g=newPage(block.title+' - segue','portrait');y=g.y;};
     for(const [,title,value] of block.sections){
-      if(y+20*scale>g.end)page();font(13,true,c.green);doc.text(title,g.margin,y+5);y+=12*scale;
+      if(y+20*scale>g.end)page();
+      if(title){font(13,true,c.green);for(const line of wrap(title,g.w,13,true)){if(y+12*scale>g.end)page();font(13,true,c.green);doc.text(line,g.margin,y+5);y+=7*scale;}y+=5*scale;}
       for(const line of wrap(value,g.w,11)){
         if(y+5.4*scale>g.end)page();font(11);doc.text(line,g.margin,y+4);y+=5.4*scale;
       }y+=8;

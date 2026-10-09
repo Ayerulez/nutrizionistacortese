@@ -1,4 +1,5 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-6';
+import {normalizeExportDocument} from './export-document.js?v=20261009-1';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-1';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -43,14 +44,27 @@ export function planSections(dieta,idx,o){
 // Blocchi consecutivi della stessa famiglia condividono una pagina; nessuna pagina vuota.
 export function documentBlocks(dieta,idx,o){
   const entries=Object.fromEntries(planSections(dieta,idx,o).map(a=>[a[0],a]));
-  const blocks=[];
+  const extras=normalizeExportDocument(dieta.documento_export).paragraphs.filter(p=>cleanText(p.text).trim());
+  const family=id=>['intro','guidelines','planNotes'].includes(id)?'intro':['recommended','discouraged'].includes(id)?'foods':'conclusions';
+  const titles={intro:'Indicazioni del piano',foods:'Scelte alimentari',conclusions:'Indicazioni conclusive'};
+  const ordered=[];
   for(const id of o.sectionOrder){
-    if(id==='table'){blocks.push({type:'table'});continue;}
-    const entry=entries[id];if(!entry)continue;
-    const type=['intro','guidelines','planNotes'].includes(id)?'intro':['recommended','discouraged'].includes(id)?'foods':'conclusions';
-    let block=blocks.at(-1);if(block?.type!==type){block={type,title:{intro:'Indicazioni del piano',foods:'Scelte alimentari',conclusions:'Indicazioni conclusive'}[type],sections:[]};blocks.push(block);}
-    block.sections.push(entry);
+    for(const p of extras.filter(p=>p.anchor==='before:'+id))ordered.push({extra:p});
+    if(id==='table')ordered.push({type:'table'});else if(entries[id])ordered.push({type:family(id),entry:entries[id]});
+    for(const p of extras.filter(p=>p.anchor==='after:'+id))ordered.push({extra:p});
   }
+  const blocks=[];
+  ordered.forEach((item,i)=>{
+    if(item.type==='table'){blocks.push({type:'table'});return;}
+    const previous=blocks.at(-1),next=ordered.slice(i+1).find(v=>v.type);
+    const previousType=previous&&previous.type!=='table'?previous.type:null;
+    const nextType=next&&next.type!=='table'?next.type:null;
+    const type=item.type||previousType||nextType||'intro';
+    let block=previous;
+    if(item.extra?.pageBreak||!block||block.type!==type){block={type,title:titles[type]||'Indicazioni del piano',sections:[]};blocks.push(block);}
+    block.sections.push(item.entry||['extra:'+item.extra.id,cleanText(item.extra.title).trim(),cleanText(item.extra.text).trim()]);
+  });
   return blocks;
 }
+
 export function specialistLines(o){return [o.specialistName,o.specialistRole,o.specialistAddress,o.specialistPhone&&'Tel. '+o.specialistPhone,o.specialistEmail,o.specialistWebsite].filter(Boolean).map(cleanText);}

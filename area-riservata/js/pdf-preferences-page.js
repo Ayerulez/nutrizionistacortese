@@ -1,11 +1,13 @@
-import {requireAuth,logout} from './supabase.js?v=20261003-6';
-import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261003-6';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-6';
-import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261003-6';
-import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261003-6';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261003-6';
+import {requireAuth,logout} from './supabase.js?v=20261009-1';
+import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261009-1';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-1';
+import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261009-1';
+import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261009-1';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-1';
+import {previewLink} from './export-document.js?v=20261009-1';
 const $=id=>document.getElementById(id);
-let user,dirty=false,revision=0,previewUrl,sectionOrder=[...PDF_DEFAULTS.sectionOrder];
+let user,dirty=false,revision=0,previewUrl,saving,returning=false,sectionOrder=[...PDF_DEFAULTS.sectionOrder];
+const params=new URLSearchParams(location.search),returnUrl=params.get('ritorno')==='anteprima'?previewLink(params.get('dieta'),params.get('settimana')):null;
 const groups={
   'pdf-nutrition':[['showCalories','Calorie degli alimenti'],['showMacros','Proteine, carboidrati e grassi'],['showDailyTotals','Totali giornalieri'],['showTarget','Target calorico del piano'],['showQuantities','Quantità in grammi']],
   'pdf-content':[['showAlternatives','Alternative ai singoli alimenti'],['showMealNotes','Note dei pasti'],['showEmptyMeals','Mostra anche i pasti vuoti'],['showCover','Copertina con paziente e specialista'],['showIntro','Introduzione / intestazione del piano'],['showPlanNotes','Note generali del piano'],['showGuidelines','Linee guida'],['showConclusions','Conclusioni'],['showRecommended','Alimenti consigliati'],['showDiscouraged','Alimenti sconsigliati']],
@@ -57,12 +59,15 @@ async function preview(download=false){
     else{if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(doc.output('blob'));$('pdf-preview-frame').src=previewUrl;$('pdf-preview-frame').hidden=false;}
   }catch(error){showAlert('pdf-error',error.message);}finally{setBtn(id,false);}
 }
+async function persist(){
+ if(saving){await saving;if(dirty)return persist();return;}
+ saving=(async()=>{do{const current=revision;await savePdfPreferences(user.id,collect());if(current===revision)dirty=false;}while(dirty);$('pdf-status').textContent='Preferenze salvate sul tuo account.';})();
+ try{await saving;}finally{saving=null;}
+}
 async function save(event){
-  event.preventDefault();hideAlert('pdf-error');setBtn('btn-save-pdf',true);
-  try{const current=revision;await savePdfPreferences(user.id,collect());
-    if(current===revision){dirty=false;$('pdf-status').textContent='Preferenze salvate sul tuo account.';}else $('pdf-status').textContent='Salvataggio completato. Ci sono altre modifiche da salvare.';
-    toast('Preferenze di esportazione salvate');
-  }catch(error){showAlert('pdf-error',error.message);}finally{setBtn('btn-save-pdf',false);}
+ event.preventDefault();hideAlert('pdf-error');setBtn('btn-save-pdf',true);
+ try{await persist();toast('Preferenze di esportazione salvate');}
+ catch(error){showAlert('pdf-error',error.message);}finally{setBtn('btn-save-pdf',false);}
 }
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 window.addEventListener('pagehide',()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);});
@@ -70,6 +75,13 @@ async function init(){
   loading(true);initUI();user=await requireAuth();if(!user)return;
   $('topbar-email').textContent=user.email;$('app').style.display='block';build();fill(PDF_DEFAULTS);
   $('btn-logout').onclick=guard(logout);$('pdf-form').onsubmit=guard(save);$('pdf-form').onchange=guard(markChanged);$('pdf-section-order').onclick=guard(moveSection);
+  $('pdf-form').oninput=guard(markChanged);
+  if(returnUrl){
+   $('pdf-return').href=returnUrl;$('pdf-return').textContent='← Torna all’anteprima';
+   $('pdf-return').onclick=guard(async event=>{event.preventDefault();if(returning)return;returning=true;$('pdf-return').setAttribute('aria-disabled','true');$('pdf-form').inert=true;
+    try{if(dirty||saving)await persist();location.href=returnUrl;}catch(error){showAlert('pdf-error',error.message);}finally{returning=false;$('pdf-return').removeAttribute('aria-disabled');$('pdf-form').inert=false;}
+   });
+  }
   $('btn-reset-pdf').onclick=guard(()=>{fill(PDF_DEFAULTS);markChanged();});
   $('btn-preview-pdf').onclick=guard(()=>preview());$('btn-example-pdf').onclick=guard(()=>preview(true));
   try{fill(await loadPdfPreferences(user.id));$('pdf-status').textContent='Le preferenze salvate vengono applicate al prossimo export del piano.';}
