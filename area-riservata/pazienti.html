@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-3" />
   <script src="./js/vendor/chart.umd.js"></script>
   <script src="./js/vendor/html2pdf.bundle.min.js"></script>
   <style>
@@ -69,7 +69,7 @@
     .pat-categoria{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
       color:var(--text-muted);margin-top:.75rem;margin-bottom:.35rem;}
   </style>
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -440,19 +440,19 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-2';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-3';
 
 import { sb, requireAuth, logout,
          searchPazienti, getPaziente, savePaziente,
          getVisitePaziente, getUltimaVisita, saveVisita,
          getStrutture, getPrestazioni,
-         getPatologieCatalogo, getPatologiePaziente, localDateISO } from './js/supabase.js?v=20261009-2';
+         getPatologieCatalogo, getPatologiePaziente, localDateISO } from './js/supabase.js?v=20261009-3';
 
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, initUI,
          n, val, flt, resetFields,
          fmtDate, fmtDateShort, calcEta, emptyState,
-         showValoriPrecedenti, clearValoriPrecedenti, updateSearchControls } from './js/ui.js?v=20261009-2';
+         showValoriPrecedenti, clearValoriPrecedenti, updateSearchControls } from './js/ui.js?v=20261009-3';
 
 // ─── STATO ──────────────────────────────────────────────
 const S = {

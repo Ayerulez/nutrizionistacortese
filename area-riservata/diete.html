@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-3" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,11 +155,12 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/modelli.css?v=20261009-2" />
-  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-2" />
-  <link rel="stylesheet" href="css/diet-document.css?v=20261009-2" />
-  <link rel="stylesheet" href="css/meal-colors.css?v=20261009-2" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/meal-colors.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/diet-plan.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-3" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -294,7 +295,7 @@
         <div class="card mb-md diet-header">
           <div class="diet-heading">
             <div class="diet-heading-text"><h3 id="ed-nome" class="record-name"></h3>
-              <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span></div>
+              <div class="editor-summary"><span>Target: <strong id="ed-target"></strong> kcal/giorno</span><span id="ed-schema-lbl"></span><span id="ed-macro-lbl"></span><span class="plan-kind" id="ed-plan-kind"></span></div>
             </div>
             <div class="diet-primary-actions"><button class="btn btn-secondary" id="btn-anteprima" data-ui-icon="file">Anteprima</button><button class="btn btn-primary" id="btn-salva">Salva piano</button></div>
           </div>
@@ -313,13 +314,14 @@
         <div class="veg-alert-strip" id="veg-alert">🚫 <span id="veg-txt"></span></div>
 
         <!-- Editor tabs -->
-        <div class="tabs" style="margin-bottom:1rem;">
+        <div class="diet-view-bar"><div class="tabs">
           <button class="et-btn active" data-etab="piano">Piano</button>
           <button class="et-btn" data-etab="giorno">Vista giornaliera</button>
           <button class="et-btn" data-etab="testi">Testi</button>
           <button class="et-btn" data-etab="consig">Alimenti consigliati</button>
         </div>
 
+        <div class="diet-week-controls"><span class="diet-week-label">Periodo</span><div id="week-tabs"></div><div id="day-week-tabs" hidden></div></div></div>
         <!-- TAB PIANO -->
         <div id="etab-piano" class="tab-panel active">
           <div class="clip-bar" id="clip-bar">
@@ -327,7 +329,6 @@
             <div style="flex:1;"></div>
             <button class="btn btn-ghost btn-sm" style="border-color:rgba(255,255,255,.3);color:white;" id="clip-clear">✕ Cancella</button>
           </div>
-          <div style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap;" id="week-tabs"></div>
           <div class="piano-scroll" id="piano-cont" tabindex="0" aria-label="Tabella settimanale, scorribile orizzontalmente"></div>
           <div class="card mt-md" id="week-sum">
             <div class="card-title">Media settimana</div>
@@ -337,8 +338,7 @@
 
         <!-- TAB VISTA GIORNALIERA -->
         <div id="etab-giorno" class="tab-panel">
-          <div id="day-week-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
-          <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center;">
+          <div id="day-navigation" style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center;">
             <label style="font-size:.78rem;color:var(--text-muted);">Giorno:</label>
             <div id="day-selector" style="display:flex;gap:.3rem;flex-wrap:wrap;"></div>
           </div>
@@ -423,10 +423,11 @@
         <div class="grid-2"><div class="form-group"><label for="md-model-type">Tipo dieta</label><select id="md-model-type"><option value="">Tutti</option></select></div><div class="form-group"><label for="md-model-path">Patologia</label><select id="md-model-path"><option value="">Tutte</option></select></div></div>
         <div class="form-group"><label for="md-model-id">Modello di partenza</label><select id="md-model-id"><option value="">Seleziona un modello</option></select></div><p id="md-model-info"></p>
       </div></div>
+      <div class="form-group"><label for="md-structure">Tipologia del piano</label><select id="md-structure"><option value="settimanale">Settimanale — 1 o 2 settimane</option><option value="giornaliera">Giornaliera — una giornata con sostituzioni</option></select><p class="form-help" id="md-structure-help">Componi i pasti nei sette giorni della settimana.</p></div>
       <div class="form-group"><label>Nome dieta *</label><input type="text" id="md-nome" /></div>
       <div class="grid-2">
         <div class="form-group"><label>Target kcal/giorno *</label><input type="number" id="md-kcal" placeholder="1800" min="500" max="6000" step="50" /></div>
-        <div class="form-group"><label>Settimane</label>
+        <div class="form-group" id="md-weeks"><label>Settimane</label>
           <div class="checkbox-group" style="margin-top:.35rem;">
             <div class="checkbox-chip"><input type="radio" name="mds" id="mds1" value="1" checked><label for="mds1">1 sett.</label></div>
             <div class="checkbox-chip"><input type="radio" name="mds" id="mds2" value="2"><label for="mds2">2 sett.</label></div>
@@ -547,17 +548,20 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-2';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-3';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-2';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-2';
-import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-2';
-import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-2';
-import {previewLink} from './js/export-document.js?v=20261009-2';
-import {applyMealColors} from './js/meal-colors.js?v=20261009-2';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-3';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-3';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-3';
+import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-3';
+import {previewLink} from './js/export-document.js?v=20261009-3';
+import {isDailyPlan,planDays,planDuration,dayName} from './js/plan-structure.js?v=20261009-3';
+import {dayTotals} from './js/diet-export-model.js?v=20261009-3';
+import {mealNote} from './js/export-document.js?v=20261009-3';
+import {applyMealColors} from './js/meal-colors.js?v=20261009-3';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-2';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-3';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -640,6 +644,7 @@ async function init(){
   // Schema modal dieta
   document.querySelectorAll('.schema-chip').forEach(c=>c.onclick = guard(()=>{if(!c.disabled)selSchema(c.dataset.s);}));
   ['md-kcal','md-pc','md-pp','md-pl'].forEach(id=>n(id).addEventListener('input',aggiornaMdPrev));
+  n('md-structure').onchange=updateStructureForm;
   // Editor tabs
   document.querySelectorAll('.et-btn').forEach(b=>b.onclick = guard(()=>switchEtab(b.dataset.etab,b)));
   // Filtri globali
@@ -738,7 +743,7 @@ async function renderGlobalList(){
   if(!pzIds.length){n('diete-count').textContent='Nessun piano trovato';setHTML(n('global-list-cont'), emptyState('🥗','Nessuna dieta','Nessun paziente corrisponde ai filtri.'));return;}
 
   // Carica ultime 20 diete per i pazienti filtrati
-  const{data:diete}=await sb.from('diete').select('id,nome,target_kcal,numero_settimane,schema_macro,attiva,created_at,paziente_id')
+  const{data:diete}=await sb.from('diete').select('id,nome,target_kcal,numero_settimane,schema_macro,attiva,created_at,paziente_id,struttura_piano')
     .in('paziente_id',pzIds).order('created_at',{ascending:false}).limit(30).throwOnError();
 
   if(generation!==globalListGeneration)return;
@@ -751,7 +756,7 @@ async function renderGlobalList(){
       <div class="dg-av">${escapeHtml(ini.toUpperCase())}</div>
       <div class="row-summary"><div class="record-name">${escapeHtml(pz?.cognome||'')} ${escapeHtml(pz?.nome||'')}</div><div class="record-sub">${escapeHtml(fmtDateShort(d.created_at))}</div></div>
       <div class="row-summary"><div class="record-name">${escapeHtml(d.nome)}</div><div class="record-sub">${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')}</div></div>
-      <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(d.numero_settimane)} sett.</span>
+      <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(planDuration(d))}</span>
       <span class="list-value" data-label="Stato"><span class="record-status${d.attiva?'':' inactive'}">${d.attiva?'Attiva':'Inattiva'}</span></span><span class="record-chevron" aria-hidden="true">›</span>
     </div>`;
   }).join('')+'</div>');
@@ -821,7 +826,7 @@ async function loadPzDiete(){
   if(!data?.length){setHTML(cont, emptyState('🥗','Nessuna dieta','Clicca "+ Nuova dieta" per iniziare.'));return;}
   setHTML(cont, `<div class="record-list"><div class="record-head record-head--plan"><span>Piano alimentare</span><span>Calorie</span><span>Settimane</span><span>Creato il</span><span>Stato</span><span></span></div>`+data.map(d=>`<div class="record-row record-row--plan" data-open="${escapeHtml(d.id)}" data-row-open role="link" tabindex="0" aria-label="Apri piano ${escapeHtml(d.nome)}">
     <div class="row-summary"><div class="record-name">${escapeHtml(d.nome)}</div><div class="record-sub">${escapeHtml(SCHEMI[d.schema_macro||'libera']?.label||'—')}</div></div>
-    <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(d.numero_settimane)} sett.</span><span class="list-value" data-label="Creato il">${escapeHtml(fmtDateShort(d.created_at))}</span>
+    <span class="list-value" data-label="Target">${escapeHtml(Math.round(d.target_kcal))} kcal</span><span class="list-value" data-label="Durata">${escapeHtml(planDuration(d))}</span><span class="list-value" data-label="Creato il">${escapeHtml(fmtDateShort(d.created_at))}</span>
     <div class="record-actions"><button class="btn btn-secondary btn-sm" data-tog="${escapeHtml(d.id)}" data-att="${escapeHtml(d.attiva)}" title="${d.attiva?'Disattiva':'Attiva'} piano">${d.attiva?'Disattiva':'Attiva'}</button></div><span class="record-chevron" aria-hidden="true">›</span>
   </div>`).join('')+'</div>');
   cont.onclick = guard(async e=>{
@@ -873,8 +878,13 @@ function aggiornaMdPrev(){
 }
 
 let dietModels=[],modelsLoadGeneration=0;
+function updateStructureForm(){
+  const daily=n('md-structure').value==='giornaliera';n('md-weeks').hidden=daily;
+  if(daily)n('mds1').checked=true;
+  n('md-structure-help').textContent=daily?'Una giornata tipo con colazione, spuntini, pranzo e cena. Le sostituzioni si aggiungono ai singoli alimenti.':'Componi i pasti nei sette giorni della settimana.';
+}
 function lockTemplateFields(on){
-  ['md-kcal','md-note','md-pc','md-pp','md-pl'].forEach(id=>n(id).disabled=on);
+  ['md-structure','md-kcal','md-note','md-pc','md-pp','md-pl'].forEach(id=>n(id).disabled=on);
   document.querySelectorAll('[name=mds],.schema-chip').forEach(el=>{el.disabled=on;el.setAttribute('aria-disabled',String(on));});
 }
 function renderModelChoices(){
@@ -892,8 +902,8 @@ async function toggleModelPicker(){
 }
 function selectModelBase(){
   const model=n('md-use-model').checked?dietModels.find(m=>m.id===n('md-model-id').value&&m.attivo):null;
-  lockTemplateFields(!!model);n('md-model-info').textContent=model?`${model.piano.numero_settimane} settimane · ${Math.round(model.piano.target_kcal)} kcal/giorno. Verranno copiati pasti, quantità, alternative e testi. Dopo la creazione potrai adattare il piano; gli avvisi saranno verificati prima dell’applicazione.`:'Scegli un modello oppure crea un piano vuoto.';
-  if(model){const d=model.piano;n('md-nome').value=model.nome;n('md-kcal').value=d.target_kcal;n('md-note').value=d.note||'';document.querySelector(`[name=mds][value="${d.numero_settimane}"]`).checked=true;n('md-pc').value=d.pct_carboidrati??40;n('md-pp').value=d.pct_proteine??30;n('md-pl').value=d.pct_grassi??30;selSchema(d.schema_macro||'libera');}
+  lockTemplateFields(!!model);n('md-model-info').textContent=model?`${planDuration(model.piano)} · ${Math.round(model.piano.target_kcal)} kcal/giorno. Verranno copiati pasti, quantità, alternative e testi. Dopo la creazione potrai adattare il piano; gli avvisi saranno verificati prima dell’applicazione.`:'Scegli un modello oppure crea un piano vuoto.';
+  if(model){const d=model.piano;n('md-structure').value=isDailyPlan(d)?'giornaliera':'settimanale';updateStructureForm();n('md-nome').value=model.nome;n('md-kcal').value=d.target_kcal;n('md-note').value=d.note||'';document.querySelector(`[name=mds][value="${d.numero_settimane}"]`).checked=true;n('md-pc').value=d.pct_carboidrati??40;n('md-pp').value=d.pct_proteine??30;n('md-pl').value=d.pct_grassi??30;selSchema(d.schema_macro||'libera');}
 }
 async function createFromPlan(){
   if(!S.dieta)return;setBtn('btn-crea-modello',true);
@@ -904,6 +914,7 @@ async function openNuovaDieta(){
   ['md-model-q','md-model-type','md-model-path'].forEach(id=>n(id).value='');
   setHTML(n('md-model-type'),'<option value="">Tutti</option>'+Object.entries(DIET_TYPES).map(([id,label])=>`<option value="${id}">${escapeHtml(label)}</option>`).join(''));
   setHTML(n('md-model-path'),'<option value="">Tutte</option>'+S._catalogo.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.nome)}</option>`).join(''));
+  n('md-structure').value='settimanale';n('md-structure').disabled=false;updateStructureForm();
   n('md-id').value=''; n('md-title').textContent='Nuova dieta';
   ['md-nome','md-kcal','md-note'].forEach(id=>{const el=n(id);if(el)el.value='';});
   n('btn-save-dieta').textContent='Crea dieta';
@@ -914,6 +925,7 @@ async function openNuovaDieta(){
 function editMeta(){
   if(!S.dieta)return;
   ++modelsLoadGeneration;n('md-source').hidden=true;n('md-use-model').checked=false;lockTemplateFields(false);
+  n('md-structure').value=isDailyPlan(S.dieta)?'giornaliera':'settimanale';n('md-structure').disabled=true;updateStructureForm();
   n('md-id').value=S.dieta.id;n('md-title').textContent='Modifica dieta';
   n('md-nome').value=S.dieta.nome;n('md-kcal').value=S.dieta.target_kcal;
   n('md-note').value=S.dieta.note||'';n('btn-save-dieta').textContent='Salva';
@@ -929,7 +941,8 @@ function editMeta(){
 async function saveDieta(){
   hideAlert('md-err');
   const nome=val('md-nome'),kcal=parseFloat(n('md-kcal').value);
-  const sett=parseInt(document.querySelector('[name=mds]:checked')?.value||'1');
+  const structure=n('md-structure').value;
+  const sett=structure==='giornaliera'?1:parseInt(document.querySelector('[name=mds]:checked')?.value||'1');
   if(!nome){showAlert('md-err','Il nome è obbligatorio.');return;}
   if(!kcal||kcal<500){showAlert('md-err','Target calorico non valido.');return;}
   const schema=S._schemaModal;
@@ -939,7 +952,7 @@ async function saveDieta(){
   if(schema==='libera'&&(![pc,pp,pl].every(v=>Number.isFinite(v)&&v>=0&&v<=100)||Math.abs(pc+pp+pl-100)>0.01)){showAlert('md-err','Le percentuali devono totalizzare 100%.');return;}
   const editId=n('md-id').value||null;
   const payload={user_id:S.user.id,paziente_id:S.paziente.id,nome,target_kcal:kcal,
-    numero_settimane:sett,schema_macro:schema,
+    struttura_piano:structure,numero_settimane:sett,schema_macro:schema,
     pct_carboidrati:pc,pct_proteine:pp,pct_grassi:pl,note:val('md-note')||null};
   setBtn('btn-save-dieta',true);
   try{
@@ -948,7 +961,7 @@ async function saveDieta(){
       const{data:updated,error}=await sb.from('diete').update(payload).eq('id',editId).select().single().throwOnError();if(error)throw error;
       Object.assign(S.dieta,updated);
       for(let s=1;s<=updated.numero_settimane;s++){
-        S.piano[s]??={};for(let g=1;g<=7;g++){S.piano[s][g]??={};MOMENTI.forEach(m=>S.piano[s][g][m.id]??=[]);}
+        S.piano[s]??={};for(const g of planDays(updated)){S.piano[s][g]??={};MOMENTI.forEach(m=>S.piano[s][g][m.id]??=[]);}
       }
       S.settimana=Math.min(S.settimana,updated.numero_settimane);renderWeekTabs();renderPiano();renderEditorHeader();toast('Dieta aggiornata');
     } else {
@@ -976,7 +989,7 @@ async function openEditor(dietaId){
   S.piano={};
   for(let s=1;s<=d.numero_settimane;s++){
     S.piano[s]={};
-    for(let g=1;g<=7;g++){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=[]);}
+    for(const g of planDays(d)){S.piano[s][g]={};MOMENTI.forEach(m=>S.piano[s][g][m.id]=[]);}
   }
   const{data:pasti}=await sb.from('pasti_dieta').select('*').eq('dieta_id',dietaId).throwOnError();
   // Ordina per campo ordine per mantenere sequenza alimenti nel pasto
@@ -1010,17 +1023,19 @@ async function openEditor(dietaId){
   S._fpCtx={s:1,g:1,m:'',vIdx:null};n('fpk-q').value='';n('fpk-category').value='';
   renderEditorHeader();renderWeekTabs();renderPiano();buildDaySelector();
   refreshFpDestination();renderFpList();
-  const firstTab=matchMedia('(max-width:760px)').matches?'giorno':'piano';
+  const firstTab=isDailyPlan(d)||matchMedia('(max-width:760px)').matches?'giorno':'piano';
   switchEtab(firstTab,document.querySelector(`[data-etab="${firstTab}"]`));
   loading(false);
 }
 
 function switchEtab(tabId,btn){
+  if(isDailyPlan(S.dieta)&&tabId==='piano'){tabId='giorno';btn=document.querySelector('[data-etab=giorno]');}
   document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.et-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('etab-'+tabId)?.classList.add('active');
   if(btn)btn.classList.add('active');
   if(tabId==='giorno')renderDayView();
+  renderWeekTabs();
   if(S._fpPopupOpen)closeFp();
   layoutFoodPicker();
   n('week-sum').style.display=tabId==='piano'?'block':'none';
@@ -1029,6 +1044,8 @@ function switchEtab(tabId,btn){
 function renderEditorHeader(){
   const base=n('model-base');base.hidden=!S.dieta.modello_base_nome;
   if(S.dieta.modello_base_nome){setHTML(base,`Base del piano: <strong>${escapeHtml(S.dieta.modello_base_nome)}</strong>. Questo piano è una copia modificabile del modello. ${S.dieta.modello_base_id?`<a href="modelli.html?id=${escapeHtml(S.dieta.modello_base_id)}">Apri modello e storico</a>`:''}`);}
+  n('ed-plan-kind').textContent=isDailyPlan(S.dieta)?'Giornata tipo con sostituzioni':'Piano settimanale';
+  document.querySelector('[data-etab=piano]').hidden=isDailyPlan(S.dieta);document.querySelector('[data-etab=giorno]').textContent=isDailyPlan(S.dieta)?'Giornata tipo':'Vista giornaliera';n('day-navigation').hidden=isDailyPlan(S.dieta);
   n('ed-nome').textContent=S.dieta.nome;
   n('ed-target').textContent=Math.round(S.dieta.target_kcal);
   const schema=SCHEMI[S.dieta.schema_macro||'libera'];
@@ -1042,7 +1059,8 @@ function renderEditorHeader(){
 
 function renderWeekTabs(){
   for(const id of ['week-tabs','day-week-tabs']){
-    const wrap=n(id);setHTML(wrap,'');
+    const wrap=n(id),active=n('etab-giorno').classList.contains('active')?'day-week-tabs':'week-tabs';wrap.hidden=isDailyPlan(S.dieta)||id!==active;setHTML(wrap,'');
+    const show=['piano','giorno'].some(t=>n('etab-'+t).classList.contains('active'));document.querySelector('.diet-week-controls').hidden=isDailyPlan(S.dieta)||!show;
     for(let s=1;s<=S.dieta.numero_settimane;s++){
       const btn=document.createElement('button');btn.type='button';btn.className='week-tab'+(s===S.settimana?' active':'');btn.textContent='Settimana '+s;btn.setAttribute('aria-pressed',String(s===S.settimana));
       btn.onclick=guard(()=>{S.settimana=s;if(S._fpMode==='pasto')S._fpCtx={...S._fpCtx,s,vIdx:null};renderWeekTabs();renderPiano();if(n('etab-giorno').classList.contains('active'))renderDayView();refreshFpDestination();});wrap.appendChild(btn);
@@ -1072,12 +1090,11 @@ function vegWarn(cat){
 }
 
 function renderPiano(){
+  if(isDailyPlan(S.dieta)){renderDayView();return;}
   const s=S.settimana,target=S.dieta.target_kcal;
   const tot={};
   for(let g=1;g<=7;g++){
-    let k=0,p=0,c=0,l=0;
-    MOMENTI.forEach(m=>{const _sl=S.piano[s]?.[g]?.[m.id];(Array.isArray(_sl)?_sl:[]).forEach(ps=>{k+=ps.kcal||0;p+=ps.prot||0;c+=ps.carb||0;l+=ps.lip||0;});});
-    tot[g]={kcal:Math.round(k),prot:Math.round(p*10)/10,carb:Math.round(c*10)/10,lip:Math.round(l*10)/10};
+    const day=dayTotals(S.piano,s,g);tot[g]={...day,kcal:Math.round(day.kcal),prot:Math.round(day.prot*10)/10,carb:Math.round(day.carb*10)/10,lip:Math.round(day.lip*10)/10};
   }
   // Alert
   const over=Object.entries(tot).filter(([,t])=>t.kcal>target*1.05);
@@ -1092,7 +1109,11 @@ function renderPiano(){
   n('veg-alert').classList.toggle('show',vegWarnFound);
   if(vegWarnFound)n('veg-txt').textContent=`Alcuni alimenti potrebbero non essere compatibili con la dieta ${S.vegTipo} del paziente.`;
 
-  let html='<div class="piano-header"><div></div>'+GIORNI.map(g=>`<div class="pdl">${escapeHtml(g)}</div>`).join('')+'</div>';
+  let html='<div class="dtot day-totals-top"><div class="day-totals-label">Totali<br><small>del giorno</small></div>'+GIORNI.map((name,i)=>{
+    const t=tot[i+1],pct=Math.min(Math.round(t.kcal/target*100),115),cls=t.kcal>target*1.05?'over':t.kcal>target*.88?'ok':'warn';
+    return `<div class="dtot-cell" data-day-total="${i+1}" aria-label="Totali ${escapeHtml(name)}"><div class="dtot-k ${cls}">${t.kcal}<small> kcal</small></div>${dayMacroMarkup(t)}<div class="dtbar"><div class="dtbarf ${cls}" style="width:${pct}%;"></div></div></div>`;
+  }).join('')+'</div>';
+  html+='<div class="piano-header"><div></div>'+GIORNI.map(g=>`<div class="pdl">${escapeHtml(g)}</div>`).join('')+'</div>';
   html+='<div class="piano-grid">';
   MOMENTI.forEach(mom=>{
     html+=`<div class="mom-lbl" data-m="${escapeHtml(mom.id)}">${escapeHtml(mom.label)}</div>`;
@@ -1126,16 +1147,6 @@ function renderPiano(){
     }
   });
   html+='</div>';
-  html+='<div class="dtot"><div class="mom-lbl" style="font-size:.55rem;">Tot.</div>';
-  for(let g=1;g<=7;g++){
-    const t=tot[g],pct=Math.min(Math.round(t.kcal/target*100),115);
-    const cls=t.kcal>target*1.05?'over':t.kcal>target*0.88?'ok':'warn';
-    html+=`<div class="dtot-cell"><div class="dtot-k ${escapeHtml(cls)}">${escapeHtml(t.kcal)}</div>
-      <div style="font-size:.55rem;color:var(--text-muted);">${escapeHtml(pct)}%</div>
-      <div class="dtbar"><div class="dtbarf ${escapeHtml(cls)}" style="width:${escapeHtml(pct)}%;"></div></div>
-    </div>`;
-  }
-  html+='</div>';
   setHTML(n('piano-cont'), html);
   n('piano-cont').onclick = guard(e=>{
     const cell=e.target.closest('.pc');if(!cell)return;
@@ -1149,6 +1160,10 @@ function renderPiano(){
   renderWeekSummary(tot,target);
 }
 
+function dayMacroMarkup(t){
+  const value=n=>Number.isFinite(n)?new Intl.NumberFormat('it-IT',{maximumFractionDigits:1}).format(n):'—';
+  return `<dl class="day-macro-totals">${[['P','Proteine','prot'],['C','Carboidrati','carb'],['G','Grassi','lip']].map(([abbr,label,key])=>`<div title="${label}"><dt><abbr title="${label}">${abbr}</abbr></dt><dd>${escapeHtml(value(t[key]))}<small> g</small></dd></div>`).join('')}</dl>${t.incomplete?'<small class="macro-incomplete">Macro parziali</small>':''}`;
+}
 function renderWeekSummary(tot,target){
   const avg=f=>Math.round(Object.values(tot).reduce((s,t)=>s+t[f],0)/7*10)/10;
   const avgK=Math.round(Object.values(tot).reduce((s,t)=>s+t.kcal,0)/7);
@@ -1168,6 +1183,7 @@ function renderWeekSummary(tot,target){
 
 // ─── VISUALE GIORNALIERA ───────────────────────────────
 function buildDaySelector(){
+  if(isDailyPlan(S.dieta)){S.giornoVista=1;setHTML(n('day-selector'),'');return;}
   const ds=n('day-selector');
   setHTML(ds, GIORNI.map((g,i)=>`<button class="week-tab${escapeHtml(i+1===S.giornoVista?' active':'')}" data-dg="${escapeHtml(i+1)}">${escapeHtml(g)}</button>`).join(''));
   ds.onclick = guard(e=>{
@@ -1179,18 +1195,18 @@ function buildDaySelector(){
   });
 }
 
+function mealGuidance(s,g,m,position){const text=mealNote(S.dieta.documento_export,s,g,m)[position];return text?`<div class="day-guidance">${escapeHtml(text)}</div>`:'';}
 function renderDayView(){
   const s=S.settimana,g=S.giornoVista,target=S.dieta.target_kcal;
-  let totalK=0;
+  const day=dayTotals(S.piano,s,g),totalK=Math.round(day.kcal);
   const html=MOMENTI.map(mom=>{
     const voci=S.piano[s]?.[g]?.[mom.id]||[];
     if(voci.length===0)return`<div class="day-sec" data-food-slot data-s="${s}" data-g="${g}" data-m="${mom.id}">
       <div class="day-sec-hdr"><span class="day-mom">${escapeHtml(mom.label)}</span>
         <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;">— vuoto —</span>
         <button class="btn btn-ghost btn-sm" data-add-s="${escapeHtml(s)}" data-add-g="${escapeHtml(g)}" data-add-m="${escapeHtml(mom.id)}" style="margin-left:.5rem;">+</button>
-      </div></div>`;
+      </div>${mealGuidance(s,g,mom.id,'before')}${mealGuidance(s,g,mom.id,'after')}</div>`;
     const slotK=voci.reduce((a,v)=>a+(v.kcal||0),0);
-    totalK+=slotK;
     const hasCI=voci.some(v=>{const a=S.aliIdx[v.alimento_id];return a&&chkCI(v.alimento_id).some(c=>c.livello==='vietato');});
     const vociHtml=voci.map((p,vIdx)=>{
       const sosts=(p.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
@@ -1230,20 +1246,21 @@ function renderDayView(){
         <button class="btn btn-ghost btn-sm" data-det-s="${escapeHtml(s)}" data-det-g="${escapeHtml(g)}" data-det-m="${escapeHtml(mom.id)}" title="Gestisci pasto">Gestisci</button>
         <button class="btn btn-ghost btn-sm" data-copy-s="${escapeHtml(s)}" data-copy-g="${escapeHtml(g)}" data-copy-m="${escapeHtml(mom.id)}" title="Copia">Copia</button>
       </div>
-      <div class="day-body">${vociHtml}
+      ${mealGuidance(s,g,mom.id,'before')}<div class="day-body">${vociHtml}
         <button class="btn btn-ghost btn-sm" data-add-s="${escapeHtml(s)}" data-add-g="${escapeHtml(g)}" data-add-m="${escapeHtml(mom.id)}"
           style="margin-top:.3rem;font-size:.72rem;">+ Aggiungi alimento</button>
-      </div>
+      </div>${mealGuidance(s,g,mom.id,'after')}
     </div>`;
   }).join('');
 
   const pct=Math.min(Math.round(totalK/target*100),115);
   const cls=totalK>target*1.05?'over':totalK>target*0.88?'ok':'warn';
   setHTML(n('day-view-cont'), `
-    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1.25rem;">
+    <div class="day-total-summary">
       <div><div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Totale giorno</div>
         <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--${escapeHtml(cls==='over'?'text-primary':cls==='ok'?'sage-600':'stone-600')});">${escapeHtml(totalK)} kcal</div></div>
-      <div style="flex:1;"><div class="dtbar" style="height:8px;"><div class="dtbarf ${escapeHtml(cls)}" style="width:${escapeHtml(pct)}%;"></div></div>
+      ${dayMacroMarkup(day)}
+      <div class="day-target-progress"><div class="dtbar" style="height:8px;"><div class="dtbarf ${escapeHtml(cls)}" style="width:${escapeHtml(pct)}%;"></div></div>
         <div style="font-size:.7rem;color:var(--text-muted);margin-top:.2rem;">${escapeHtml(pct)}% del target (${escapeHtml(Math.round(target))} kcal)</div></div>
     </div>
     ${html}`);
@@ -1431,7 +1448,7 @@ async function dropFoodInSlot(source,slot){
  renderPiano();renderDayView();await autoSave();
  toast(`${alimento.nome} aggiunto a ${MOMENTI.find(m=>m.id===slot.m)?.label} · ${FULL_DAYS[slot.g-1]}`);
 }
-function validFoodSlot({s,g,m}){return Number.isInteger(s)&&s>=1&&s<=S.dieta.numero_settimane&&Number.isInteger(g)&&g>=1&&g<=7&&MOMENTI.some(meal=>meal.id===m)&&!!S.piano[s]?.[g];}
+function validFoodSlot({s,g,m}){return Number.isInteger(s)&&s>=1&&s<=S.dieta.numero_settimane&&Number.isInteger(g)&&planDays(S.dieta).includes(g)&&MOMENTI.some(meal=>meal.id===m)&&!!S.piano[s]?.[g];}
 function insertFoodInSlot(alimento,{s,g,m,vIdx=null},qg){
  const mc=cKcal(alimento,qg),voce={alimento_id:alimento.id,alimento_nome:alimento.nome,quantita_g:qg,kcal:mc.kcal,prot:mc.prot,carb:mc.carb,lip:mc.lip,sostituti_ids:[],note:null};
  if(!S.piano[s][g][m])S.piano[s][g][m]=[];
@@ -1499,7 +1516,7 @@ async function salvaPiano(showToast=true, includeTexts=false){
   clearTimeout(S._autoSaveTimer);
   const dieta=S.dieta;const revision=S.pianoRevision||0;
   const rows=[];
-  for(let s=1;s<=dieta.numero_settimane;s++)for(let g=1;g<=7;g++)MOMENTI.forEach(mom=>{
+  for(let s=1;s<=dieta.numero_settimane;s++)for(const g of planDays(dieta))MOMENTI.forEach(mom=>{
     (S.piano[s]?.[g]?.[mom.id]||[]).forEach((p,ordine)=>rows.push({
       settimana:s,giorno:g,momento:mom.id,ordine,
       alimento_id:p.alimento_id,alimento_nome:p.alimento_nome,quantita_g:p.quantita_g,
@@ -1531,7 +1548,7 @@ function openSlotDetail(s,g,m){
   const voci=S.piano[s]?.[g]?.[m]||[];
   const totK=voci.reduce((a,v)=>a+(v.kcal||0),0);
 
-  n('mp-title').textContent=`${GIORNI[g-1]} — ${mom?.label}`;
+  n('mp-title').textContent=`${dayName(S.dieta,g,GIORNI)} — ${mom?.label}`;
 
   function buildVoceHtml(voce,vIdx){
     const a=S.aliIdx[voce.alimento_id];

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!-- build: 2026-04-22 15:57 -->
+<html lang="it">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attività dello studio · Studio Cortese</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/dashboard-attivita.css?v=20261009-3" />
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar__logo">
+      <img src="../images/logo.png" alt="Logo" onerror="this.style.display='none'" />
+      <span class="topbar__title">Studio Cortese</span>
+      <span class="topbar__badge">Area Riservata</span>
+    </div>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__user">
+      <div class="topbar__avatar">GC</div>
+      <span class="topbar__email" id="topbar-email"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+        <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Principale</div>
+        <a href="index.html" class="sidebar-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+        <a href="pazienti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pazienti</a>
+        <a href="visite.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visite</a>
+        <a href="diete.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Diete</a>
+        <a href="alimenti.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Alimenti</a>
+      </div>
+      <div class="sidebar-section" style="margin-top:1rem;">
+        <div class="sidebar-section-label">Impostazioni</div>
+        <a href="impostazioni.html" class="sidebar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Impostazioni</a>
+        <a href="preferenze-pdf.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Preferenze di stampa</a>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main activity-main">
+      <div class="activity-topline"><div><span class="activity-eyebrow">IL TUO STUDIO</span><p id="activity-date"></p></div><div class="activity-top-actions"><a class="btn btn-ghost btn-sm" href="index.html">Dashboard statistiche</a><button class="btn btn-secondary btn-sm" id="activity-refresh" data-ui-icon="settings">Aggiorna</button></div></div>
+      <section class="activity-hero" aria-labelledby="activity-title">
+        <div class="activity-hero-copy"><span class="activity-eyebrow">STUDIO CORTESE</span><h1 id="activity-title">Ogni percorso<br>parte da qui.</h1><p>Pazienti, visite e piani nutrizionali.<br> Le attività del tuo studio, tutte a portata di mano.</p><div class="activity-hero-actions"><a class="btn btn-primary" href="pazienti.html" data-ui-icon="user">Vai ai pazienti</a><a class="btn btn-secondary" href="diete.html" data-ui-icon="file">Apri i piani</a></div></div>
+        <div class="activity-brand"><div class="activity-brand-ring" aria-hidden="true"></div><div class="activity-brand-logo"><img src="../images/logo.png" alt="Dott.ssa Giulia Cortese — Biologa nutrizionista"></div><span class="activity-brand-caption">Cura, equilibrio, continuità.</span></div>
+      </section>
+      <div class="activity-stats"><a href="pazienti.html"><span class="activity-stat-icon" data-ui-icon="user"></span><div><span>Pazienti in archivio</span><strong id="activity-patient-count">—</strong></div><span aria-hidden="true">↗</span></a><a href="visite.html"><span class="activity-stat-icon" data-ui-icon="file"></span><div><span>Visite registrate</span><strong id="activity-visit-count">—</strong></div><span aria-hidden="true">↗</span></a><a href="diete.html"><span class="activity-stat-icon" data-ui-icon="copy"></span><div><span>Piani nutrizionali</span><strong id="activity-diet-count">—</strong></div><span aria-hidden="true">↗</span></a></div>
+      <div class="alert alert-error" id="activity-error" role="alert"></div>
+      <section class="activity-section-head"><div><span class="activity-eyebrow">RIPRENDI DA DOVE ERI</span><h2>Le attività più recenti</h2></div><span class="activity-live" id="activity-status" role="status">Caricamento…</span></section>
+      <div class="activity-panels">
+        <section class="activity-panel activity-panel-visits"><header><span class="activity-panel-icon" data-ui-icon="file"></span><div><h3>Ultime visite</h3><p>I controlli più recenti</p></div><a href="visite.html" aria-label="Tutte le visite">Tutte <span aria-hidden="true">↗</span></a></header><div id="activity-visits" class="activity-list" aria-busy="true"><p class="activity-empty">Caricamento visite…</p></div></section>
+        <section class="activity-panel activity-panel-patients"><header><span class="activity-panel-icon" data-ui-icon="user"></span><div><h3>Nuovi pazienti</h3><p>Gli ultimi ingressi in studio</p></div><a href="pazienti.html" aria-label="Tutti i pazienti">Tutti <span aria-hidden="true">↗</span></a></header><div id="activity-patients" class="activity-list" aria-busy="true"><p class="activity-empty">Caricamento pazienti…</p></div></section>
+        <section class="activity-panel activity-panel-diets"><header><span class="activity-panel-icon" data-ui-icon="copy"></span><div><h3>Ultimi piani</h3><p>Le diete appena inserite</p></div><a href="diete.html" aria-label="Tutte le diete">Tutti <span aria-hidden="true">↗</span></a></header><div id="activity-diets" class="activity-list" aria-busy="true"><p class="activity-empty">Caricamento piani…</p></div></section>
+      </div>
+    </main>
+  </div>
+</div>
+<script type="module" src="js/dashboard-attivita.js?v=20261009-3"></script>
+</body>
+</html>
