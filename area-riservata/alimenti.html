@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-2" />
   <style>
     .alimenti-table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;}
     .alimenti-table{width:100%;border-collapse:collapse;font-size:.83rem;}
@@ -85,7 +85,7 @@
     border-top-color: var(--sage-600); border-radius:50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-2" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -278,12 +278,12 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-1';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-2';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-1';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-1';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-2';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-2';
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, flt, emptyState, updateSearchControls } from './js/ui.js?v=20261009-1';
+         ModalManager, initUI, n, val, flt, emptyState, updateSearchControls } from './js/ui.js?v=20261009-2';
 
 const PAGE_SIZE = 50;
 // ── Stato OFF ────────────────────────────────────────────────────────────────

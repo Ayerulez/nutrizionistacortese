@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/diet-document.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261009-2" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -54,27 +54,33 @@
     </nav>
 
     <main class="main document-main">
+      <header class="document-header">
       <div class="document-page-head"><div><a id="document-back" class="document-back">← Torna alla dieta</a><h2>Anteprima del piano</h2><p id="document-name"></p></div></div>
       <div class="document-toolbar">
         <div class="document-toolbar-edit"><button class="btn btn-secondary" id="document-preferences" data-ui-icon="settings">Preferenze</button><button class="btn btn-secondary" id="document-save" data-ui-icon="save">Salva modifiche</button></div>
         <div class="document-toolbar-export"><button class="btn btn-secondary" id="document-word" data-ui-icon="file">Scarica Word</button><button class="btn btn-primary" id="document-pdf" data-ui-icon="file">Scarica PDF</button></div>
       </div>
       <p id="document-status" class="document-status" role="status">Caricamento del piano…</p>
+      </header>
       <div id="document-error" class="alert alert-error" role="alert"></div>
       <div class="document-layout" id="document-layout" hidden>
-        <aside class="document-editor"><div class="document-editor-heading"><h3>Testi e aggiunte</h3><p>Le modifiche valgono per questo piano. L’anteprima si aggiorna mentre scrivi.</p></div>
+        <aside class="document-editor" id="document-editor"><div class="document-editor-heading"><h3>Testi e aggiunte</h3><p>Le modifiche valgono per questo piano. L’anteprima si aggiorna mentre scrivi.</p></div>
           <div id="document-fields"></div>
           <section class="document-add"><h4>Aggiungi un paragrafo</h4><label for="document-anchor">Posizione nel documento</label><select id="document-anchor"></select><button id="document-add" class="btn btn-secondary" data-ui-icon="plus">Inserisci paragrafo</button></section>
           <p class="document-paragraph-help">Le frecce ordinano i paragrafi inseriti nella stessa posizione.</p><div id="document-paragraphs"></div>
         </aside>
         <section class="document-preview" aria-label="PDF del piano">
-          <div class="document-preview-tools"><span id="document-pages-count" role="status"></span><label for="document-zoom">Zoom</label><select id="document-zoom"><option value="1">Adatta alla larghezza</option><option value="1.25">125%</option><option value="1.5">150%</option></select><button class="btn btn-ghost btn-sm" id="document-refresh">Aggiorna</button></div>
+          <div class="document-preview-tools">
+            <div class="document-view-actions"><button class="btn btn-ghost btn-sm" id="document-editor-toggle" data-ui-icon="edit" aria-controls="document-editor" aria-expanded="true">Testi e aggiunte</button><button class="btn btn-ghost btn-sm" id="document-focus" aria-pressed="false"><span aria-hidden="true">⤢</span><span id="document-focus-label">Espandi</span></button></div>
+            <div class="document-page-navigation"><button class="btn btn-ghost btn-icon btn-sm" id="document-previous" aria-label="Pagina precedente" disabled>‹</button><label for="document-page" class="sr-only">Pagina dell’anteprima</label><select id="document-page" disabled></select><button class="btn btn-ghost btn-icon btn-sm" id="document-next" aria-label="Pagina successiva" disabled>›</button><span id="document-pages-count" class="sr-only" role="status"></span></div>
+            <div class="document-view-options"><label for="document-zoom" class="sr-only">Dimensione dell’anteprima</label><select id="document-zoom"><option value="page">Pagina intera</option><option value="1">Larghezza pagina</option><option value="1.25">125%</option><option value="1.5">150%</option></select><button class="btn btn-ghost btn-sm" id="document-refresh" title="Rigenera anteprima">↻<span class="sr-only"> Aggiorna anteprima</span></button></div>
+          </div>
           <div class="document-canvas-scroll" id="document-canvas-scroll" tabindex="0" aria-label="Pagine dell’anteprima scorribili"><div id="document-pages"></div></div>
         </section>
       </div>
     </main>
   </div>
 </div>
-<script type="module" src="js/diet-document-page.js?v=20261009-1"></script>
+<script type="module" src="js/diet-document-page.js?v=20261009-2"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/app.css?v=20261009-2" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,10 +155,11 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/modelli.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/diet-document.css?v=20261009-1" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-1" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/meal-colors.css?v=20261009-2" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261009-2" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -284,7 +285,8 @@
         </div>
         <div class="diet-workspace">
           <aside class="diet-food-panel" id="diet-food-panel" aria-label="Catalogo alimenti del piano" hidden>
-            <div class="diet-food-heading"><h3>Alimenti</h3><p>Catalogo e Open Food Facts</p></div>
+            <div class="diet-food-heading"><div><h3>Alimenti</h3><p>Catalogo e Open Food Facts</p></div><button class="btn btn-ghost btn-icon btn-sm" id="food-catalog-collapse" aria-label="Riduci catalogo alimenti" aria-controls="food-panel-home" aria-expanded="true" title="Riduci catalogo alimenti">›</button></div>
+            <button class="food-catalog-expand" id="food-catalog-expand" aria-label="Espandi catalogo alimenti" aria-controls="food-panel-home" aria-expanded="false" title="Espandi catalogo alimenti" hidden><span aria-hidden="true">‹</span><span>Alimenti</span></button>
             <p class="food-drag-hint">Trascina un alimento nel pasto. I risultati OFF vengono importati al rilascio.</p>
             <div id="food-panel-home"></div>
           </aside>
@@ -545,16 +547,17 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-1';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-2';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-1';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-1';
-import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-1';
-import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-1';
-import {previewLink} from './js/export-document.js?v=20261009-1';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-2';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-2';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-2';
+import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-2';
+import {previewLink} from './js/export-document.js?v=20261009-2';
+import {applyMealColors} from './js/meal-colors.js?v=20261009-2';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-1';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-2';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -592,7 +595,7 @@ const S={
 
 // ─── INIT ───────────────────────────────────────────────
 async function init(){
-  loading(true); initUI();
+  loading(true); initUI();applyMealColors();
   S.user=await requireAuth(); if(!S.user)return;
   n('topbar-email').textContent=S.user.email;
   n('app').style.display='block';
@@ -605,6 +608,7 @@ async function init(){
   n('btn-save-dieta').onclick = guard(saveDieta);
   n('btn-salva').onclick = guard(()=>salvaPiano(true));
   n('btn-anteprima').onclick=guard(openPlanPreview);
+  n('food-catalog-collapse').onclick=()=>setCatalogCompact(true);n('food-catalog-expand').onclick=()=>setCatalogCompact(false);
   document.addEventListener('click',e=>{const menu=n('btn-clone').closest('details');if(!menu.contains(e.target)||e.target.closest('.diet-more-menu button'))menu.open=false;});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')n('btn-clone').closest('details').open=false;});
   n('btn-edit-meta').onclick = guard(editMeta);
@@ -1091,7 +1095,7 @@ function renderPiano(){
   let html='<div class="piano-header"><div></div>'+GIORNI.map(g=>`<div class="pdl">${escapeHtml(g)}</div>`).join('')+'</div>';
   html+='<div class="piano-grid">';
   MOMENTI.forEach(mom=>{
-    html+=`<div class="mom-lbl">${escapeHtml(mom.label)}</div>`;
+    html+=`<div class="mom-lbl" data-m="${escapeHtml(mom.id)}">${escapeHtml(mom.label)}</div>`;
     for(let g=1;g<=7;g++){
       const voci=S.piano[s]?.[g]?.[mom.id]||[];
       const isOver=tot[g].kcal>target*1.05;
@@ -1295,6 +1299,10 @@ function updateFpButton(){
  n('fpk-ann').textContent=docked?'Deseleziona':'Annulla';
 }
 let foodPanelFrame=0;
+function setCatalogCompact(compact){
+ n('view-editor').classList.toggle('catalog-compact',compact);n('food-catalog-expand').hidden=!compact;n('food-catalog-collapse').setAttribute('aria-expanded',String(!compact));
+ if(!compact)n('food-catalog-collapse').focus();else n('food-catalog-expand').focus();scheduleFoodPanelHeight();
+}
 function scheduleFoodPanelHeight(){
  if(foodPanelFrame)return;
  foodPanelFrame=requestAnimationFrame(()=>{foodPanelFrame=0;const panel=n('diet-food-panel');if(panel.hidden)return;const top=Math.max(84,panel.getBoundingClientRect().top);panel.style.setProperty('--food-panel-height',Math.max(160,innerHeight-top-16)+'px');});
