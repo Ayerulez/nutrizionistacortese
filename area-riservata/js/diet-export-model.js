@@ -1,5 +1,6 @@
-import {normalizeExportDocument} from './export-document.js?v=20261009-2';
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-2';
+import {normalizeExportDocument} from './export-document.js?v=20261009-3';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-3';
+import {isDailyPlan} from './plan-structure.js?v=20261009-3';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -13,7 +14,8 @@ export const energy=p=>number(p.kcal??p.kcal_calcolate);
 export const macro=(p,key)=>p[key]??p[({prot:'proteine_calcolate',carb:'carboidrati_calcolati',lip:'lipidi_calcolati'})[key]];
 export const macroText=p=>['prot','carb','lip'].map((key,i)=>`${['P','C','G'][i]} ${macro(p,key)==null?'-':grams(macro(p,key))} g`).join(' · ');
 export function selection(dieta,options={},context={}){
-  const o=normalizePdfOptions(options),totalWeeks=Math.max(1,Math.min(2,Math.trunc(number(dieta.numero_settimane))||1));
+  const o=normalizePdfOptions(options),totalWeeks=isDailyPlan(dieta)?1:Math.max(1,Math.min(2,Math.trunc(number(dieta.numero_settimane))||1));
+  if(isDailyPlan(dieta)){o.layout='daily';o.days=[1];o.weeks='current';}
   const current=Math.max(1,Math.min(totalWeeks,Math.trunc(number(context.currentWeek))||1));
   return {o,totalWeeks,weeks:o.weeks==='current'?[current]:Array.from({length:totalWeeks},(_,i)=>i+1)};
 }

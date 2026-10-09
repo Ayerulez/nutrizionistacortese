@@ -1,16 +1,17 @@
-import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-2';
-import {initUI,loading,toast,showAlert,hideAlert,fmtDateShort,updateSearchControls} from './ui.js?v=20261009-2';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-2';
-import {DIET_TYPES,loadModels,loadModelUsage,filterModels,openModelForm,updateModel,modelPlan,patientDietType} from './modelli.js?v=20261009-2';
-import {DAYS,MEALS,foodDetails,planSections} from './diet-export-model.js?v=20261009-2';
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-2';
+import {isDailyPlan,planDuration} from './plan-structure.js?v=20261009-3';
+import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-3';
+import {initUI,loading,toast,showAlert,hideAlert,fmtDateShort,updateSearchControls} from './ui.js?v=20261009-3';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-3';
+import {DIET_TYPES,loadModels,loadModelUsage,filterModels,openModelForm,updateModel,modelPlan,patientDietType} from './modelli.js?v=20261009-3';
+import {DAYS,MEALS,foodDetails,planSections} from './diet-export-model.js?v=20261009-3';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-3';
 const $=id=>document.getElementById(id),escape=escapeHtml;
 let models=[],catalog=[],patients=[],foods={},current=null,usage=[],detailGeneration=0;
 const pathNames=m=>(m.patologie_ids||[]).map(id=>catalog.find(p=>p.id===id)?.nome||'Categoria non disponibile');
 function renderList(){
  updateSearchControls();const list=filterModels(models,{q:$('models-q').value.trim(),type:$('models-type').value,path:$('models-path').value,archived:$('models-state').value==='archived'});
  $('models-count').textContent=`${list.length} ${list.length===1?'modello':'modelli'} ${$('models-state').value==='archived'?(list.length===1?'archiviato':'archiviati'):(list.length===1?'attivo':'attivi')}`;
- setHTML($('models-list'),list.length?`<div class="record-list"><div class="record-head record-head--models"><span>Modello</span><span>Tipo dieta</span><span>Patologie</span><span>Settimane</span><span></span></div>${list.map(m=>`<div class="record-row record-row--models" data-model="${escape(m.id)}" data-row-open role="link" tabindex="0" aria-label="Apri modello ${escape(m.nome)}"><div class="row-summary"><div class="record-name">${escape(m.nome)}</div><div class="record-sub">${escape(m.descrizione||'Piano riutilizzabile')}</div></div><span class="list-value" data-label="Dieta">${escape(DIET_TYPES[m.tipo_dieta])}</span><span class="list-value" data-label="Patologie">${escape(pathNames(m).join(', ')||'Non classificate')}</span><span class="list-value" data-label="Durata">${escape(m.piano.numero_settimane)} sett.</span><span class="record-chevron" aria-hidden="true">›</span></div>`).join('')}</div>`:'<div class="card"><p>Nessun modello corrisponde ai filtri. Puoi creare un modello dalla schermata di una dieta.</p></div>');
+ setHTML($('models-list'),list.length?`<div class="record-list"><div class="record-head record-head--models"><span>Modello</span><span>Tipo dieta</span><span>Patologie</span><span>Settimane</span><span></span></div>${list.map(m=>`<div class="record-row record-row--models" data-model="${escape(m.id)}" data-row-open role="link" tabindex="0" aria-label="Apri modello ${escape(m.nome)}"><div class="row-summary"><div class="record-name">${escape(m.nome)}</div><div class="record-sub">${escape(m.descrizione||'Piano riutilizzabile')}</div></div><span class="list-value" data-label="Dieta">${escape(DIET_TYPES[m.tipo_dieta])}</span><span class="list-value" data-label="Patologie">${escape(pathNames(m).join(', ')||'Non classificate')}</span><span class="list-value" data-label="Durata">${escape(planDuration(m.piano))}</span><span class="record-chevron" aria-hidden="true">›</span></div>`).join('')}</div>`:'<div class="card"><p>Nessun modello corrisponde ai filtri. Puoi creare un modello dalla schermata di una dieta.</p></div>');
 }
 function renderDay(){
  if(!current)return;const plan=modelPlan(current),week=Number($('model-week').value),day=Number($('model-day').value),o=normalizePdfOptions({showMacros:true});
@@ -24,8 +25,8 @@ function renderHistory(){
 async function openModel(id){
  const m=models.find(m=>m.id===id);if(!m)throw new Error('Modello non disponibile.');const generation=++detailGeneration;current=m;
  $('models-list-view').hidden=true;$('model-detail').hidden=false;$('model-name').textContent=m.nome;$('model-description').textContent=m.descrizione||'Copia indipendente del piano di partenza.';$('model-use').disabled=!m.attivo;
- setHTML($('model-meta'),[DIET_TYPES[m.tipo_dieta],m.attivo?'Attivo':'Archiviato',m.piano.numero_settimane+' settimane',Math.round(m.piano.target_kcal)+' kcal/giorno',...pathNames(m)].map(t=>`<span>${escape(t)}</span>`).join(''));
- setHTML($('model-week'),Array.from({length:m.piano.numero_settimane},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join(''));setHTML($('model-day'),DAYS.map((name,i)=>`<option value="${i+1}">${name}</option>`).join(''));renderDay();
+ setHTML($('model-meta'),[DIET_TYPES[m.tipo_dieta],m.attivo?'Attivo':'Archiviato',planDuration(m.piano),Math.round(m.piano.target_kcal)+' kcal/giorno',...pathNames(m)].map(t=>`<span>${escape(t)}</span>`).join(''));
+ setHTML($('model-week'),Array.from({length:m.piano.numero_settimane},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join(''));setHTML($('model-day'),(isDailyPlan(m.piano)?['Giornata tipo']:DAYS).map((name,i)=>`<option value="${i+1}">${name}</option>`).join(''));renderDay();
  setHTML($('model-texts'),planSections(m.piano,foods,normalizePdfOptions()).map(([,title,text])=>`<div class="model-meal"><h4>${escape(title)}</h4><p class="model-text">${escape(text)}</p></div>`).join(''));
  $('model-history-q').value='';$('model-history').textContent='Caricamento dello storico…';
  try{const records=await loadModelUsage(id);if(generation!==detailGeneration)return;usage=records;renderHistory();}

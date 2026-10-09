@@ -3,8 +3,8 @@ pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.js',impor
 
 // Pagine del PDF effettivo; canvas caricate soltanto vicino allo scroll.
 export class PdfPreview {
- constructor(scroll,pages,count,onError){
-  Object.assign(this,{scroll,pages,count,onError,zoom:'page',currentPage:1,generation:0,views:[]});
+ constructor(scroll,pages,count,onError,onMealNote){
+  Object.assign(this,{scroll,pages,count,onError,onMealNote,zoom:'page',currentPage:1,generation:0,views:[]});
   this.select=document.getElementById('document-page');this.previous=document.getElementById('document-previous');this.next=document.getElementById('document-next');
   this.select.onchange=()=>this.goToPage(Number(this.select.value));this.previous.onclick=()=>this.goToPage(this.currentPage-1);this.next.onclick=()=>this.goToPage(this.currentPage+1);
   this.observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting)this.render(this.views.find(v=>v.host===entry.target));},{root:scroll,rootMargin:'500px'});
@@ -16,7 +16,7 @@ export class PdfPreview {
   const top=this.scroll.getBoundingClientRect().top+parseFloat(getComputedStyle(this.scroll).paddingTop),rect=view.host.getBoundingClientRect();
   return {page:this.currentPage,ratio:Math.max(0,Math.min(1,(top-rect.top)/Math.max(1,rect.height)))};
  }
- async show(buffer){
+ async show(buffer,anchors=[]){
   const position=this.position(),generation=++this.generation;
   this.select.disabled=true;this.previous.disabled=true;this.next.disabled=true;this.scroll.setAttribute('aria-busy','true');
   this.observer.disconnect();this.views.forEach(v=>v.task?.cancel());this.views=[];
@@ -26,9 +26,16 @@ export class PdfPreview {
   this.pdf=pdf;this.pages.replaceChildren();this.count.textContent=pdf.numPages+' pagine';this.select.replaceChildren();
   for(let i=1;i<=pdf.numPages;i++){
    const page=await pdf.getPage(i);if(generation!==this.generation)return;
-   const host=document.createElement('div');host.className='document-pdf-page';host.setAttribute('role','img');host.setAttribute('aria-label','Pagina '+i+' del piano');
+   const host=document.createElement('div');host.className='document-pdf-page';host.setAttribute('role',anchors.some(a=>a.page===i)?'group':'img');host.setAttribute('aria-label','Pagina '+i+' del piano');
    const canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');host.append(canvas);this.pages.append(host);
-   this.views.push({page,host,canvas,generation});this.select.add(new Option(i+' / '+pdf.numPages,String(i)));
+   const view={page,host,canvas,generation};this.views.push(view);
+   const base=page.getViewport({scale:1}),pt=72/25.4;
+   for(const anchor of anchors.filter(a=>a.page===i)){
+    const input=document.createElement('textarea');input.className='document-note-edit';input.value=anchor.text;input.placeholder='+ '+anchor.label;input.maxLength=2000;input.setAttribute('aria-label',anchor.label);input.dataset.mealNote=anchor.meal;input.dataset.notePosition=anchor.position;input.dataset.week=anchor.week;input.dataset.day=anchor.day;
+    Object.assign(input.style,{left:anchor.x*pt/base.width*100+'%',top:anchor.y*pt/base.height*100+'%',width:anchor.width*pt/base.width*100+'%',height:anchor.height*pt/base.height*100+'%'});
+    input.oninput=()=>this.onMealNote?.(anchor,input.value);host.append(input);
+   }
+   this.select.add(new Option(i+' / '+pdf.numPages,String(i)));
   }
   this.currentPage=Math.min(position.page,pdf.numPages);this.layout(false);this.goToPage(this.currentPage,position.ratio);this.scroll.removeAttribute('aria-busy');
  }
@@ -41,6 +48,7 @@ export class PdfPreview {
   for(const view of this.views){
    const base=view.page.getViewport({scale:1}),scale=this.zoom==='page'?Math.min(width/base.width,height/base.height):width/base.width*(Number(this.zoom)||1);
    if(Math.abs((view.scale||0)-scale)>.001){view.task?.cancel();view.painted=false;view.scale=scale;view.layoutVersion=(view.layoutVersion||0)+1;view.host.style.width=base.width*scale+'px';view.host.style.height=base.height*scale+'px';}
+   view.host.querySelectorAll('.document-note-edit').forEach(el=>{el.style.fontSize=Math.max(innerWidth<=760?16:11,9*scale)+'px';el.style.lineHeight=Math.max(innerWidth<=760?19:15,4.4*72/25.4*scale)+'px';});
    this.observer.observe(view.host);
   }
   if(position)this.goToPage(position.page,position.ratio);

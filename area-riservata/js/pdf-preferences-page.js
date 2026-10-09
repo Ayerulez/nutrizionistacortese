@@ -1,10 +1,10 @@
-import {requireAuth,logout} from './supabase.js?v=20261009-2';
-import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261009-2';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-2';
-import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261009-2';
-import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261009-2';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-2';
-import {previewLink} from './export-document.js?v=20261009-2';
+import {requireAuth,logout} from './supabase.js?v=20261009-3';
+import {loading,toast,initUI,showAlert,hideAlert,setBtn} from './ui.js?v=20261009-3';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-3';
+import {PDF_DEFAULTS,EXPORT_SECTIONS,normalizePdfOptions} from './pdf-options.js?v=20261009-3';
+import {loadPdfPreferences,savePdfPreferences} from './pdf-preferences.js?v=20261009-3';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-3';
+import {previewLink} from './export-document.js?v=20261009-3';
 const $=id=>document.getElementById(id);
 let user,dirty=false,revision=0,previewUrl,saving,returning=false,sectionOrder=[...PDF_DEFAULTS.sectionOrder];
 const params=new URLSearchParams(location.search),returnUrl=params.get('ritorno')==='anteprima'?previewLink(params.get('dieta'),params.get('settimana')):null;

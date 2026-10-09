@@ -1,14 +1,14 @@
-import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-2';
-import {initUI,loading,showAlert,hideAlert,toast,setBtn} from './ui.js?v=20261009-2';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-2';
-import {DOCUMENT_FIELDS,MAX_PARAGRAPHS,normalizeExportDocument,previewLink} from './export-document.js?v=20261009-2';
-import {EXPORT_SECTIONS} from './pdf-options.js?v=20261009-2';
-import {loadPdfPreferences} from './pdf-preferences.js?v=20261009-2';
-import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-2';
-import {esportaPianoWord} from './word-dieta.js?v=20261009-2';
-import {PdfPreview} from './pdf-preview-renderer.js?v=20261009-2';
+import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261009-3';
+import {initUI,loading,showAlert,hideAlert,toast,setBtn} from './ui.js?v=20261009-3';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261009-3';
+import {DOCUMENT_FIELDS,MAX_PARAGRAPHS,normalizeExportDocument,previewLink} from './export-document.js?v=20261009-3';
+import {EXPORT_SECTIONS} from './pdf-options.js?v=20261009-3';
+import {loadPdfPreferences} from './pdf-preferences.js?v=20261009-3';
+import {loadJsPDF,loadPdfLogo,createPianoPDF} from './pdf-dieta.js?v=20261009-3';
+import {esportaPianoWord} from './word-dieta.js?v=20261009-3';
+import {PdfPreview} from './pdf-preview-renderer.js?v=20261009-3';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
-const S={revision:0,saved:0,renderRevision:-1,paragraphs:[],ready:false,busy:false};
+const S={revision:0,saved:0,renderRevision:-1,viewRevision:0,editMealNotes:false,mealNotes:[],paragraphs:[],ready:false,busy:false};
 let saveTimer,previewTimer,saveQueue,renderQueue,renderer,jsPDF,logo,heightFrame,heightObserver;
 function scheduleDocumentHeight(){
  if(heightFrame)return;
@@ -18,8 +18,8 @@ function toggleDocumentFocus(force){
  const active=force??!document.body.classList.contains('document-focus');document.body.classList.toggle('document-focus',active);$('document-focus').setAttribute('aria-pressed',String(active));$('document-focus-label').textContent=active?'Ripristina':'Espandi';scheduleDocumentHeight();
 }
 const flags={intro:'showIntro',guidelines:'showGuidelines',planNotes:'showPlanNotes',conclusions:'showConclusions'};
-function fail(error){const missing=['PGRST202','PGRST204','42703'].includes(error.code);showAlert('document-error',missing?'Attiva il salvataggio dell’anteprima eseguendo db/004_anteprima_documento.sql su Supabase. Le modifiche qui restano aperte finché non riesci a salvarle.':error.message||String(error));$('document-status').textContent='Operazione non completata. Le modifiche non salvate restano in questa schermata.';}
-function snapshot(){const dieta={...S.dieta,documento_export:normalizeExportDocument({paragraphs:S.paragraphs})};for(const field of Object.values(DOCUMENT_FIELDS))dieta[field]=$('document-field-'+field).value;return dieta;}
+function fail(error){const missing=['PGRST202','PGRST204','42703'].includes(error.code);showAlert('document-error',missing?'Attiva l’anteprima e le note eseguendo db/004_anteprima_documento.sql e db/005_dieta_giornaliera_note_pasti.sql su Supabase. Le modifiche qui restano aperte finché non riesci a salvarle.':error.message||String(error));$('document-status').textContent='Operazione non completata. Le modifiche non salvate restano in questa schermata.';}
+function snapshot(){const dieta={...S.dieta,documento_export:normalizeExportDocument({paragraphs:S.paragraphs,mealNotes:S.mealNotes})};for(const field of Object.values(DOCUMENT_FIELDS))dieta[field]=$('document-field-'+field).value;return dieta;}
 function anchorOptions(selected){return S.options.sectionOrder.flatMap(id=>['before','after'].map(position=>`<option value="${position}:${id}" ${selected===position+':'+id?'selected':''}>${position==='before'?'Prima di':'Dopo'}: ${escapeHtml(EXPORT_SECTIONS[id])}</option>`)).join('');}
 function buildFields(){
  setHTML($('document-fields'),Object.entries(DOCUMENT_FIELDS).map(([id,field],i)=>`<details class="document-field" ${i===0?'open':''}><summary>${escapeHtml(EXPORT_SECTIONS[id])}<small>${S.options[flags[id]]?'Incluso se compilato':'Escluso dalle preferenze'}</small></summary><label for="document-field-${field}" class="sr-only">${escapeHtml(EXPORT_SECTIONS[id])}</label><textarea id="document-field-${field}" maxlength="20000" rows="6"></textarea>${S.options[flags[id]]?'':'<p class="document-field-hidden">Per stampare questa sezione, attivala nelle preferenze.</p>'}</details>`).join(''));
@@ -32,6 +32,7 @@ function buildParagraphs(focusId){
  $('document-add').disabled=S.paragraphs.length>=MAX_PARAGRAPHS;
  if(focusId)$('text-'+focusId)?.focus();
 }
+const renderKey=()=>S.revision+':'+S.viewRevision;
 function changed(){S.revision++;hideAlert('document-error');$('document-status').textContent='Modifiche in corso…';clearTimeout(saveTimer);saveTimer=setTimeout(()=>flush().catch(fail),1200);clearTimeout(previewTimer);previewTimer=setTimeout(()=>refresh().catch(fail),500);}
 function updateMoveButtons(){
  document.querySelectorAll('[data-paragraph]').forEach(card=>{const i=S.paragraphs.findIndex(p=>p.id===card.dataset.paragraph),p=S.paragraphs[i];card.querySelector('[data-move="-1"]').disabled=!S.paragraphs.slice(0,i).some(other=>other.anchor===p.anchor);card.querySelector('[data-move="1"]').disabled=!S.paragraphs.slice(i+1).some(other=>other.anchor===p.anchor);});
@@ -49,18 +50,28 @@ async function flush(){
 }
 async function refresh(){
  clearTimeout(previewTimer);
- if(renderQueue){await renderQueue;if(S.renderRevision!==S.revision)return refresh();return;}
- renderQueue=(async()=>{while(S.renderRevision!==S.revision){
-  const revision=S.revision,dieta=snapshot();
-  const doc=createPianoPDF(jsPDF,dieta,S.paziente,S.piano,S.idx,logo,S.options,{currentWeek:S.week});
-  await renderer.show(doc.output('arraybuffer'));S.renderRevision=revision;S.pdf=doc;
+ if(document.activeElement?.classList.contains('document-note-edit'))return;
+ if(renderQueue){await renderQueue;if(S.renderRevision!==renderKey())return refresh();return;}
+ renderQueue=(async()=>{while(S.renderRevision!==renderKey()){
+  const key=renderKey(),dieta=snapshot();
+  const doc=createPianoPDF(jsPDF,dieta,S.paziente,S.piano,S.idx,logo,S.options,{currentWeek:S.week,editableMealNotes:S.editMealNotes});
+  await renderer.show(doc.output('arraybuffer'),doc.mealNoteAnchors);S.renderRevision=key;S.pdf=doc;
  }})();try{await renderQueue;}finally{renderQueue=null;}
 }
 async function action(id,fn){
  if(!S.ready||S.busy)return;S.busy=true;hideAlert('document-error');
- const controls=['document-save','document-preferences','document-word','document-pdf','document-refresh'];controls.forEach(k=>$(k).disabled=true);setBtn(id,true);document.querySelector('.document-editor').inert=true;
+ const controls=['document-save','document-preferences','document-word','document-pdf','document-refresh','document-note-toggle'];controls.forEach(k=>$(k).disabled=true);setBtn(id,true);document.querySelector('.document-editor').inert=true;$('document-pages').inert=true;
  try{await flush();await fn();}catch(error){fail(error);}
- finally{setBtn(id,false);controls.forEach(k=>$(k).disabled=false);document.querySelector('.document-editor').inert=false;S.busy=false;}
+ finally{setBtn(id,false);$('document-note-toggle').textContent=S.editMealNotes?'Fine modifica':'Note pasti';controls.forEach(k=>$(k).disabled=false);document.querySelector('.document-editor').inert=false;$('document-pages').inert=false;S.busy=false;}
+}
+function updateMealNote(anchor,text){
+ let note=S.mealNotes.find(n=>n.week===anchor.week&&n.day===anchor.day&&n.meal===anchor.meal);
+ if(!note){note={week:anchor.week,day:anchor.day,meal:anchor.meal,before:'',after:''};S.mealNotes.push(note);}note[anchor.position]=text;changed();
+}
+async function setMealEditing(on){
+ S.editMealNotes=on;S.viewRevision++;$('document-note-toggle').setAttribute('aria-pressed',String(on));$('document-note-toggle').textContent=on?'Fine modifica':'Note pasti';$('document-note-help').hidden=!on;
+ if(on){const zoom=innerWidth<=760?'3':'1';$('document-zoom').value=zoom;renderer.setZoom(zoom);}
+ await refresh();if(on&&S.pdf.mealNoteAnchors.length)renderer.goToPage(S.pdf.mealNoteAnchors[0].page);
 }
 function wire(){
  $('document-fields').oninput=changed;
@@ -69,10 +80,12 @@ function wire(){
  $('document-add').onclick=()=>{if(S.paragraphs.length>=MAX_PARAGRAPHS)return;const p={id:crypto.randomUUID(),anchor:$('document-anchor').value,title:'',text:'',pageBreak:false};S.paragraphs.push(p);buildParagraphs(p.id);changed();};
  $('document-save').onclick=guard(()=>action('document-save',()=>toast('Modifiche del piano salvate')));
  $('document-refresh').onclick=guard(()=>action('document-refresh',refresh));
- $('document-pdf').onclick=guard(()=>action('document-pdf',async()=>{await refresh();S.pdf.save('Piano_'+[S.paziente.cognome,S.paziente.nome].join('_').replace(/[^\p{L}\p{N}_-]/gu,'')+'.pdf');}));
- $('document-word').onclick=guard(()=>action('document-word',()=>esportaPianoWord(snapshot(),S.paziente,S.piano,S.idx,S.options,{currentWeek:S.week})));
+ $('document-pdf').onclick=guard(()=>action('document-pdf',async()=>{if(S.editMealNotes)await setMealEditing(false);await refresh();S.pdf.save('Piano_'+[S.paziente.cognome,S.paziente.nome].join('_').replace(/[^\p{L}\p{N}_-]/gu,'')+'.pdf');}));
+ $('document-word').onclick=guard(()=>action('document-word',async()=>{if(S.editMealNotes)await setMealEditing(false);await esportaPianoWord(snapshot(),S.paziente,S.piano,S.idx,S.options,{currentWeek:S.week});}));
  $('document-preferences').onclick=guard(()=>action('document-preferences',()=>{location.href='preferenze-pdf.html?'+new URLSearchParams({ritorno:'anteprima',dieta:S.dieta.id,settimana:S.week});}));
  $('document-back').onclick=guard(event=>{event.preventDefault();return action('document-save',()=>{location.href=$('document-back').href;});});
+ $('document-note-toggle').onclick=guard(()=>action('document-note-toggle',()=>setMealEditing(!S.editMealNotes)));
+ $('document-pages').addEventListener('focusout',()=>{clearTimeout(previewTimer);previewTimer=setTimeout(()=>refresh().catch(fail),100);});
  $('document-zoom').onchange=()=>renderer.setZoom($('document-zoom').value);
  $('document-editor-toggle').onclick=()=>{const editor=$('document-editor');editor.hidden=!editor.hidden;$('document-layout').classList.toggle('document-texts-hidden',editor.hidden);$('document-editor-toggle').setAttribute('aria-expanded',String(!editor.hidden));scheduleDocumentHeight();};
  $('document-focus').onclick=()=>toggleDocumentFocus();
@@ -89,12 +102,12 @@ async function init(){
    getAllRows(()=>sb.from('pasti_dieta').select('*').eq('dieta_id',id).eq('user_id',user.id).order('settimana').order('giorno').order('momento').order('ordine').order('id')),
    getAllRows(()=>sb.from('alimenti').select('*').order('id')),loadPdfPreferences(user.id)
   ]);
-  Object.assign(S,{paziente,options,piano:{},idx:Object.fromEntries(foods.map(f=>[f.id,f])),week:Math.max(1,Math.min(dieta.numero_settimane||1,Math.trunc(Number(params.get('settimana')))||1)),paragraphs:normalizeExportDocument(dieta.documento_export).paragraphs});
+  Object.assign(S,{paziente,options,piano:{},idx:Object.fromEntries(foods.map(f=>[f.id,f])),week:Math.max(1,Math.min(dieta.numero_settimane||1,Math.trunc(Number(params.get('settimana')))||1)),mealNotes:normalizeExportDocument(dieta.documento_export).mealNotes||[],paragraphs:normalizeExportDocument(dieta.documento_export).paragraphs});
   for(const p of meals){S.piano[p.settimana]??={};S.piano[p.settimana][p.giorno]??={};S.piano[p.settimana][p.giorno][p.momento]??=[];S.piano[p.settimana][p.giorno][p.momento].push(p);}
   $('document-name').textContent=dieta.nome+' · '+[paziente.nome,paziente.cognome].filter(Boolean).join(' ');
   $('document-back').href='diete.html?'+new URLSearchParams({paziente:paziente.id,dieta:id,settimana:S.week});
   buildFields();buildParagraphs();wire();
-  renderer=new PdfPreview($('document-canvas-scroll'),$('document-pages'),$('document-pages-count'),fail);
+  renderer=new PdfPreview($('document-canvas-scroll'),$('document-pages'),$('document-pages-count'),fail,updateMealNote);
   [jsPDF,logo]=await Promise.all([loadJsPDF(),options.showLogo?loadPdfLogo():null]);
   $('document-layout').hidden=false;scheduleDocumentHeight();heightObserver=new ResizeObserver(scheduleDocumentHeight);heightObserver.observe(document.querySelector('.document-header'));heightObserver.observe($('document-error'));await refresh();S.ready=true;$('document-status').textContent='PDF effettivo · Testi salvati sul piano · Word adatta le pagine al proprio layout.';
  }catch(error){fail(error);for(const id of ['document-save','document-preferences','document-word','document-pdf'])$(id).disabled=true;}

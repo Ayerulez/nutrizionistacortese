@@ -1,6 +1,8 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-2';
-import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261009-2';
-import {mealColors,colorRgb} from './meal-colors.js?v=20261009-2';
+import {mealNote} from './export-document.js?v=20261009-3';
+import {isDailyPlan} from './plan-structure.js?v=20261009-3';
+import {normalizePdfOptions} from './pdf-options.js?v=20261009-3';
+import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue,selection} from './diet-export-model.js?v=20261009-3';
+import {mealColors,colorRgb} from './meal-colors.js?v=20261009-3';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -21,11 +23,11 @@ const macro=(p,key)=>p[key]??p[({prot:'proteine_calcolate',carb:'carboidrati_cal
 const macroText=p=>['prot','carb','lip'].map((key,i)=>`${['P','C','G'][i]} ${macro(p,key)==null?'-':grams(macro(p,key))} g`).join(' · ');
 
 export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,options={},context={}){
-  const o=normalizePdfOptions(options),scale=o.textSize==='large'?1.15:1;
+  const {o,totalWeeks,weeks}=selection(dieta,options,context);if(context.editableMealNotes)o.layout='daily';const scale=o.textSize==='large'?1.15:1;
   const c=o.palette==='grayscale'?{green:[55,55,55],pale:[244,244,244],border:[195,195,195],dark:[35,35,35],grey:[95,95,95]}:
     {green:[90,130,96],pale:[240,245,241],border:[200,216,200],dark:[42,42,42],grey:[105,105,105]};
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-  let first=true;
+  doc.mealNoteAnchors=[];let first=true;
   const font=(size,bold=false,color=c.dark)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size*scale);doc.setTextColor(...color);};
   const wrap=(value,width,size,bold=false)=>{font(size,bold);return doc.splitTextToSize(clean(value),width);};
   const rect=(x,y,w,h,fill)=>{doc.setFillColor(...fill);doc.setDrawColor(...c.border);doc.setLineWidth(.15);doc.rect(x,y,w,h,'FD');};
@@ -73,9 +75,6 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     prot:items.reduce((n,p)=>n+number(macro(p,'prot')),0),carb:items.reduce((n,p)=>n+number(macro(p,'carb')),0),lip:items.reduce((n,p)=>n+number(macro(p,'lip')),0),
     incomplete:items.some(p=>['prot','carb','lip'].some(k=>macro(p,k)==null))};};
   const totalLines=(s,g)=>{const t=totals(s,g),a=[];if(o.showCalories)a.push(`${roundedExportValue(t.kcal)} kcal`);if(o.showMacros){a.push(macroText(t));if(t.incomplete)a.push('Macro parziali');}return a;};
-  const totalWeeks=Math.max(1,Math.min(2,Math.trunc(number(dieta.numero_settimane))||1));
-  const current=Math.max(1,Math.min(totalWeeks,Math.trunc(number(context.currentWeek))||1));
-  const weeks=o.weeks==='current'?[current]:Array.from({length:totalWeeks},(_,i)=>i+1);
   function weekly(s){
     let part=1,g,y,labelW=22,cellW,lineHeight=3.5*scale;
     const page=()=>{
@@ -84,9 +83,10 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
       o.days.forEach((day,i)=>{const x=g.margin+labelW+i*cellW;rect(x,y,cellW,6,c.green);font(8,true,[255,255,255]);doc.text(SHORT[day-1],x+cellW/2,y+4.1,{align:'center'});});y+=6;
     };page();
     for(const [id,label] of MEALS){
-      if(!o.showEmptyMeals&&o.days.every(day=>!foodsAt(piano,s,day,id).length))continue;
+      if(!o.showEmptyMeals&&o.days.every(day=>!foodsAt(piano,s,day,id).length&&(!o.showMealNotes||!Object.values(mealNote(dieta.documento_export,s,day,id)).slice(-2).some(t=>String(t).trim()))))continue;
       const cells=o.days.map(day=>{
-        const lines=[];foodsAt(piano,s,day,id).forEach((food,i)=>{if(i)lines.push({text:'',size:6,bold:false,color:c.grey});lines.push(...foodLines(food,cellW-3));});
+        const notes=mealNote(dieta.documento_export,s,day,id),lines=[];if(o.showMealNotes&&notes.before)wrap(notes.before,cellW-3,7.5).forEach(text=>lines.push({text,size:7.5,bold:false,color:c.grey}));foodsAt(piano,s,day,id).forEach((food,i)=>{if(i)lines.push({text:'',size:6,bold:false,color:c.grey});lines.push(...foodLines(food,cellW-3));});
+        if(o.showMealNotes&&notes.after){lines.push({text:'',size:6,bold:false,color:c.grey});wrap(notes.after,cellW-3,7.5).forEach(text=>lines.push({text,size:7.5,bold:false,color:c.grey}));}
         return lines.length?lines:[{text:'-',size:6.5,bold:false,color:c.grey}];
       });
       const count=Math.max(...cells.map(a=>a.length));let offset=0;
@@ -111,11 +111,31 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     }
   }
   function daily(s,day){
-    let part=1,g,y;const subtitle=()=>`${DAYS[day-1]} · Settimana ${s} di ${totalWeeks}${part>1?' - segue':''}`;
+    let part=1,g,y;const subtitle=()=>`${isDailyPlan(dieta)?'Giornata tipo con sostituzioni':DAYS[day-1]+' · Settimana '+s+' di '+totalWeeks}${part>1?' - segue':''}`;
     const page=()=>{g=newPage(subtitle(),'portrait');y=g.y;};page();
     const mealHeading=(id,label,follow=false)=>{const theme=mealColors(id,o.palette==='grayscale');rect(g.margin,y,g.w,7,colorRgb(theme.fill));font(9,true,colorRgb(theme.text));doc.text(label.toUpperCase()+(follow?' - SEGUE':''),g.margin+3,y+4.8);y+=11;};
+    function mealGuidance(id,label,position){
+      const text=mealNote(dieta.documento_export,s,day,id)[position],editable=context.editableMealNotes;
+      if(!editable&&(!o.showMealNotes||!text.trim()))return;
+      const lines=text.trim()?wrap(text,g.w-6,9):[],lineHeight=4.4*scale;let offset=0,firstPart=true;
+      do{
+        if(y+9>g.end){part++;page();}if(g.end-g.y<9)throw new Error('Intestazione troppo lunga per il formato PDF. Riduci il nome del piano.');
+        const capacity=Math.max(1,Math.floor((g.end-y-4)/lineHeight)),take=Math.min(lines.length-offset,capacity),height=Math.max(editable?8:4,take*lineHeight+4);
+        if(y+height>g.end){part++;page();continue;}
+        if(firstPart&&editable)doc.mealNoteAnchors.push({page:doc.internal.getCurrentPageInfo().pageNumber,week:s,day,meal:id,position,x:g.margin+3,y,width:g.w-6,height,text,label:(position==='before'?'Prima di ':'Dopo ')+label.toLowerCase()});
+        if(take){font(9,false,c.dark);lines.slice(offset,offset+take).forEach((t,i)=>doc.text(t,g.margin+3,y+3.5+i*lineHeight));}
+        y+=height+2;offset+=take;firstPart=false;
+      }while(offset<lines.length);
+    }
     for(const [id,label] of MEALS){
-      const foods=foodsAt(piano,s,day,id);if(!foods.length&&!o.showEmptyMeals)continue;
+      const foods=foodsAt(piano,s,day,id),notes=mealNote(dieta.documento_export,s,day,id);if(!foods.length&&!o.showEmptyMeals&&!context.editableMealNotes&&(!o.showMealNotes||(!notes.before.trim()&&!notes.after.trim())))continue;
+      // Conserva insieme note, titolo e contenuto quando l'intero pasto entra in una pagina.
+      const guidanceHeight=position=>o.showMealNotes||context.editableMealNotes?(notes[position].trim()?Math.max(context.editableMealNotes?8:4,wrap(notes[position],g.w-6,9).length*4.4*scale+4)+2:context.editableMealNotes?10:0):0;
+      const contentHeight=(foods.length?foods:[null]).reduce((height,food)=>height+(food?foodLines(food,g.w-6,true).length:1)*4.6*scale+5,0);
+      const totalsHeight=id==='cena'&&o.showDailyTotals&&(o.showCalories||o.showMacros)?12+totalLines(s,day).length*5*scale:0;
+      const groupHeight=guidanceHeight('before')+11+contentHeight+3+guidanceHeight('after')+totalsHeight;
+      if(groupHeight<=g.end-g.y&&y+groupHeight>g.end){part++;page();}
+      mealGuidance(id,label,'before');
       if(y+19>g.end){part++;page();}mealHeading(id,label);
       const entries=foods.length?foods:[null];
       for(const food of entries){
@@ -130,7 +150,7 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
           const take=Math.min(lines.length-offset,capacity);writeLines(lines.slice(offset,offset+take),g.margin+3,y+3,lineHeight);y+=take*lineHeight;offset+=take;
         }
         y+=5;doc.setDrawColor(...c.border);doc.setLineWidth(.15);doc.line(g.margin,y-2,g.width-g.margin,y-2);
-      }y+=3;
+      }y+=3;mealGuidance(id,label,'after');
     }
     if(o.showDailyTotals&&(o.showCalories||o.showMacros)){
       const lines=totalLines(s,day),h=12+lines.length*5*scale;
@@ -172,7 +192,7 @@ export async function loadPdfLogo(){
   return null;
 }
 export async function esportaPianoPDF(dieta,paziente,piano,idx,options={},context={}){
-  const jsPDF=await loadJsPDF(),o=normalizePdfOptions(options),logo=o.showLogo?await loadPdfLogo():null;
+  const jsPDF=await loadJsPDF(),{o}=selection(dieta,options,context),logo=o.showLogo?await loadPdfLogo():null;
   const doc=createPianoPDF(jsPDF,dieta,paziente,piano,idx,logo,o,context);
   const name=(`Piano_${paziente.cognome}_${paziente.nome}_${o.layout==='daily'?'giornaliero':o.layout==='both'?'completo':'settimanale'}`).replace(/[\\/:*?"<>|]/g,'_');doc.save(name+'.pdf');
 }
