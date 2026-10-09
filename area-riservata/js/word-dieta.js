@@ -1,5 +1,5 @@
-import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText} from './diet-export-model.js?v=20261003-5';
-import {loadPdfLogo} from './pdf-dieta.js?v=20261003-5';
+import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText,roundedExportValue} from './diet-export-model.js?v=20261003-6';
+import {loadPdfLogo} from './pdf-dieta.js?v=20261003-6';
 
 // OOXML nativo: testo e tabelle modificabili, nessun HTML rinominato .doc.
 export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options={},context={}){
@@ -33,7 +33,7 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
   }
   function header(subtitle){
     const meta=[`Paziente: ${paziente.cognome||''} ${paziente.nome||''}`,subtitle];
-    if(o.showCalories&&o.showTarget)meta.push(`Target: ${Math.round(number(dieta.target_kcal))} kcal/giorno`);
+    if(o.showCalories&&o.showTarget)meta.push(`Target: ${roundedExportValue(dieta.target_kcal)} kcal/giorno`);
     const a=[para(dieta.nome||'Piano alimentare',{size:20,bold:true,style:'NutriTitle',keepNext:true,after:100}),para(meta.join(' · '),{size:9,color:'595959',keepNext:true,after:100})];
     if(o.showQuantities)a.push(para('Grammature da crudo, al netto degli scarti (eccetto legumi in scatola).',{size:8,color:'595959',after:130}));
     return a;
@@ -90,7 +90,7 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
 }
 
 export async function esportaPianoWord(dieta,paziente,piano,idx,options={},context={}){
-  const DX=await import('./vendor/docx.bundle.js?v=20261003-5'),{o}=selection(dieta,options,context);
+  const DX=await import('./vendor/docx.bundle.js?v=20261003-6'),{o}=selection(dieta,options,context);
   let logo=null;
   if(o.showLogo){const source=await loadPdfLogo();if(source){const img=new Image();await new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;img.src=source;});if(img.naturalWidth)logo={data:Uint8Array.from(atob(source.split(',')[1]),c=>c.charCodeAt(0)),width:img.naturalWidth,height:img.naturalHeight};}}
   const doc=createPianoWord(DX,dieta,paziente,piano,idx,logo,o,context),blob=await DX.Packer.toBlob(doc);

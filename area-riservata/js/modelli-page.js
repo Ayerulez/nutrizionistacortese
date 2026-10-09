@@ -1,9 +1,9 @@
-import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261003-5';
-import {initUI,loading,toast,showAlert,hideAlert,fmtDateShort,updateSearchControls} from './ui.js?v=20261003-5';
-import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-5';
-import {DIET_TYPES,loadModels,loadModelUsage,filterModels,openModelForm,updateModel,modelPlan,patientDietType} from './modelli.js?v=20261003-5';
-import {DAYS,MEALS,foodDetails,planSections} from './diet-export-model.js?v=20261003-5';
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-5';
+import {sb,requireAuth,logout,getAllRows} from './supabase.js?v=20261003-6';
+import {initUI,loading,toast,showAlert,hideAlert,fmtDateShort,updateSearchControls} from './ui.js?v=20261003-6';
+import {setHTML,escapeHtml,guard,reportError} from './safe-dom.js?v=20261003-6';
+import {DIET_TYPES,loadModels,loadModelUsage,filterModels,openModelForm,updateModel,modelPlan,patientDietType} from './modelli.js?v=20261003-6';
+import {DAYS,MEALS,foodDetails,planSections} from './diet-export-model.js?v=20261003-6';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-6';
 const $=id=>document.getElementById(id),escape=escapeHtml;
 let models=[],catalog=[],patients=[],foods={},current=null,usage=[],detailGeneration=0;
 const pathNames=m=>(m.patologie_ids||[]).map(id=>catalog.find(p=>p.id===id)?.nome||'Categoria non disponibile');

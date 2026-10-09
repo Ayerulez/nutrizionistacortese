@@ -1,9 +1,11 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-5';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-6';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
 export const number=v=>v!=null&&v!==''&&Number.isFinite(Number(v))?Number(v):0;
-export const grams=v=>new Intl.NumberFormat('it-IT',{maximumFractionDigits:1}).format(number(v));
+// Solo rappresentazione nei documenti: i valori del piano restano invariati.
+export const roundedExportValue=v=>Math.round(number(v)/10)*10;
+export const grams=v=>new Intl.NumberFormat('it-IT',{maximumFractionDigits:0}).format(roundedExportValue(v));
 export const cleanText=v=>String(v??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g,'').replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,'').replace(/↔/g,' / ').replace(/\p{Extended_Pictographic}/gu,'');
 export const foodsAt=(p,s,g,m)=>{const a=p?.[s]?.[g]?.[m];return Array.isArray(a)?a:a?[a]:[];};
 export const energy=p=>number(p.kcal??p.kcal_calcolate);
@@ -19,7 +21,7 @@ export function dayTotals(piano,s,g){
   return {kcal:items.reduce((n,p)=>n+energy(p),0),prot:items.reduce((n,p)=>n+number(macro(p,'prot')),0),carb:items.reduce((n,p)=>n+number(macro(p,'carb')),0),lip:items.reduce((n,p)=>n+number(macro(p,'lip')),0),incomplete:items.some(p=>['prot','carb','lip'].some(k=>macro(p,k)==null))};
 }
 export function foodDetails(food,idx,o){
-  const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${Math.round(energy(food))} kcal`);
+  const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
   const notes=[];if(o.showMealNotes&&food.note)notes.push('Nota: '+food.note);
   if(o.showAlternatives)(food.sostituti_ids||[]).forEach(id=>{
     const alt=idx[id];if(!alt){notes.push('Alternativa non disponibile');return;}
@@ -28,7 +30,7 @@ export function foodDetails(food,idx,o){
   });
   return {measures:measures.join(' · '),macros:o.showMacros?macroText(food):'',notes};
 }
-export function totalText(piano,s,g,o){const t=dayTotals(piano,s,g),lines=[];if(o.showCalories)lines.push(`${Math.round(t.kcal)} kcal`);if(o.showMacros){lines.push(macroText(t));if(t.incomplete)lines.push('Macro parziali');}return lines;}
+export function totalText(piano,s,g,o){const t=dayTotals(piano,s,g),lines=[];if(o.showCalories)lines.push(`${roundedExportValue(t.kcal)} kcal`);if(o.showMacros){lines.push(macroText(t));if(t.incomplete)lines.push('Macro parziali');}return lines;}
 export function planSections(dieta,idx,o){
   const entries={
     intro:[o.showIntro,'Introduzione',dieta.intestazione],guidelines:[o.showGuidelines,'Linee guida',dieta.linee_guida],

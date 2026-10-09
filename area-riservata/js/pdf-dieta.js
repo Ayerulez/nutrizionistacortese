@@ -1,5 +1,5 @@
-import {normalizePdfOptions} from './pdf-options.js?v=20261003-5';
-import {documentBlocks,specialistLines,cleanText} from './diet-export-model.js?v=20261003-5';
+import {normalizePdfOptions} from './pdf-options.js?v=20261003-6';
+import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue} from './diet-export-model.js?v=20261003-6';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -13,7 +13,6 @@ export async function loadJsPDF(){
   });return libraryPromise;
 }
 const number=v=>v!=null&&v!==''&&Number.isFinite(Number(v))?Number(v):0;
-const grams=v=>new Intl.NumberFormat('it-IT',{maximumFractionDigits:1}).format(number(v));
 const clean=cleanText;
 const foodsAt=(p,s,g,m)=>{const a=p?.[s]?.[g]?.[m];return Array.isArray(a)?a:a?[a]:[];};
 const energy=p=>number(p.kcal??p.kcal_calcolate);
@@ -38,7 +37,7 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     const title=wrap(dieta.nome,g.w-(x-margin),12,true);font(12,true,c.green);
     title.forEach(t=>{doc.text(t,x,y+4);y+=4.8*scale;});
     const meta=[`Paziente: ${paziente.cognome||''} ${paziente.nome||''}`];
-    if(o.showCalories&&o.showTarget)meta.push(`Target: ${Math.round(number(dieta.target_kcal))} kcal/giorno`);
+    if(o.showCalories&&o.showTarget)meta.push(`Target: ${roundedExportValue(dieta.target_kcal)} kcal/giorno`);
     meta.push(subtitle);const lines=wrap(meta.join(' · '),g.w-(x-margin),8);font(8,false,c.grey);
     lines.forEach(t=>{doc.text(t,x,y+4);y+=3.6*scale;});
     if(o.showQuantities){font(6.5,false,c.grey);wrap('Grammature da crudo, al netto degli scarti (eccetto legumi in scatola).',g.w-(x-margin),6.5).forEach(t=>{doc.text(t,x,y+4);y+=3*scale;});}
@@ -58,7 +57,7 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     const result=[],base=daily?10:7.8;
     const add=(value,size,bold=false,color=c.dark)=>wrap(value,width,size,bold).forEach(t=>result.push({text:t,size,bold,color}));
     add(food.alimento_nome||'Alimento',daily?11.5:8.5,true);
-    const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${Math.round(energy(food))} kcal`);
+    const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
     if(measures.length)add(measures.join(' · '),base,false,c.green);
     if(o.showMacros)add(macroText(food),daily?9:7.3,false,c.grey);
     if(o.showMealNotes&&food.note)add('Nota: '+food.note,daily?9:7.5,false,c.grey);
@@ -72,7 +71,7 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
   const totals=(s,g)=>{const items=MEALS.flatMap(([m])=>foodsAt(piano,s,g,m));return {kcal:items.reduce((n,p)=>n+energy(p),0),
     prot:items.reduce((n,p)=>n+number(macro(p,'prot')),0),carb:items.reduce((n,p)=>n+number(macro(p,'carb')),0),lip:items.reduce((n,p)=>n+number(macro(p,'lip')),0),
     incomplete:items.some(p=>['prot','carb','lip'].some(k=>macro(p,k)==null))};};
-  const totalLines=(s,g)=>{const t=totals(s,g),a=[];if(o.showCalories)a.push(`${Math.round(t.kcal)} kcal`);if(o.showMacros){a.push(macroText(t));if(t.incomplete)a.push('Macro parziali');}return a;};
+  const totalLines=(s,g)=>{const t=totals(s,g),a=[];if(o.showCalories)a.push(`${roundedExportValue(t.kcal)} kcal`);if(o.showMacros){a.push(macroText(t));if(t.incomplete)a.push('Macro parziali');}return a;};
   const totalWeeks=Math.max(1,Math.min(2,Math.trunc(number(dieta.numero_settimane))||1));
   const current=Math.max(1,Math.min(totalWeeks,Math.trunc(number(context.currentWeek))||1));
   const weeks=o.weeks==='current'?[current]:Array.from({length:totalWeeks},(_,i)=>i+1);
