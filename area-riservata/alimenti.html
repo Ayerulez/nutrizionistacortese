@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/app.css?v=20261113-1" />
   <style>
     .alimenti-table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;}
     .alimenti-table{width:100%;border-collapse:collapse;font-size:.83rem;}
@@ -85,7 +85,8 @@
     border-top-color: var(--sage-600); border-radius:50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/meal-tools.css?v=20261113-1" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -278,12 +279,14 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-3';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261113-1';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-3';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-3';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261113-1';
+import {mountFoodUnitForm} from './js/food-unit-form.js?v=20261113-1';
+import {portionUnits,unitInfo} from './js/food-units.js?v=20261113-1';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261113-1';
 import { loading, toast, showAlert, hideAlert, setBtn,
-         ModalManager, initUI, n, val, flt, emptyState, updateSearchControls } from './js/ui.js?v=20261009-3';
+         ModalManager, initUI, n, val, flt, emptyState, updateSearchControls } from './js/ui.js?v=20261113-1';
 
 const PAGE_SIZE = 50;
 // ── Stato OFF ────────────────────────────────────────────────────────────────
@@ -296,7 +299,9 @@ const S = {
   controindicazioniIdx: {}, // alimento_id → [{patologia_id,livello}]
 };
 
+let unitForm;
 async function init() {
+  unitForm=mountFoodUnitForm('a',n('a-note-porz'));unitForm.reset();
   loading(true);
   initUI();
   S.user = await requireAuth();
@@ -325,7 +330,7 @@ async function loadCatalogo() {
 async function loadAlimenti() {
   loading(true, 'Caricamento alimenti…');
   const data=await getAllRows(()=>sb.from('alimenti')
-    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,user_id,abilitato,off_code')
+    .select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,fibra_g,note_porzione,porzione_default_g,peso_unita_g,unita_misura,unita_fonte,user_id,abilitato,off_code')
     .eq('abilitato',true).order('categoria').order('nome').order('id'));
   S.tutti = data||[];
 
@@ -388,6 +393,7 @@ function renderTable() {
           ${isCustom?'<span class="badge-custom">Custom</span>':''}
           ${escapeHtml(a.nome)} ${ciTag}
         </div>
+        ${portionUnits(a,a.porzione_default_g)?`<div class="meal-portion-units">${escapeHtml(portionUnits(a,a.porzione_default_g))} nella porzione standard</div>`:''}
         ${a.note_porzione?`<div style="font-size:.68rem;color:var(--text-muted);">${escapeHtml(a.note_porzione)}</div>`:''}
       </td>
       <td><span class="cat-chip">${escapeHtml(a.categoria)}</span></td>
@@ -456,7 +462,9 @@ async function openDetail(id) {
     ${ci.map(c=>`<div style="font-size:.82rem;font-weight:500;color:#92400e;">${escapeHtml(c.patologie_catalogo?.nome)} — <em>${escapeHtml(c.livello)}</em></div>`).join('')}
   </div>`:'';
 
+  const unit=unitInfo(a);
   setHTML(n('detail-body'), `
+    ${unit?`<div class="food-unit-form"><strong>1 ${escapeHtml(unit.labels[0])} = ${escapeHtml(new Intl.NumberFormat('it-IT',{maximumFractionDigits:4}).format(unit.weight))} g</strong><div class="meal-portion-units">Porzione standard: ${escapeHtml(a.porzione_default_g)} g · ${escapeHtml(portionUnits(a,a.porzione_default_g))}</div>${unit.source?`<p class="form-help" style="overflow-wrap:anywhere">Fonte: ${escapeHtml(unit.source)}</p>`:''}</div>`:''}
     <div style="margin-bottom:.5rem;"><span class="cat-chip">${escapeHtml(a.categoria)}</span>${a.note_porzione?`<span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem;">📌 ${escapeHtml(a.note_porzione)}</span>`:''}</div>
     <div class="macro-summary">
       <div class="macro-card"><div class="macro-card__label">Energia</div><div class="macro-card__value">${escapeHtml(a.energia_kcal!=null?Math.round(a.energia_kcal):'—')}</div><div style="font-size:.7rem;color:var(--text-muted);">kcal / 100g</div></div>
@@ -541,6 +549,7 @@ function getPatologieSelezionate() {
 }
 
 async function openAlimentoForm(id=null) {
+  unitForm.reset();
   ModalManager.forceClose('modal-detail');
   n('a-editing-id').value = id||'';
   n('modal-alimento-title').textContent = id ? 'Modifica alimento' : 'Nuovo alimento';
@@ -562,6 +571,7 @@ async function openAlimentoForm(id=null) {
     }
     if(a){
       n('a-nome').value=a.nome??''; n('a-categoria').value=a.categoria??'';
+      unitForm.reset(a);
       n('a-porzione').value=a.porzione_default_g||100; n('a-note-porz').value=a.note_porzione??'';
       n('a-kcal').value=a.energia_kcal??''; n('a-prot').value=a.proteine_g??'';
       n('a-carb').value=a.carboidrati_g??''; n('a-lip').value=a.lipidi_g??'';
@@ -592,9 +602,10 @@ async function saveAlimento() {
   if(!cat){showAlert('alimento-error','Seleziona una categoria.');return;}
   if(kcal==null||kcal<0){showAlert('alimento-error','Inserisci calorie valide, anche zero.');return;}
 
+  let units;try{units=unitForm.read();}catch(error){showAlert('alimento-error',error.message);return;}
   const editId=n('a-editing-id').value||null;
   const payload={
-    nome,categoria:cat,porzione_default_g:parseFloat(n('a-porzione').value)||100,
+    nome,categoria:cat,...units,porzione_default_g:parseFloat(n('a-porzione').value)||100,
     note_porzione:val('a-note-porz')||null,energia_kcal:kcal,
     proteine_g:flt('a-prot'),carboidrati_g:flt('a-carb'),lipidi_g:flt('a-lip'),
     zuccheri_g:flt('a-zucc'),fibra_g:flt('a-fibra'),amido_g:flt('a-amido'),acqua_g:flt('a-acqua'),

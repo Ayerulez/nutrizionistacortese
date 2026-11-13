@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/app.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/app.css?v=20261113-1" />
   <style>
     /* ── Piano griglia ── */
     .piano-header{display:grid;grid-template-columns:82px repeat(7,1fr);gap:2px;margin-bottom:2px;}
@@ -155,12 +155,13 @@
       padding:.3rem .9rem;display:none;}
   </style>
 
-  <link rel="stylesheet" href="css/modelli.css?v=20261009-3" />
-  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261009-3" />
-  <link rel="stylesheet" href="css/diet-document.css?v=20261009-3" />
-  <link rel="stylesheet" href="css/meal-colors.css?v=20261009-3" />
-  <link rel="stylesheet" href="css/diet-plan.css?v=20261009-3" />
-  <link rel="stylesheet" href="css/gestionale.css?v=20261009-3" />
+  <link rel="stylesheet" href="css/modelli.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/diet-food-panel.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/diet-document.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/meal-colors.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/diet-plan.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/gestionale.css?v=20261113-1" />
+  <link rel="stylesheet" href="css/meal-tools.css?v=20261113-1" />
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Caricamento…</div></div>
@@ -186,7 +187,7 @@
       <input type="number" class="qty-in" id="fpk-g" value="100" min="1" step="5" />
       <span style="font-size:.72rem;color:var(--text-muted);">oppure</span>
       <label style="color:var(--text-muted);font-size:.72rem;">Kcal</label>
-      <input type="number" class="kcal-in" id="fpk-k" placeholder="—" min="1" step="5" />
+      <input type="number" class="kcal-in" id="fpk-k" placeholder="—" min="1" step="5" /><span id="fpk-unit-hint" role="status"></span>
     </div>
     <div style="flex:1;"></div>
     <button class="btn btn-ghost btn-sm" id="fpk-ann">Annulla</button>
@@ -466,7 +467,7 @@
 
 <!-- ══ MODAL PASTO DETAIL ══ -->
 <div class="modal-overlay" id="modal-pasto">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:680px;">
     <div class="modal-header">
       <h3 id="mp-title">Pasto</h3>
       <button class="modal-close" data-modal-close="modal-pasto" aria-label="Chiudi">✕</button>
@@ -548,20 +549,24 @@
 </div>
 
 <script type="module">
-import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261009-3';
+import { setHTML, escapeHtml, guard, reportError } from './js/safe-dom.js?v=20261113-1';
 
-import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261009-3';
-import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261009-3';
-import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261009-3';
-import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261009-3';
-import {previewLink} from './js/export-document.js?v=20261009-3';
-import {isDailyPlan,planDays,planDuration,dayName} from './js/plan-structure.js?v=20261009-3';
-import {dayTotals} from './js/diet-export-model.js?v=20261009-3';
-import {mealNote} from './js/export-document.js?v=20261009-3';
-import {applyMealColors} from './js/meal-colors.js?v=20261009-3';
+import { sb, requireAuth, logout, getAllRows } from './js/supabase.js?v=20261113-1';
+import {swapMealFoods,promoteSubstitute} from './js/meal-actions.js?v=20261113-1';
+import {installMealReordering} from './js/meal-reorder.js?v=20261113-1';
+import {portionUnits} from './js/food-units.js?v=20261113-1';
+import {mountFoodUnitForm} from './js/food-unit-form.js?v=20261113-1';
+import { searchOpenFoodFacts, checkDuplicate, importOffProdotto } from './js/off-search.js?v=20261113-1';
+import {DIET_TYPES,patientDietType,loadModels,filterModels,createModel,applyModel,cloneDiet,openModelForm,reviewModelWarnings} from './js/modelli.js?v=20261113-1';
+import {installFoodDragDrop} from './js/diet-food-dnd.js?v=20261113-1';
+import {previewLink} from './js/export-document.js?v=20261113-1';
+import {isDailyPlan,planDays,planDuration,dayName} from './js/plan-structure.js?v=20261113-1';
+import {dayTotals} from './js/diet-export-model.js?v=20261113-1';
+import {mealNote} from './js/export-document.js?v=20261113-1';
+import {applyMealColors} from './js/meal-colors.js?v=20261113-1';
 import { loading, toast, showAlert, hideAlert, setBtn,
          ModalManager, markClean, markDirty, initUI,
-         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261009-3';
+         n, val, flt, emptyState, fmtDateShort, calcEta, updateSearchControls } from './js/ui.js?v=20261113-1';
 
 const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MOMENTI=[
@@ -598,7 +603,9 @@ const S={
 };
 
 // ─── INIT ───────────────────────────────────────────────
+let inlineUnits;
 async function init(){
+  inlineUnits=mountFoodUnitForm('ali',n('ali-note-p'));inlineUnits.reset();
   loading(true); initUI();applyMealColors();
   S.user=await requireAuth(); if(!S.user)return;
   n('topbar-email').textContent=S.user.email;
@@ -634,6 +641,7 @@ async function init(){
   n('fpk-ann').onclick = guard(closeFp);
   n('fpk-category').onchange=guard(renderFpList);
   installFoodDragDrop({picker:n('fpk'),containers:[n('piano-cont'),n('day-view-cont')],isEnabled:()=>desktopFoods.matches&&n('fpk').classList.contains('fpk-docked')&&foodEditorVisible()&&!S._fpBusy,getFood:id=>S.aliIdx[id],getOffProduct:item=>offPickerProducts.get(item),getDietId:()=>S.dieta?.id,onDrop:dropFoodInSlot,onError:reportError});
+  installMealReordering({containers:[n('piano-cont'),n('day-view-cont'),n('mp-body')],getDietId:()=>S.dieta?.id,getItem:p=>S.piano[p.s]?.[p.g]?.[p.m]?.[p.index],onSwap:swapFoodPositions,onPromote:promoteMealFood,onError:error=>toast(error.message,'error')});
   desktopFoods.addEventListener('change',()=>{layoutFoodPicker();});
   window.addEventListener('scroll',scheduleFoodPanelHeight,{passive:true});window.addEventListener('resize',scheduleFoodPanelHeight);
   new ResizeObserver(scheduleFoodPanelHeight).observe(n('view-editor'));
@@ -686,7 +694,7 @@ async function init(){
 
 async function loadAlimenti(){
   const [al,ci]=await Promise.all([
-    getAllRows(()=>sb.from('alimenti').select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,porzione_default_g,user_id,off_code').eq('abilitato',true).order('categoria').order('nome').order('id')),
+    getAllRows(()=>sb.from('alimenti').select('id,nome,categoria,energia_kcal,proteine_g,carboidrati_g,lipidi_g,porzione_default_g,note_porzione,peso_unita_g,unita_misura,unita_fonte,user_id,off_code').eq('abilitato',true).order('categoria').order('nome').order('id')),
     getAllRows(()=>sb.from('alimenti_patologie').select('alimento_id,patologia_id,livello').order('id')),
   ]);
   S.alimenti=al||[]; S.aliIdx={};
@@ -1156,6 +1164,7 @@ function renderPiano(){
     else openSlotDetail(cs,cg,cm);
   });
   n('piano-cont').querySelectorAll('.pc').forEach(cell=>{cell.tabIndex=0;cell.setAttribute('role','button');cell.dataset.rowOpen='';cell.setAttribute('aria-label',`${GIORNI[+cell.dataset.g-1]} — ${MOMENTI.find(m=>m.id===cell.dataset.m)?.label}`);});
+  enhanceMealItems();
   highlightFpTarget();
   renderWeekSummary(tot,target);
 }
@@ -1265,6 +1274,7 @@ function renderDayView(){
     </div>
     ${html}`);
 
+  enhanceMealItems();
   // Event delegation
   n('day-view-cont').onclick = guard(e=>{
     const ab=e.target.closest('[data-add-s]');if(ab){openFp(+ab.dataset.addS,+ab.dataset.addG,ab.dataset.addM);return;}
@@ -1273,6 +1283,25 @@ function renderDayView(){
     const sb2=e.target.closest('[data-add-sost-s]');if(sb2){openFpSost(+sb2.dataset.addSostS,+sb2.dataset.addSostG,sb2.dataset.addSostM,0);}
   });
 }
+
+
+function mealMoveButtons(index,count,name){return `<button type="button" class="meal-order-handle" data-meal-handle draggable="true" aria-label="Trascina ${escapeHtml(name)} per scambiarlo" title="Trascina per scambiare">⠿</button><button type="button" class="btn btn-ghost btn-sm" data-move-food="-1" ${index===0?'disabled':''} aria-label="Sposta prima ${escapeHtml(name)}" title="Sposta prima">↑</button><button type="button" class="btn btn-ghost btn-sm" data-move-food="1" ${index===count-1?'disabled':''} aria-label="Sposta dopo ${escapeHtml(name)}" title="Sposta dopo">↓</button>`;}
+function setMealItemData(row,slot,index){row.dataset.mealItem=index;row.dataset.s=slot.s;row.dataset.g=slot.g;row.dataset.m=slot.m;}
+function enhanceMealItems(){
+ for(const [selector,itemSelector,daily] of [['#piano-cont .pc','.pc-voce',false],['#day-view-cont .day-sec','.day-main',true]])for(const slotElement of document.querySelectorAll(selector)){
+  const slot={s:+slotElement.dataset.s,g:+slotElement.dataset.g,m:slotElement.dataset.m},items=S.piano[slot.s]?.[slot.g]?.[slot.m]||[];
+  slotElement.querySelectorAll(itemSelector).forEach((row,index)=>{
+   const food=items[index];if(!food||row.hasAttribute('data-meal-item'))return;setMealItemData(row,slot,index);
+   const controls=document.createElement('div');controls.className='meal-actions';setHTML(controls,mealMoveButtons(index,items.length,food.alimento_nome));
+   if(daily)row.append(controls);else{controls.querySelectorAll('[data-move-food]').forEach(b=>b.remove());row.prepend(controls);}
+   const units=portionUnits(S.aliIdx[food.alimento_id],food.quantita_g);if(units){const span=document.createElement('span');span.className='meal-portion-units';span.textContent=units;(row.querySelector(daily?'.day-qty':'.pc-food-name')||row).append(span);}
+   if(daily){const alternatives=(food.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);row.querySelectorAll('.day-sost').forEach((element,i)=>{const alt=alternatives[i];if(!alt)return;const button=document.createElement('button');button.type='button';button.className='btn btn-secondary btn-sm';button.dataset.promoteFood=alt.id;button.textContent='Rendi principale';element.append(button);const qty=alt.energia_kcal?Math.round((food.kcal||0)*100/alt.energia_kcal):Math.round(food.quantita_g),unit=portionUnits(alt,qty);if(unit){const span=document.createElement('span');span.className='meal-portion-units';span.textContent=unit;element.firstElementChild.append(span);}});}
+  });
+ }
+}
+function redrawMealTools(slot){renderPiano();renderDayView();const detail=S._slotDetail;if(n('modal-pasto').classList.contains('open')&&detail&&detail.s===slot.s&&detail.g===slot.g&&detail.m===slot.m)detail.render();}
+async function swapFoodPositions(slot,to){const items=S.piano[slot.s]?.[slot.g]?.[slot.m];if(!items||slot.index===to)return;S.piano[slot.s][slot.g][slot.m]=swapMealFoods(items,slot.index,to);redrawMealTools(slot);await autoSave();toast('Ordine degli alimenti aggiornato');}
+async function promoteMealFood(slot,id){const items=S.piano[slot.s]?.[slot.g]?.[slot.m],food=items?.[slot.index],alternative=S.aliIdx[id];if(!food||!alternative)return;if(!allowFoodInPlan(alternative))return;const result=promoteSubstitute(food,alternative);items[slot.index]=result.food;redrawMealTools(slot);await autoSave();toast(result.isocaloric?'Principale aggiornato: grammi e macro ricalcolati.':'Principale aggiornato mantenendo i grammi: verifica la porzione.');}
 
 // ─── COPY / PASTE ─────────────────────────────────────
 function copiaPasto(s,g,m){
@@ -1389,10 +1418,12 @@ function renderFpList(){
     updateFpButton();
   });
 
-  cancelOffPickerSearch();syncFoodDraggables();updateFpButton();
+  cancelOffPickerSearch();syncFoodDraggables();updateFpButton();refreshPortionHint();
 }
 
+function refreshPortionHint(){const food=S.aliIdx[S._fpSelId];n('fpk-unit-hint').textContent=food?portionUnits(food,Number(n('fpk-g').value)):'';}
 function syncKfromG(){
+  refreshPortionHint();
   const a=S.aliIdx[S._fpSelId];if(!a||a.energia_kcal==null)return;
   const g=parseFloat(n('fpk-g').value)||0;
   n('fpk-k').value=g>0?Math.round(a.energia_kcal*g/100):'';
@@ -1400,7 +1431,7 @@ function syncKfromG(){
 function syncGfromK(){
   const a=S.aliIdx[S._fpSelId];if(!a||!a.energia_kcal)return;
   const k=parseFloat(n('fpk-k').value)||0;
-  n('fpk-g').value=k>0?Math.round(k/(a.energia_kcal/100)):'';
+  n('fpk-g').value=k>0?Math.round(k/(a.energia_kcal/100)):'';refreshPortionHint();
 }
 
 function closeFp(){
@@ -1550,41 +1581,20 @@ function openSlotDetail(s,g,m){
 
   n('mp-title').textContent=`${dayName(S.dieta,g,GIORNI)} — ${mom?.label}`;
 
-  function buildVoceHtml(voce,vIdx){
-    const a=S.aliIdx[voce.alimento_id];
-    const ci=a?chkCI(voce.alimento_id):[];
-    const sosts=(voce.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
-    const ciTag=ci.length?`<span style="font-size:.62rem;font-weight:700;color:#b45309;background:#fef3c7;border-radius:9999px;padding:.1rem .4rem;">⚠CI</span>`:'';
-    const sostHtml=sosts.map(alt=>{
-      const qIso=alt.energia_kcal?Math.round((voce.kcal||0)/(alt.energia_kcal/100)):Math.round(voce.quantita_g);
-      return`<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0 .25rem 1rem;border-bottom:1px dotted var(--border);">
-        <div style="flex:1;font-size:.76rem;color:var(--text-muted);">↔ ${escapeHtml(alt.nome)} — ${escapeHtml(qIso)}g (iso)</div>
-        <button class="btn btn-ghost btn-sm" data-rm-sost="${escapeHtml(alt.id)}" data-vidx="${escapeHtml(vIdx)}" style="padding:.1rem .4rem;">✕</button>
-      </div>`;
+  function buildVoceHtml(voce,vIdx,count){
+    const a=S.aliIdx[voce.alimento_id],ci=a?chkCI(voce.alimento_id):[],sosts=(voce.sostituti_ids||[]).map(id=>S.aliIdx[id]).filter(Boolean);
+    const substitutes=sosts.map(alt=>{const qIso=alt.energia_kcal?Math.round((voce.kcal||0)/(alt.energia_kcal/100)):Math.round(voce.quantita_g),units=portionUnits(alt,qIso);
+      return `<div class="meal-slot-alternative"><div class="meal-slot-alternative-copy">↔ ${escapeHtml(alt.nome)} — ${escapeHtml(qIso)} g${units?' · '+escapeHtml(units):''}</div><div class="meal-slot-tools"><button type="button" class="btn btn-secondary btn-sm" data-promote-food="${escapeHtml(alt.id)}">Rendi principale</button><button type="button" class="btn btn-ghost btn-sm" data-rm-sost="${escapeHtml(alt.id)}" data-vidx="${vIdx}" aria-label="Rimuovi sostituto ${escapeHtml(alt.nome)}">✕</button></div></div>`;
     }).join('');
-    return`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:.5rem;overflow:hidden;" data-voce-card="${escapeHtml(vIdx)}">
-      <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;background:var(--sage-50);">
-        <div style="flex:1;">
-          <span style="font-weight:700;font-size:.9rem;">${escapeHtml(voce.alimento_nome)}</span> ${ciTag}
-          <span style="font-size:.75rem;color:var(--sage-600);margin-left:.5rem;">${escapeHtml(Math.round(voce.quantita_g))}g · ${escapeHtml(voce.kcal||0)} kcal</span>
-          <span style="font-size:.68rem;color:var(--text-muted);">P${escapeHtml(voce.prot||0)} C${escapeHtml(voce.carb||0)} L${escapeHtml(voce.lip||0)}</span>
-        </div>
-        <div style="display:flex;gap:.3rem;">
-          <button class="btn btn-ghost btn-sm" data-edit-voce="${escapeHtml(vIdx)}" title="Modifica alimento e quantità">Modifica</button>
-          <button class="btn btn-ghost btn-sm" data-add-sost="${escapeHtml(vIdx)}" title="Aggiungi sostituto">↔</button>
-          <button class="btn btn-danger btn-sm" data-rm-voce="${escapeHtml(vIdx)}" title="Rimuovi">✕</button>
-        </div>
-      </div>
-      ${voce.note?`<div style="padding:.3rem .75rem;font-size:.73rem;color:var(--stone-600);font-style:italic;">📝 ${escapeHtml(voce.note)}</div>`:''}
-      ${sostHtml?`<div style="padding:0 0 .25rem;">${sostHtml}</div>`:''}
-    </div>`;
+    return `<div class="meal-slot-card" data-voce-card="${vIdx}" data-meal-item="${vIdx}" data-s="${s}" data-g="${g}" data-m="${m}"><div class="meal-slot-header"><div class="meal-slot-copy"><strong>${escapeHtml(voce.alimento_nome)}</strong>${ci.length?' <span class="badge badge-warning">⚠ CI</span>':''}<div class="text-muted text-sm">${escapeHtml(Math.round(voce.quantita_g))} g · ${escapeHtml(voce.kcal??'—')} kcal · P ${escapeHtml(voce.prot??'—')} C ${escapeHtml(voce.carb??'—')} G ${escapeHtml(voce.lip??'—')}</div>${portionUnits(a,voce.quantita_g)?`<span class="meal-portion-units">${escapeHtml(portionUnits(a,voce.quantita_g))}</span>`:''}</div><div class="meal-actions">${mealMoveButtons(vIdx,count,voce.alimento_nome)}</div><div class="meal-slot-tools"><button type="button" class="btn btn-ghost btn-sm" data-edit-voce="${vIdx}">Modifica</button><button type="button" class="btn btn-ghost btn-sm" data-add-sost="${vIdx}" aria-label="Aggiungi sostituto">↔ Sostituto</button><button type="button" class="btn btn-danger btn-sm" data-rm-voce="${vIdx}" aria-label="Rimuovi ${escapeHtml(voce.alimento_nome)}">✕</button></div></div>${voce.note?`<div class="day-note-txt" style="padding:8px 12px">${escapeHtml(voce.note)}</div>`:''}${substitutes}</div>`;
   }
 
   function render(){
     const vociCur=S.piano[s]?.[g]?.[m]||[];
     const tot=vociCur.reduce((a,v)=>a+(v.kcal||0),0);
-    const listHtml=vociCur.map((v,i)=>buildVoceHtml(v,i)).join('');
+    const listHtml=vociCur.map((v,i)=>buildVoceHtml(v,i,vociCur.length)).join('');
     setHTML(n('mp-body'), `
+      <p class="meal-slot-help">Trascina la maniglia per scambiare due alimenti dello stesso pasto, oppure usa le frecce. Un sostituto può diventare il principale.</p>
       ${listHtml}
       <button class="btn btn-secondary" id="mp-add-voce" style="width:100%;margin-top:.25rem;">+ Aggiungi alimento a questo pasto</button>
       <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
@@ -1639,7 +1649,7 @@ function openSlotDetail(s,g,m){
     });
   }
 
-  render();
+  S._slotDetail={s,g,m,render};render();
   setHTML(n('mp-ftr'), `<button class="btn btn-ghost" data-modal-close="modal-pasto">Chiudi</button>`);
   ModalManager.openClean('modal-pasto');
 }
@@ -1712,6 +1722,7 @@ async function cloneVerso(targetPzId){
 
 // ─── NUOVO ALIMENTO INLINE ────────────────────────────
 function openInlineAlim(){
+  inlineUnits.reset();
   S._fpInlineContext={mode:S._fpMode,ctx:{...S._fpCtx},ready:S._fpTargetReady,popup:S._fpPopupOpen};
   closeFp();
   ['ali-nome','ali-note-p','ali-kcal','ali-prot','ali-carb','ali-lip','ali-zucc','ali-fibra']
@@ -1727,10 +1738,11 @@ async function saveAlimInline(){
   if(!nome){showAlert('ali-err','Nome obbligatorio.');return;}
   if(!cat){showAlert('ali-err','Categoria obbligatoria.');return;}
   if(kcal==null||kcal<0){showAlert('ali-err','Inserisci calorie valide, anche zero.');return;}
+  let units;try{units=inlineUnits.read();}catch(error){showAlert('ali-err',error.message);return;}
   setBtn('btn-save-ali-inline',true);
   try{
     const{data,error}=await sb.from('alimenti').insert({
-      user_id:S.user.id,nome,categoria:cat,
+      user_id:S.user.id,nome,categoria:cat,...units,
       porzione_default_g:parseFloat(n('ali-porz').value)||100,
       note_porzione:val('ali-note-p')||null,energia_kcal:kcal,
       proteine_g:flt('ali-prot'),carboidrati_g:flt('ali-carb'),
