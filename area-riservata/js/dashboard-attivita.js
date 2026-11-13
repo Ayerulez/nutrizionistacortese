@@ -1,7 +1,7 @@
-import {sb,requireAuth,logout} from './supabase.js?v=20261009-3';
-import {initUI,loading,setBtn,showAlert,hideAlert} from './ui.js?v=20261009-3';
-import {setHTML,escapeHtml as esc,guard,reportError} from './safe-dom.js?v=20261009-3';
-import {planDuration} from './plan-structure.js?v=20261009-3';
+import {sb,requireAuth,logout} from './supabase.js?v=20261113-1';
+import {initUI,loading,setBtn,showAlert,hideAlert} from './ui.js?v=20261113-1';
+import {setHTML,escapeHtml as esc,guard,reportError} from './safe-dom.js?v=20261113-1';
+import {planDuration} from './plan-structure.js?v=20261113-1';
 const $=id=>document.getElementById(id);let user,busy=false;
 const fullName=p=>[p?.nome,p?.cognome].filter(Boolean).join(' ')||'Paziente';
 const initials=p=>(p?.nome?.[0]||'')+(p?.cognome?.[0]||'');

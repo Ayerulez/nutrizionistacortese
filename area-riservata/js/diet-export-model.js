@@ -1,6 +1,7 @@
-import {normalizeExportDocument} from './export-document.js?v=20261009-3';
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-3';
-import {isDailyPlan} from './plan-structure.js?v=20261009-3';
+import {portionUnits} from './food-units.js?v=20261113-1';
+import {normalizeExportDocument} from './export-document.js?v=20261113-1';
+import {normalizePdfOptions} from './pdf-options.js?v=20261113-1';
+import {isDailyPlan} from './plan-structure.js?v=20261113-1';
 export const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 export const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 export const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -24,11 +25,11 @@ export function dayTotals(piano,s,g){
   return {kcal:items.reduce((n,p)=>n+energy(p),0),prot:items.reduce((n,p)=>n+number(macro(p,'prot')),0),carb:items.reduce((n,p)=>n+number(macro(p,'carb')),0),lip:items.reduce((n,p)=>n+number(macro(p,'lip')),0),incomplete:items.some(p=>['prot','carb','lip'].some(k=>macro(p,k)==null))};
 }
 export function foodDetails(food,idx,o){
-  const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
+  const measures=[];if(o.showQuantities)measures.push(formatFoodQuantity(idx[food.alimento_id],food.quantita_g));if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
   const notes=[];if(o.showMealNotes&&food.note)notes.push('Nota: '+food.note);
   if(o.showAlternatives)(food.sostituti_ids||[]).forEach(id=>{
     const alt=idx[id];if(!alt){notes.push('Alternativa non disponibile');return;}
-    const amount=o.showQuantities?(number(alt.energia_kcal)>0?` - ${grams(energy(food)*100/number(alt.energia_kcal))} g`:' - quantità da definire'):'';
+    const amount=o.showQuantities?(number(alt.energia_kcal)>0?' - '+formatFoodQuantity(alt,energy(food)*100/number(alt.energia_kcal)):' - quantità da definire'):'';
     notes.push('Alternativa: '+alt.nome+amount);
   });
   return {measures:measures.join(' · '),macros:o.showMacros?macroText(food):'',notes};
@@ -70,3 +71,5 @@ export function documentBlocks(dieta,idx,o){
 }
 
 export function specialistLines(o){return [o.specialistName,o.specialistRole,o.specialistAddress,o.specialistPhone&&'Tel. '+o.specialistPhone,o.specialistEmail,o.specialistWebsite].filter(Boolean).map(cleanText);}
+
+export function formatFoodQuantity(food,quantity){const unit=portionUnits(food,roundedExportValue(quantity),{print:true});return grams(quantity)+' g'+(unit?' ('+unit+')':'');}

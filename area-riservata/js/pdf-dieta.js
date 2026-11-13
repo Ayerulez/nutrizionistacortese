@@ -1,8 +1,8 @@
-import {mealNote} from './export-document.js?v=20261009-3';
-import {isDailyPlan} from './plan-structure.js?v=20261009-3';
-import {normalizePdfOptions} from './pdf-options.js?v=20261009-3';
-import {documentBlocks,specialistLines,cleanText,grams,roundedExportValue,selection} from './diet-export-model.js?v=20261009-3';
-import {mealColors,colorRgb} from './meal-colors.js?v=20261009-3';
+import {mealNote} from './export-document.js?v=20261113-1';
+import {isDailyPlan} from './plan-structure.js?v=20261113-1';
+import {normalizePdfOptions} from './pdf-options.js?v=20261113-1';
+import {documentBlocks,specialistLines,cleanText,formatFoodQuantity,grams,roundedExportValue,selection} from './diet-export-model.js?v=20261113-1';
+import {mealColors,colorRgb} from './meal-colors.js?v=20261113-1';
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const SHORT=['LUN','MAR','MER','GIO','VEN','SAB','DOM'];
 const MEALS=[['colazione','Colazione'],['spuntino_mattina','Spuntino mattina'],['pranzo','Pranzo'],['spuntino_pomeriggio','Spuntino pomeriggio'],['cena','Cena']];
@@ -60,13 +60,13 @@ export function createPianoPDF(jsPDF,dieta,paziente,piano,idx={},logo=null,optio
     const result=[],base=daily?10:7.8;
     const add=(value,size,bold=false,color=c.dark)=>wrap(value,width,size,bold).forEach(t=>result.push({text:t,size,bold,color}));
     add(food.alimento_nome||'Alimento',daily?11.5:8.5,true);
-    const measures=[];if(o.showQuantities)measures.push(`${grams(food.quantita_g)} g`);if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
+    const measures=[];if(o.showQuantities)measures.push(formatFoodQuantity(idx[food.alimento_id],food.quantita_g));if(o.showCalories)measures.push(`${roundedExportValue(energy(food))} kcal`);
     if(measures.length)add(measures.join(' · '),base,false,c.green);
     if(o.showMacros)add(macroText(food),daily?9:7.3,false,c.grey);
     if(o.showMealNotes&&food.note)add('Nota: '+food.note,daily?9:7.5,false,c.grey);
     if(o.showAlternatives)(food.sostituti_ids||[]).forEach(id=>{
       const alt=idx[id];if(!alt){add('Alternativa non disponibile',daily?9:7.5,false,c.grey);return;}
-      const details=[];if(o.showQuantities)details.push(number(alt.energia_kcal)>0?`${grams(energy(food)*100/number(alt.energia_kcal))} g`:'quantità da definire');
+      const details=[];if(o.showQuantities)details.push(number(alt.energia_kcal)>0?formatFoodQuantity(alt,energy(food)*100/number(alt.energia_kcal)):'quantità da definire');
       add(`Alternativa: ${alt.nome}${details.length?' - '+details.join(' · '):''}`,daily?9:7.5,false,c.grey);
     });return result;
   }

@@ -1,8 +1,8 @@
-import {mealNote} from './export-document.js?v=20261009-3';
-import {isDailyPlan} from './plan-structure.js?v=20261009-3';
-import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText,roundedExportValue} from './diet-export-model.js?v=20261009-3';
-import {loadPdfLogo} from './pdf-dieta.js?v=20261009-3';
-import {mealColors} from './meal-colors.js?v=20261009-3';
+import {mealNote} from './export-document.js?v=20261113-1';
+import {isDailyPlan} from './plan-structure.js?v=20261113-1';
+import {selection,DAYS,SHORT,MEALS,foodsAt,foodDetails,totalText,documentBlocks,specialistLines,number,cleanText,roundedExportValue} from './diet-export-model.js?v=20261113-1';
+import {loadPdfLogo} from './pdf-dieta.js?v=20261113-1';
+import {mealColors} from './meal-colors.js?v=20261113-1';
 
 // OOXML nativo: testo e tabelle modificabili, nessun HTML rinominato .doc.
 export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options={},context={}){
@@ -97,7 +97,7 @@ export function createPianoWord(DX,dieta,paziente,piano,idx={},logo=null,options
 }
 
 export async function esportaPianoWord(dieta,paziente,piano,idx,options={},context={}){
-  const DX=await import('./vendor/docx.bundle.js?v=20261009-3'),{o}=selection(dieta,options,context);
+  const DX=await import('./vendor/docx.bundle.js?v=20261113-1'),{o}=selection(dieta,options,context);
   let logo=null;
   if(o.showLogo){const source=await loadPdfLogo();if(source){const img=new Image();await new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;img.src=source;});if(img.naturalWidth)logo={data:Uint8Array.from(atob(source.split(',')[1]),c=>c.charCodeAt(0)),width:img.naturalWidth,height:img.naturalHeight};}}
   const doc=createPianoWord(DX,dieta,paziente,piano,idx,logo,o,context),blob=await DX.Packer.toBlob(doc);

@@ -1,9 +1,9 @@
-import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js?v=20261009-3';
-import { mapOffToAlimento } from './off-model.js?v=20261009-3';
-export { mapOffToAlimento } from './off-model.js?v=20261009-3';
+import { sb, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js?v=20261113-1';
+import { mapOffToAlimento } from './off-model.js?v=20261113-1';
+export { mapOffToAlimento } from './off-model.js?v=20261113-1';
 const cache=new Map();
 const TTL=24*60*60*1000, PAGE_SIZE=15;
-const STORAGE='nutri.off.v2:';
+const STORAGE='nutri.off.v3:';
 let lastRequest=0, blockedUntil=0;
 function readCache(key){
   const memory=cache.get(key);if(memory&&Date.now()-memory.at<TTL)return memory;
@@ -18,7 +18,7 @@ function writeCache(key,products){
     sessionStorage.setItem(STORAGE+key,JSON.stringify(item));
   }catch{} // La cache e facoltativa; la ricerca funziona anche senza storage.
 }
-export async function searchOpenFoodFacts(query,maxResults=PAGE_SIZE,{signal}={}) {
+export async function searchOpenFoodFacts(query,maxResults=PAGE_SIZE,{signal,barcode=false}={}) {
   query=String(query??'').normalize('NFKC').trim().replace(/\s+/g,' ');
   if(query.length<3)return [];
   if(query.length>100)throw new Error('Ricerca troppo lunga (massimo 100 caratteri).');
@@ -27,7 +27,7 @@ export async function searchOpenFoodFacts(query,maxResults=PAGE_SIZE,{signal}={}
   if(error)throw error;
   if(!session?.access_token)throw new Error('Accedi di nuovo per cercare su Open Food Facts.');
   if(signal?.aborted)throw new DOMException('Ricerca annullata','AbortError');
-  const key=`${session.user.id}:${query.toLocaleLowerCase('it')}`;
+  const key=`${session.user.id}:${barcode?'barcode:':''}${query.toLocaleLowerCase('it')}`;
   const cached=readCache(key);
   if(cached)return structuredClone(cached.products.slice(0,maxResults));
   try{lastRequest=Math.max(lastRequest,Number(sessionStorage.getItem(STORAGE+'lastRequest'))||0);}catch{}
@@ -39,7 +39,7 @@ export async function searchOpenFoodFacts(query,maxResults=PAGE_SIZE,{signal}={}
   lastRequest=Date.now();try{sessionStorage.setItem(STORAGE+'lastRequest',String(lastRequest));}catch{}
   try {
     // Le due pagine chiedono lo stesso insieme: niente cache separata per lo slot.
-    const params=new URLSearchParams({q:query,page_size:String(PAGE_SIZE)});
+    const params=new URLSearchParams(barcode?{code:query}:{q:query,page_size:String(PAGE_SIZE)});
     const response=await fetch(`${SUPABASE_URL}/functions/v1/off-proxy?${params}`,{
       headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${session.access_token}`},signal:controller.signal,
     });
@@ -83,11 +83,17 @@ export async function importOffProdotto(product,userId) {
   const match=await existing();
   if(match)return match;
   const fields=['off_code','nome','categoria','energia_kcal','energia_kj','proteine_g','carboidrati_g',
-    'zuccheri_g','lipidi_g','grassi_saturi_g','fibra_g','sodio_mg','porzione_default_g','note_porzione'];
+    'zuccheri_g','lipidi_g','grassi_saturi_g','fibra_g','sodio_mg','porzione_default_g','note_porzione','peso_unita_g','unita_misura','unita_fonte'];
   const payload={user_id:userId,abilitato:true};
   for(const field of fields)if(product[field]!==undefined)payload[field]=product[field];
   const {data,error:insertError}=await sb.from('alimenti').insert(payload).select().single();
   if(insertError?.code==='23505'){const match=await existing();if(match)return match;}
   if(insertError)throw insertError;
   return data;
+}
+
+export async function lookupOpenFoodFactsProduct(code,options={}){
+ code=String(code||'').trim();if(!/^[0-9]{6,24}$/.test(code))throw new Error('Codice a barre non valido per la ricerca del peso.');
+ const products=await searchOpenFoodFacts(code,1,{...options,barcode:true});const product=products.find(p=>p.off_code===code);
+ if(!product)throw new Error('Prodotto non trovato con questo codice a barre.');return product;
 }

@@ -1,3 +1,4 @@
+import {parseUnitServing} from './food-units.js?v=20261113-1';
 // I valori OFF sono per 100 g. Un campo mancante rimane null, mai zero.
 function nutrient(value) {
   if(value==null||value==='')return null;
@@ -32,7 +33,10 @@ export function mapOffToAlimento(product) {
   const salt=nutrient(n['salt_100g']);
   const sodium=nutrient(n['sodium_100g'])??(salt==null?null:salt/2.5);
   const serving=text(product.serving_size).match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+  const unit=parseUnitServing(product.serving_size,product.serving_quantity,product.serving_quantity_unit||null);
   return {
+    ...(unit?{...unit,unita_fonte:/^[0-9]{6,24}$/.test(String(product.code||''))?'https://world.openfoodfacts.org/product/'+product.code:'Open Food Facts'}:{}),
+    note_porzione:text(product.serving_size)||null,
     off_code:product.code==null?null:String(product.code).trim()||null,
     nome:[text(product.product_name),text(product.brands)].filter(Boolean).join(' — ')||'Prodotto senza nome',
     categoria:category(product.categories_tags),
