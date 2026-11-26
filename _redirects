@@ -1,0 +1,12 @@
+# Cloudflare Pages: indirizzi precedenti e varianti di percorso.
+# I redirect di dominio vanno configurati nelle Redirect Rules della zona.
+/contattami /contatti 301
+/contattami/ /contatti 301
+/contattami.html /contatti 301
+/chi-sono /#chi-sono 301
+/chi-sono/ /#chi-sono 301
+/chi-sono.html /#chi-sono 301
+/servizi/ /servizi 301
+/contatti/ /contatti 301
+/social/ /social 301
+/instagram/ /instagram 301
